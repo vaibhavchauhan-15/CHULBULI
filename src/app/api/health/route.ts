@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { checkDatabaseConnection } from '@/lib/db/client'
 
+// Force dynamic rendering - don't prerender at build time
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * Health Check Endpoint
  * Verifies database connectivity and returns system status

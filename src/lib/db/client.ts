@@ -2,25 +2,28 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool, PoolConfig } from 'pg'
 import * as schema from './schema'
 
-// Validate DATABASE_URL exists
+// Validate DATABASE_URL exists (only at runtime, not during build)
 if (!process.env.DATABASE_URL) {
-  throw new Error(
-    'DATABASE_URL is not set. Please configure your database connection string in environment variables.'
-  )
+  // During build, DATABASE_URL might not be available - that's okay
+  if (process.env.NEXT_PHASE !== 'phase-production-build') {
+    console.warn('⚠️  DATABASE_URL is not set - database features will not work')
+  }
 }
 
-// Parse connection string for validation
-try {
-  new URL(process.env.DATABASE_URL)
-} catch (error) {
-  throw new Error(
-    `Invalid DATABASE_URL format: ${error instanceof Error ? error.message : 'Unknown error'}`
-  )
+// Parse connection string for validation (only if URL exists)
+if (process.env.DATABASE_URL) {
+  try {
+    new URL(process.env.DATABASE_URL)
+  } catch (error) {
+    throw new Error(
+      `Invalid DATABASE_URL format: ${error instanceof Error ? error.message : 'Unknown error'}`
+    )
+  }
 }
 
 // Pool configuration for serverless environments
 const poolConfig: PoolConfig = {
-  connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder',
   // Vercel/Serverless limits: keep connections low
   max: 5, // Maximum connections in pool
   min: 0, // Don't maintain idle connections in serverless
@@ -57,7 +60,7 @@ pool.on('connect', () => {
 export const db = drizzle(pool, { schema })
 
 // Test connection on initialization (only in development)
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development' && process.env.DATABASE_URL) {
   pool.query('SELECT 1')
     .then(() => {
       console.log('✅ Database connection verified')
