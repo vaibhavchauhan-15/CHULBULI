@@ -21,6 +21,11 @@ if (process.env.DATABASE_URL) {
   }
 }
 
+// Determine if SSL should be used
+const shouldUseSSL = process.env.DATABASE_URL && 
+  (process.env.DATABASE_URL.includes('sslmode') || 
+   !process.env.DATABASE_URL.includes('localhost'))
+
 // Pool configuration for serverless environments
 const poolConfig: PoolConfig = {
   connectionString: process.env.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder',
@@ -29,13 +34,13 @@ const poolConfig: PoolConfig = {
   min: 0, // Don't maintain idle connections in serverless
   idleTimeoutMillis: 30000, // Close idle connections after 30s
   connectionTimeoutMillis: 10000, // Timeout new connection attempts after 10s
-  // SSL configuration for production databases (Supabase, etc.)
-  ssl:
-    process.env.NODE_ENV === 'production'
-      ? {
-          rejectUnauthorized: false, // Required for most hosted databases
-        }
-      : undefined,
+  // SSL configuration for remote databases (Supabase, etc.)
+  // Apply SSL for any connection string that includes sslmode parameter or is not localhost
+  ssl: shouldUseSSL
+    ? {
+        rejectUnauthorized: false, // Required for most hosted databases with self-signed certs
+      }
+    : undefined,
 }
 
 // Create a single connection pool instance
