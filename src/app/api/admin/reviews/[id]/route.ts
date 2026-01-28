@@ -11,6 +11,26 @@ async function handlePUT(
   try {
     const { approved } = await request.json()
 
+    // Validate approved is a boolean
+    if (typeof approved !== 'boolean') {
+      return NextResponse.json(
+        { error: 'Approved field must be a boolean' },
+        { status: 400 }
+      )
+    }
+
+    // Check if review exists first
+    const existingReview = await db.query.reviews.findFirst({
+      where: eq(reviews.id, params.id),
+    })
+
+    if (!existingReview) {
+      return NextResponse.json(
+        { error: 'Review not found' },
+        { status: 404 }
+      )
+    }
+
     const [review] = await db.update(reviews)
       .set({ approved, updatedAt: new Date() })
       .where(eq(reviews.id, params.id))
@@ -31,10 +51,25 @@ async function handleDELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check if review exists first
+    const existingReview = await db.query.reviews.findFirst({
+      where: eq(reviews.id, params.id),
+    })
+
+    if (!existingReview) {
+      return NextResponse.json(
+        { error: 'Review not found' },
+        { status: 404 }
+      )
+    }
+
     await db.delete(reviews)
       .where(eq(reviews.id, params.id))
 
-    return NextResponse.json({ message: 'Review deleted successfully' })
+    return NextResponse.json({ 
+      success: true,
+      message: 'Review deleted successfully' 
+    })
   } catch (error) {
     console.error('Review deletion error:', error)
     return NextResponse.json(

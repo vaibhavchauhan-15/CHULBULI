@@ -18,6 +18,18 @@ async function handlePUT(
       )
     }
 
+    // Check if order exists first
+    const existingOrder = await db.query.orders.findFirst({
+      where: eq(orders.id, params.id),
+    })
+
+    if (!existingOrder) {
+      return NextResponse.json(
+        { error: 'Order not found' },
+        { status: 404 }
+      )
+    }
+
     const [order] = await db.update(orders)
       .set({ status, updatedAt: new Date() })
       .where(eq(orders.id, params.id))
