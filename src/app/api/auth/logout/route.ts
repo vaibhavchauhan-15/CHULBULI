@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { logAuthEvent, AuditAction } from '@/lib/auditLog'
 
+export const dynamic = 'force-dynamic'
+
 /**
  * Logout endpoint - clears the auth cookie
  */

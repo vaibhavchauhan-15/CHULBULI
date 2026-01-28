@@ -1,24 +1,30 @@
 /**
  * Database Query Helpers for Drizzle ORM
- * Common patterns for API routes
+ * Common patterns for API routes with automatic error handling
  */
 
-import { db } from './client'
+import { db, withDatabase } from './client'
 import { users, products, orders, orderItems, reviews } from './schema'
 import { eq, and, desc, asc } from 'drizzle-orm'
 
 // User Queries
 export const userQueries = {
   findByEmail: async (email: string) => {
-    return await db.query.users.findFirst({
-      where: eq(users.email, email),
-    })
+    return await withDatabase(
+      () => db.query.users.findFirst({
+        where: eq(users.email, email),
+      }),
+      'userQueries.findByEmail'
+    )
   },
 
   findById: async (id: string) => {
-    return await db.query.users.findFirst({
-      where: eq(users.id, id),
-    })
+    return await withDatabase(
+      () => db.query.users.findFirst({
+        where: eq(users.id, id),
+      }),
+      'userQueries.findById'
+    )
   },
 
   create: async (userData: {
@@ -28,11 +34,16 @@ export const userQueries = {
     password: string
     role?: string
   }) => {
-    const [user] = await db
-      .insert(users)
-      .values(userData)
-      .returning()
-    return user
+    return await withDatabase(
+      async () => {
+        const [user] = await db
+          .insert(users)
+          .values(userData)
+          .returning()
+        return user
+      },
+      'userQueries.create'
+    )
   },
 }
 

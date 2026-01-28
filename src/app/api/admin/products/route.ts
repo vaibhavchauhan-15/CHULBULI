@@ -6,6 +6,8 @@ import { authMiddleware } from '@/lib/middleware'
 import { sanitizeProductData, safeParseFloat, safeParseInt } from '@/lib/validation'
 import { generateId } from '@/lib/db/queries'
 
+export const dynamic = 'force-dynamic'
+
 async function handleGET(request: NextRequest) {
   try {
     const allProducts = await db.query.products.findMany({

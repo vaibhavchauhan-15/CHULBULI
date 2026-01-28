@@ -7,6 +7,8 @@ import { sanitizeReviewData } from '@/lib/validation'
 import { apiRateLimiter } from '@/lib/rateLimit'
 import { generateId } from '@/lib/db/queries'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting

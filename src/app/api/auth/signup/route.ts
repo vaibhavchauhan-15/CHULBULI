@@ -7,6 +7,8 @@ import { authRateLimiter } from '@/lib/rateLimit'
 import { validateEmail, validatePassword, sanitizeText } from '@/lib/validation'
 import { logAuthEvent, AuditAction } from '@/lib/auditLog'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // Apply rate limiting

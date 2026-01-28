@@ -4,6 +4,8 @@ import { orders, orderItems, products } from '@/lib/db/schema'
 import { lte, asc, sql } from 'drizzle-orm'
 import { authMiddleware } from '@/lib/middleware'
 
+export const dynamic = 'force-dynamic'
+
 async function handleGET(request: NextRequest) {
   try {
     // Get total sales

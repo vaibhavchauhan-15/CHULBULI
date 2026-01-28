@@ -4,6 +4,8 @@ import { orders } from '@/lib/db/schema'
 import { desc } from 'drizzle-orm'
 import { authMiddleware } from '@/lib/middleware'
 
+export const dynamic = 'force-dynamic'
+
 async function handleGET(request: NextRequest) {
   try {
     // Fetch all orders with relations

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
 import { FiEdit, FiTrash2, FiPlus } from 'react-icons/fi'
 import toast from 'react-hot-toast'
@@ -338,9 +339,11 @@ export default function AdminProductsPage() {
                   <div className="grid grid-cols-4 gap-3">
                     {imagePreviewUrls.map((url, index) => (
                       <div key={index} className="relative group">
-                        <img
+                        <Image
                           src={url}
                           alt={`Preview ${index + 1}`}
+                          width={96}
+                          height={96}
                           className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
                         />
                         <button

@@ -6,6 +6,8 @@ import { verifyToken } from '@/lib/auth'
 import { sanitizeOrderData, validateEmail, validatePhoneNumber, validatePincode } from '@/lib/validation'
 import { generateId } from '@/lib/db/queries'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()

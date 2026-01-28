@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -12,15 +12,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!user) {
-      router.push('/login')
-      return
-    }
-    fetchOrders()
-  }, [user, router])
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const response = await fetch('/api/orders', {
         credentials: 'include',
@@ -38,7 +30,15 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    fetchOrders()
+  }, [user, router, fetchOrders])
 
   const getStatusColor = (status: string) => {
     switch (status) {

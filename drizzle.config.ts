@@ -1,11 +1,16 @@
 import { defineConfig } from 'drizzle-kit'
 
+// Validate DATABASE_URL
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required in environment variables')
+}
+
 export default defineConfig({
   schema: './src/lib/db/schema.ts',
   out: './src/lib/db/migrations',
-  driver: 'pg',
+  dialect: 'postgresql',
   dbCredentials: {
-    connectionString: process.env.DATABASE_URL!,
+    url: process.env.DATABASE_URL,
   },
   verbose: true,
   strict: true,

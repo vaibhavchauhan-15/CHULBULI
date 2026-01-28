@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductCard from '@/components/ProductCard'
 import { FiFilter } from 'react-icons/fi'
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams()
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -17,11 +17,7 @@ export default function ProductsPage() {
   const [sort, setSort] = useState('latest')
   const [showFilters, setShowFilters] = useState(false)
 
-  useEffect(() => {
-    fetchProducts()
-  }, [category, minPrice, maxPrice, sort])
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true)
       const params = new URLSearchParams()
@@ -38,7 +34,11 @@ export default function ProductsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [category, minPrice, maxPrice, sort])
+
+  useEffect(() => {
+    fetchProducts()
+  }, [fetchProducts])
 
   const categories = [
     { value: 'all', label: 'All Products' },
@@ -51,15 +51,14 @@ export default function ProductsPage() {
 
   return (
     <>
-      <Navbar />
       <main className="min-h-screen pt-24 px-4 pb-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl md:text-4xl font-playfair font-bold">
-              {categories.find(c => c.value === category)?.label || 'All Products'}
-            </h1>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
+          <div className="max-w-7xl mx-auto">
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-3xl md:text-4xl font-playfair font-bold">
+                {categories.find(c => c.value === category)?.label || 'All Products'}
+              </h1>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
               className="lg:hidden btn-secondary flex items-center gap-2"
             >
               <FiFilter /> Filters
@@ -158,6 +157,36 @@ export default function ProductsPage() {
           </div>
         </div>
       </main>
+    </>
+  )
+}
+
+export default function ProductsPage() {
+  return (
+    <>
+      <Navbar />
+      <Suspense fallback={
+        <main className="min-h-screen pt-24 px-4 pb-12">
+          <div className="max-w-7xl mx-auto">
+            <div className="animate-pulse">
+              <div className="h-12 bg-gray-200 rounded w-64 mb-8"></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="card">
+                    <div className="aspect-square bg-gray-200"></div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
+      }>
+        <ProductsContent />
+      </Suspense>
       <Footer />
     </>
   )

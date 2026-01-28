@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Navbar from '@/components/Navbar'
@@ -22,13 +22,7 @@ export default function ProductDetailPage() {
   const addItem = useCartStore((state) => state.addItem)
   const user = useAuthStore((state) => state.user)
 
-  useEffect(() => {
-    if (params.id) {
-      fetchProduct()
-    }
-  }, [params.id])
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const response = await fetch(`/api/products/${params.id}`)
       if (response.ok) {
@@ -40,7 +34,13 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [params.id])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchProduct()
+    }
+  }, [params.id, fetchProduct])
 
   const handleAddToCart = () => {
     if (!product) return
