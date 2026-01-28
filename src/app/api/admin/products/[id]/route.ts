@@ -7,7 +7,7 @@ import { sanitizeProductData } from '@/lib/validation'
 
 async function handlePUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
     const body = await request.json()
@@ -42,7 +42,7 @@ async function handlePUT(
 
     // Check if product exists
     const existingProduct = await db.query.products.findFirst({
-      where: eq(products.id, params.id),
+      where: eq(products.id, context.params.id),
     })
 
     if (!existingProduct) {
@@ -65,7 +65,7 @@ async function handlePUT(
         featured: featured || false,
         updatedAt: new Date(),
       })
-      .where(eq(products.id, params.id))
+      .where(eq(products.id, context.params.id))
       .returning()
 
     return NextResponse.json({
@@ -83,15 +83,19 @@ async function handlePUT(
 
 async function handleDELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
+    // Check for force delete flag
+    const { searchParams } = new URL(request.url)
+    const forceDelete = searchParams.get('force') === 'true'
+
     // Check if product has existing orders
     const existingOrderItems = await db.query.orderItems.findMany({
-      where: eq(orderItems.productId, params.id),
+      where: eq(orderItems.productId, context.params.id),
     })
 
-    if (existingOrderItems.length > 0) {
+    if (existingOrderItems.length > 0 && !forceDelete) {
       return NextResponse.json(
         { 
           error: `Cannot delete product. It exists in ${existingOrderItems.length} order(s). Consider marking it as out of stock instead.`,
@@ -102,13 +106,19 @@ async function handleDELETE(
       )
     }
 
+    // If force delete, first delete all order items referencing this product
+    if (forceDelete && existingOrderItems.length > 0) {
+      await db.delete(orderItems)
+        .where(eq(orderItems.productId, context.params.id))
+    }
+
     // Delete product (cascade will handle reviews automatically)
     await db.delete(products)
-      .where(eq(products.id, params.id))
+      .where(eq(products.id, context.params.id))
 
     return NextResponse.json({ 
       success: true,
-      message: 'Product deleted successfully' 
+      message: forceDelete ? 'Product force deleted (order items removed)' : 'Product deleted successfully' 
     })
   } catch (error) {
     console.error('Product deletion error:', error)
