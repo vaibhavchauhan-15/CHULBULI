@@ -1,0 +1,122 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db/client'
+import { products } from '@/lib/db/schema'
+import { desc } from 'drizzle-orm'
+import { authMiddleware } from '@/lib/middleware'
+import { sanitizeProductData, safeParseFloat, safeParseInt } from '@/lib/validation'
+import { generateId } from '@/lib/db/queries'
+
+async function handleGET(request: NextRequest) {
+  try {
+    const allProducts = await db.query.products.findMany({
+      orderBy: desc(products.createdAt),
+      with: {
+        reviews: true,
+      },
+    })
+
+    // Add review count to each product
+    const productsWithCount = allProducts.map(p => ({
+      ...p,
+      _count: { reviews: p.reviews?.length || 0 },
+    }))
+
+    return NextResponse.json(productsWithCount)
+  } catch (error) {
+    console.error('Admin products fetch error:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch products' },
+      { status: 500 }
+    )
+  }
+}
+
+async function handlePOST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    // Sanitize input data
+    const sanitizedData = sanitizeProductData(body)
+    const { name, description, price, discount, category, stock, images, material, featured } = sanitizedData
+
+    // Validate required fields
+    if (!name || !description || price === undefined || !category || stock === undefined || !images || images.length === 0) {
+      return NextResponse.json(
+        { error: 'Missing required fields: name, description, price, category, stock, and at least one image' },
+        { status: 400 }
+      )
+    }
+
+    // Validate price
+    if (price <= 0 || price > 1000000) {
+      return NextResponse.json(
+        { error: 'Price must be between 0 and 1,000,000' },
+        { status: 400 }
+      )
+    }
+
+    // Validate discount
+    if (discount < 0 || discount > 100) {
+      return NextResponse.json(
+        { error: 'Discount must be between 0 and 100' },
+        { status: 400 }
+      )
+    }
+
+    // Validate stock
+    if (stock < 0 || stock > 100000) {
+      return NextResponse.json(
+        { error: 'Stock must be between 0 and 100,000' },
+        { status: 400 }
+      )
+    }
+
+    // Validate category
+    const validCategories = ['earrings', 'necklaces', 'rings', 'bangles', 'sets']
+    if (!validCategories.includes(category)) {
+      return NextResponse.json(
+        { error: `Category must be one of: ${validCategories.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
+    // Validate images
+    if (images.length > 10) {
+      return NextResponse.json(
+        { error: 'Maximum 10 images allowed per product' },
+        { status: 400 }
+      )
+    }
+
+    // Create product
+    const now = new Date()
+    const [product] = await db.insert(products).values({
+      id: generateId('prod'),
+      name,
+      description,
+      price: price.toFixed(2),
+      discount: discount.toFixed(2),
+      category,
+      stock,
+      images,
+      material: material || null,
+      featured: featured || false,
+      createdAt: now,
+      updatedAt: now,
+    }).returning()
+
+    return NextResponse.json({
+      success: true,
+      product,
+    }, { status: 201 })
+  } catch (error) {
+    console.error('Product creation error:', error)
+    return NextResponse.json(
+      { error: 'Failed to create product' },
+      { status: 500 }
+    )
+  }
+}
+
+export const GET = authMiddleware(handleGET)
+export const POST = authMiddleware(handlePOST)

@@ -1,0 +1,50 @@
+{
+  "name": "chulbuli-jewels",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} scripts/seed.ts"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.9.0",
+    "csurf": "^1.11.0",
+    "date-fns": "^3.2.0",
+    "drizzle-orm": "^0.30.10",
+    "express-rate-limit": "^8.2.1",
+    "helmet": "^8.1.0",
+    "isomorphic-dompurify": "^2.35.0",
+    "jsonwebtoken": "^9.0.2",
+    "next": "14.1.0",
+    "next-auth": "^4.24.5",
+    "pg": "^8.17.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hot-toast": "^2.4.1",
+    "react-icons": "^5.0.1",
+    "zod": "^3.22.4",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.11.0",
+    "@types/pg": "^8.16.0",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.17",
+    "drizzle-kit": "^0.20.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.1.0",
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}
