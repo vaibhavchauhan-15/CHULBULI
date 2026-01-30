@@ -23,15 +23,69 @@ export const products = pgTable(
   'Product',
   {
     id: text('id').primaryKey(),
+    // Basic Information
     name: text('name').notNull(),
+    sku: text('sku').unique(), // Auto-generated or manual
     description: text('description').notNull(),
-    price: numeric('price', { precision: 10, scale: 2 }).notNull(),
-    discount: numeric('discount', { precision: 5, scale: 2 }).notNull().default('0'),
+    shortDescription: text('shortDescription'), // Bullet points for quick overview
     category: text('category').notNull(), // earrings, necklaces, rings, bangles, sets
+    subCategory: text('subCategory'), // stud, hoop, drop, jhumka
+    brand: text('brand'), // Chulbuli Signature, Festive Collection, Bridal Collection
+    productStatus: text('productStatus').notNull().default('draft'), // draft, active, out_of_stock
+    
+    // Pricing & Tax
+    basePrice: numeric('basePrice', { precision: 10, scale: 2 }).notNull(), // MRP
+    price: numeric('price', { precision: 10, scale: 2 }).notNull(), // Selling price
+    discount: numeric('discount', { precision: 5, scale: 2 }).notNull().default('0'),
+    discountType: text('discountType').default('percentage'), // percentage or flat
+    finalPrice: numeric('finalPrice', { precision: 10, scale: 2 }), // Auto-calculated
+    gstPercentage: numeric('gstPercentage', { precision: 5, scale: 2 }).default('3'), // 3% for jewelry in India
+    costPrice: numeric('costPrice', { precision: 10, scale: 2 }), // Internal use only
+    
+    // Inventory & Stock
     stock: integer('stock').notNull(),
+    lowStockAlert: integer('lowStockAlert').default(5), // Alert threshold
+    stockStatus: text('stockStatus').default('in_stock'), // in_stock, out_of_stock, pre_order
+    
+    // Product Images & Media
     images: text('images').array(), // Array of image URLs
-    material: text('material'),
+    thumbnailImage: text('thumbnailImage'), // Main hero image
+    videoUrl: text('videoUrl'), // Optional 360° or product video
+    
+    // Product Attributes (Earring-specific)
+    material: text('material'), // Gold Plated, Silver, Brass, Alloy
+    stoneType: text('stoneType'), // CZ, Pearl, Kundan, None
+    color: text('color'), // Gold, Rose Gold, Silver
+    earringType: text('earringType'), // Stud, Hoop, Drop, Jhumka
+    closureType: text('closureType'), // Push Back, Screw Back, Hook
+    weight: numeric('weight', { precision: 8, scale: 2 }), // In grams
+    dimensionLength: numeric('dimensionLength', { precision: 8, scale: 2 }), // In mm
+    dimensionWidth: numeric('dimensionWidth', { precision: 8, scale: 2 }), // In mm
+    finish: text('finish'), // Matte, Glossy, Antique
+    
+    // Shipping & Packaging
+    productWeight: numeric('productWeight', { precision: 8, scale: 2 }), // For shipping calculations
+    shippingClass: text('shippingClass').default('standard'), // standard, fragile
+    packageIncludes: text('packageIncludes'), // e.g., "1 Pair of Earrings, Jewelry Box, Care Card"
+    codAvailable: boolean('codAvailable').default(true),
+    
+    // SEO & Visibility
+    seoTitle: text('seoTitle'),
+    metaDescription: text('metaDescription'),
+    urlSlug: text('urlSlug').unique(),
+    searchTags: text('searchTags').array(), // For internal search
     featured: boolean('featured').notNull().default(false),
+    isNewArrival: boolean('isNewArrival').default(false),
+    
+    // Compliance & Trust
+    careInstructions: text('careInstructions'),
+    returnPolicy: text('returnPolicy'),
+    warranty: text('warranty'),
+    certification: text('certification'),
+    
+    // Reviews Control
+    reviewsEnabled: boolean('reviewsEnabled').default(true),
+    
     createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
   },
@@ -39,6 +93,9 @@ export const products = pgTable(
     categoryIdx: index('Product_category_idx').on(table.category),
     featuredIdx: index('Product_featured_idx').on(table.featured),
     priceIdx: index('Product_price_idx').on(table.price),
+    skuIdx: index('Product_sku_idx').on(table.sku),
+    statusIdx: index('Product_productStatus_idx').on(table.productStatus),
+    stockStatusIdx: index('Product_stockStatus_idx').on(table.stockStatus),
   })
 )
 
@@ -95,6 +152,7 @@ export const reviews = pgTable(
     rating: integer('rating').notNull(), // 1-5
     comment: text('comment').notNull(),
     approved: boolean('approved').notNull().default(false),
+    verifiedPurchase: boolean('verifiedPurchase').default(false),
     createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
   },
@@ -103,6 +161,46 @@ export const reviews = pgTable(
     userIdIdx: index('Review_userId_idx').on(table.userId),
     approvedIdx: index('Review_approved_idx').on(table.approved),
     productUserUnique: uniqueIndex('Review_productId_userId_unique').on(table.productId, table.userId),
+  })
+)
+
+// Product Variants table (for products with multiple options)
+export const productVariants = pgTable(
+  'ProductVariant',
+  {
+    id: text('id').primaryKey(),
+    productId: text('productId').notNull(),
+    variantName: text('variantName').notNull(), // e.g., "Gold - Medium"
+    sku: text('sku').unique(),
+    color: text('color'), // Gold, Silver
+    size: text('size'), // Small, Medium, Large
+    price: numeric('price', { precision: 10, scale: 2 }),
+    stock: integer('stock').notNull().default(0),
+    images: text('images').array(),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (table) => ({
+    productIdIdx: index('ProductVariant_productId_idx').on(table.productId),
+    skuIdx: index('ProductVariant_sku_idx').on(table.sku),
+  })
+)
+
+// Product Images table (for better image management)
+export const productImages = pgTable(
+  'ProductImage',
+  {
+    id: text('id').primaryKey(),
+    productId: text('productId').notNull(),
+    url: text('url').notNull(),
+    altText: text('altText'),
+    imageType: text('imageType').default('gallery'), // thumbnail, side_view, model, zoom, back_view, gallery
+    sortOrder: integer('sortOrder').default(0),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (table) => ({
+    productIdIdx: index('ProductImage_productId_idx').on(table.productId),
+    imageTypeIdx: index('ProductImage_imageType_idx').on(table.imageType),
   })
 )
 
@@ -115,6 +213,8 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const productsRelations = relations(products, ({ many }) => ({
   orderItems: many(orderItems),
   reviews: many(reviews),
+  variants: many(productVariants),
+  productImages: many(productImages),
 }))
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -144,5 +244,19 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   user: one(users, {
     fields: [reviews.userId],
     references: [users.id],
+  }),
+}))
+
+export const productVariantsRelations = relations(productVariants, ({ one }) => ({
+  product: one(products, {
+    fields: [productVariants.productId],
+    references: [products.id],
+  }),
+}))
+
+export const productImagesRelations = relations(productImages, ({ one }) => ({
+  product: one(products, {
+    fields: [productImages.productId],
+    references: [products.id],
   }),
 }))

@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
+import { FiMail, FiLock, FiUser, FiCheck, FiArrowRight, FiUserPlus } from 'react-icons/fi'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -26,8 +27,6 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    console.log('Signup form submitted');
-
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match')
       return
@@ -49,7 +48,6 @@ export default function SignupPage() {
     }
 
     setLoading(true)
-    console.log('Sending signup request...');
 
     try {
       const response = await fetch('/api/auth/signup', {
@@ -63,9 +61,7 @@ export default function SignupPage() {
         }),
       })
 
-      console.log('Signup response status:', response.status);
-      const data = await response.json()
-      console.log('Signup response data:', data);
+      const data = await response.json();
 
       if (response.ok) {
         setAuth(data.user, null)
@@ -75,7 +71,6 @@ export default function SignupPage() {
         toast.error(data.error || 'Signup failed')
       }
     } catch (error) {
-      console.error('Signup error:', error)
       toast.error('Signup failed. Please check your network connection and try again.')
     } finally {
       setLoading(false)
@@ -85,84 +80,134 @@ export default function SignupPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 px-4 pb-12 flex items-center justify-center">
+      <main className="min-h-screen pt-24 px-4 pb-12 flex items-center justify-center bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-md w-full">
-          <div className="card p-8">
-            <h1 className="text-3xl font-playfair font-bold text-center mb-8">
-              Create Account
-            </h1>
+          <div className="card-luxury p-10 shadow-luxury-lg">
+            {/* Header */}
+            <div className="text-center mb-10">
+              <div className="bg-[#C89A7A]/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiUserPlus className="w-10 h-10 text-[#C89A7A]" />
+              </div>
+              <h1 className="text-4xl font-playfair font-bold text-[#5A3E2B] mb-2">
+                Create Account
+              </h1>
+              <p className="text-[#5A3E2B]/60">Join our exclusive jewelry collection</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Full Name Field */}
               <div>
-                <label className="block text-sm font-medium mb-2">Full Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="input-field"
-                  placeholder="Your Name"
-                />
+                <label className="block text-sm font-semibold text-[#5A3E2B] mb-2">
+                  Full Name
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiUser className="w-5 h-5 text-[#C89A7A]/60" />
+                  </div>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                    className="input-luxury w-full !pl-12 pr-4"
+                    placeholder="Your Name"
+                  />
+                </div>
               </div>
 
+              {/* Email Field */}
               <div>
-                <label className="block text-sm font-medium mb-2">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="input-field"
-                  placeholder="your@email.com"
-                />
+                <label className="block text-sm font-semibold text-[#5A3E2B] mb-2">
+                  Email
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiMail className="w-5 h-5 text-[#C89A7A]/60" />
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="input-luxury w-full !pl-12 pr-4"
+                    placeholder="aloo@gmail.com"
+                  />
+                </div>
               </div>
 
+              {/* Password Field */}
               <div>
-                <label className="block text-sm font-medium mb-2">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="input-field"
-                  placeholder="••••••••"
-                  minLength={8}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Min 8 characters with uppercase, lowercase, and number
+                <label className="block text-sm font-semibold text-[#5A3E2B] mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiLock className="w-5 h-5 text-[#C89A7A]/60" />
+                  </div>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="input-luxury w-full !pl-12 pr-4"
+                    placeholder="••••••••"
+                    minLength={8}
+                  />
+                </div>
+                <p className="text-xs text-[#5A3E2B]/60 mt-2 flex items-start gap-2">
+                  <FiCheck className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                  <span>Min 8 characters with uppercase, lowercase, and number</span>
                 </p>
               </div>
 
+              {/* Confirm Password Field */}
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-semibold text-[#5A3E2B] mb-2">
                   Confirm Password
                 </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  className="input-field"
-                  placeholder="••••••••"
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiLock className="w-5 h-5 text-[#C89A7A]/60" />
+                  </div>
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    className="input-luxury w-full !pl-12 pr-4"
+                    placeholder="••••••••"
+                  />
+                </div>
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full disabled:opacity-50"
+                className="btn-primary w-full py-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-6"
               >
-                {loading ? 'Creating Account...' : 'Sign Up'}
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    Sign Up
+                    <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </button>
             </form>
 
-            <p className="text-center mt-6 text-gray-600">
+            {/* Footer Link */}
+            <p className="text-center mt-8 text-[#5A3E2B]/70">
               Already have an account?{' '}
-              <Link href="/login" className="text-rose-gold hover:underline font-medium">
+              <Link href="/login" className="text-[#C89A7A] hover:text-[#E6C9A8] font-semibold transition-colors">
                 Login
               </Link>
             </p>

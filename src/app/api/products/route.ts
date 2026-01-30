@@ -4,10 +4,10 @@ import { products } from '@/lib/db/schema'
 import { and, eq, gte, lte, asc, desc } from 'drizzle-orm'
 import { apiRateLimiter } from '@/lib/rateLimit'
 import { safeParseFloat } from '@/lib/validation'
+import { logger } from '@/lib/logger'
 
-// Force dynamic rendering for this route
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
+// Cache products list for 60 seconds
+export const revalidate = 60
 
 export async function GET(request: NextRequest) {
   try {
@@ -69,16 +69,27 @@ export async function GET(request: NextRequest) {
       orderByClause = desc(products.featured)
     }
 
-    // Execute query with all conditions
+    // Execute query with all conditions - select only needed columns for listing
     const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined
-    const allProducts = await db.query.products.findMany({
-      where: whereClause,
-      orderBy: orderByClause,
-    })
+    const allProducts = await db.select({
+      id: products.id,
+      name: products.name,
+      price: products.price,
+      basePrice: products.basePrice,
+      discount: products.discount,
+      category: products.category,
+      images: products.images, // Include images array
+      thumbnailImage: products.thumbnailImage,
+      stock: products.stock,
+      featured: products.featured,
+      isNewArrival: products.isNewArrival,
+    }).from(products)
+      .where(whereClause)
+      .orderBy(orderByClause)
 
     return NextResponse.json(allProducts)
   } catch (error) {
-    console.error('Products fetch error:', error)
+    logger.error('Products fetch error', { error })
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

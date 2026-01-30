@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
-import { FiStar, FiCheck, FiX, FiTrash2 } from 'react-icons/fi'
+import AdminSidebar from '@/components/AdminSidebar'
+import { 
+  FiBell, FiSettings, FiCheck, FiX, FiTrash2, FiUser, FiStar, FiPackage
+} from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 export default function AdminReviewsPage() {
@@ -12,7 +15,7 @@ export default function AdminReviewsPage() {
   const user = useAuthStore((state) => state.user)
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('pending') // pending, approved, all
+  const [filter, setFilter] = useState('pending')
 
   useEffect(() => {
     if (!user || user.role !== 'admin') {
@@ -32,7 +35,7 @@ export default function AdminReviewsPage() {
         setReviews(data)
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error)
+      // Error fetching reviews
     } finally {
       setLoading(false)
     }
@@ -111,143 +114,258 @@ export default function AdminReviewsPage() {
   if (!user || user.role !== 'admin') return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/admin" className="text-gray-600 hover:text-rose-gold">
-              ← Back
-            </Link>
-            <h1 className="text-2xl font-playfair font-bold">Review Moderation</h1>
+    <div className="flex min-h-screen bg-champagne">
+      <AdminSidebar />
+
+      {/* Main Content */}
+      <main className="flex-1 px-6 py-6 overflow-y-auto">
+        {/* Top Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-playfair font-semibold text-warmbrown mb-1">Review Moderation</h1>
+            <p className="text-sm text-taupe">Approve or moderate customer reviews</p>
+          </div>
+
+          <div className="flex items-center gap-5 text-taupe">
+            <button className="hover:text-rosegold transition-colors relative">
+              <FiBell size={20} />
+              {reviews.filter((r: any) => !r.approved).length > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-rosegold rounded-full"></span>
+              )}
+            </button>
+            <button className="hover:text-rosegold transition-colors">
+              <FiSettings size={20} />
+            </button>
+            <div className="flex items-center gap-3 pl-4 border-l border-softgold/30">
+              <div className="text-right">
+                <p className="text-sm font-medium text-warmbrown font-playfair">{user.name}</p>
+                <p className="text-xs text-taupe">Administrator</p>
+              </div>
+              <div className="w-10 h-10 bg-gradient-to-br from-rosegold to-softgold rounded-xl flex items-center justify-center text-pearl font-semibold">
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
+            </div>
           </div>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filter Tabs */}
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-3 mb-6">
           <button
             onClick={() => setFilter('pending')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
               filter === 'pending'
-                ? 'bg-rose-gold text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-rosegold text-pearl shadow-sm'
+                : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
             }`}
           >
             Pending ({reviews.filter((r: any) => !r.approved).length})
           </button>
           <button
             onClick={() => setFilter('approved')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
               filter === 'approved'
-                ? 'bg-rose-gold text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-rosegold text-pearl shadow-sm'
+                : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
             }`}
           >
             Approved ({reviews.filter((r: any) => r.approved).length})
           </button>
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
               filter === 'all'
-                ? 'bg-rose-gold text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+                ? 'bg-rosegold text-pearl shadow-sm'
+                : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
             }`}
           >
             All ({reviews.length})
           </button>
         </div>
 
+        {/* Reviews List */}
         {loading ? (
           <div className="space-y-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-sm p-6 animate-pulse">
-                <div className="h-6 bg-gray-200 rounded w-1/4 mb-3"></div>
-                <div className="h-4 bg-gray-200 rounded w-full"></div>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-pearl rounded-2xl shadow-sm p-6 animate-pulse border border-softgold/20">
+                <div className="h-6 bg-sand rounded w-1/4 mb-3"></div>
+                <div className="h-4 bg-sand rounded w-full"></div>
               </div>
             ))}
           </div>
         ) : filteredReviews.length > 0 ? (
           <div className="space-y-4">
             {filteredReviews.map((review: any) => (
-              <div key={review.id} className="bg-white rounded-2xl shadow-sm p-6">
-                <div className="flex items-start justify-between mb-4">
+              <div key={review.id} className="bg-pearl rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-softgold/20">
+                <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-blush-pink/30 rounded-full flex items-center justify-center font-semibold">
+                    {/* Reviewer Info */}
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-softgold/30 to-rosegold/20 rounded-xl flex items-center justify-center font-semibold text-rosegold">
                         {review.user.name[0].toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-semibold">{review.user.name}</p>
-                        <p className="text-sm text-gray-600">{review.user.email}</p>
+                        <p className="font-medium text-warmbrown">{review.user.name}</p>
+                        <p className="text-xs text-taupe">{review.user.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
+
+                    {/* Rating */}
+                    <div className="flex items-center gap-1 mb-3">
                       {[...Array(5)].map((_, i) => (
                         <FiStar
                           key={i}
                           className={`w-4 h-4 ${
                             i < review.rating
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300'
+                              ? 'fill-amber-400 text-amber-400'
+                              : 'text-sand'
                           }`}
                         />
                       ))}
+                      <span className="ml-2 text-sm font-medium text-taupe">
+                        {review.rating}/5
+                      </span>
                     </div>
-                    <p className="text-gray-700 mb-2">{review.comment}</p>
-                    <p className="text-sm text-gray-500">
-                      Product: <span className="font-medium">{review.product.name}</span>
-                    </p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {new Date(review.createdAt).toLocaleDateString()}
-                    </p>
+
+                    {/* Review Content */}
+                    <p className="text-warmbrown mb-3 leading-relaxed">{review.comment}</p>
+
+                    {/* Product & Date */}
+                    <div className="flex items-center gap-4 text-xs text-taupe">
+                      <div className="flex items-center gap-1">
+                        <FiPackage size={12} />
+                        <Link 
+                          href={`/products/${review.product.id}`}
+                          className="font-medium text-warmbrown hover:text-rosegold transition-colors cursor-pointer"
+                        >
+                          {review.product.name}
+                        </Link>
+                      </div>
+                      <span>•</span>
+                      <span>{new Date(review.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}</span>
+                    </div>
+
+                    {/* Status Badge */}
+                    {review.approved && (
+                      <div className="mt-4 pt-4 border-t border-softgold/30">
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-rosegold bg-softgold/20 px-3 py-1 rounded-lg">
+                          <FiCheck size={12} /> Approved & Visible
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex gap-2 ml-4">
+                  {/* Action Buttons */}
+                  <div className="flex flex-col gap-2 ml-4">
                     {!review.approved && (
                       <button
                         onClick={() => handleApprove(review.id)}
-                        className="p-2 bg-green-100 text-green-700 hover:bg-green-200 rounded-lg transition-colors"
-                        title="Approve"
+                        className="p-2.5 bg-softgold/20 text-rosegold hover:bg-softgold/30 rounded-xl transition-colors border border-softgold/30"
+                        title="Approve Review"
                       >
-                        <FiCheck className="w-5 h-5" />
+                        <FiCheck size={18} />
                       </button>
                     )}
                     {review.approved && (
                       <button
                         onClick={() => handleReject(review.id)}
-                        className="p-2 bg-yellow-100 text-yellow-700 hover:bg-yellow-200 rounded-lg transition-colors"
-                        title="Unapprove"
+                        className="p-2.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-xl transition-colors border border-amber-100"
+                        title="Unapprove Review"
                       >
-                        <FiX className="w-5 h-5" />
+                        <FiX size={18} />
                       </button>
                     )}
                     <button
                       onClick={() => handleDelete(review.id)}
-                      className="p-2 bg-red-100 text-red-700 hover:bg-red-200 rounded-lg transition-colors"
-                      title="Delete"
+                      className="p-2.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-xl transition-colors border border-red-100"
+                      title="Delete Review"
                     >
-                      <FiTrash2 className="w-5 h-5" />
+                      <FiTrash2 size={18} />
                     </button>
                   </div>
                 </div>
-
-                {review.approved && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <span className="inline-flex items-center gap-1 text-sm text-green-600">
-                      <FiCheck className="w-4 h-4" /> Approved & Visible
-                    </span>
-                  </div>
-                )}
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm p-12 text-center">
-            <p className="text-gray-500 text-lg">No reviews to display</p>
+          <div className="bg-pearl rounded-2xl shadow-sm p-12 text-center border border-softgold/20">
+            <FiStar size={48} className="mx-auto text-sand mb-4" />
+            <p className="text-warmbrown text-lg font-playfair">No reviews to display</p>
+            <p className="text-taupe text-sm mt-2">
+              {filter === 'pending' && 'No pending reviews at the moment'}
+              {filter === 'approved' && 'No approved reviews yet'}
+              {filter === 'all' && 'No reviews have been submitted yet'}
+            </p>
           </div>
         )}
-      </div>
+      </main>
+
+      {/* Right Panel - Review Stats */}
+      <aside className="w-[28%] px-4 py-6 hidden xl:block">
+        <div className="space-y-6">
+          {/* Review Summary */}
+          <div className="bg-pearl rounded-2xl p-5 shadow-sm border border-softgold/20">
+            <h3 className="text-sm font-playfair font-semibold text-warmbrown mb-4">Review Summary</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-taupe">Total Reviews</span>
+                <span className="font-semibold text-warmbrown">{reviews.length}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-taupe">Pending</span>
+                <span className="font-medium text-amber-600">
+                  {reviews.filter((r: any) => !r.approved).length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-taupe">Approved</span>
+                <span className="font-medium text-rosegold">
+                  {reviews.filter((r: any) => r.approved).length}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Average Rating */}
+          <div className="bg-gradient-to-br from-softgold/20 to-rosegold/10 rounded-2xl p-5 border border-softgold/30">
+            <h3 className="text-sm font-playfair font-semibold text-warmbrown mb-3">Average Rating</h3>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-3xl font-playfair font-bold text-rosegold">
+                {reviews.length > 0
+                  ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
+                  : '0.0'}
+              </span>
+              <div className="flex gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <FiStar
+                    key={i}
+                    className={`w-4 h-4 ${
+                      i < Math.round(reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length)
+                        ? 'fill-amber-400 text-amber-400'
+                        : 'text-sand'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-taupe">Based on {reviews.length} reviews</p>
+          </div>
+
+          {/* Quick Tips */}
+          <div className="bg-sand/30 rounded-2xl p-5 border border-softgold/20">
+            <h3 className="text-sm font-playfair font-semibold text-warmbrown mb-3">💡 Moderation Tips</h3>
+            <ul className="space-y-2 text-xs text-taupe">
+              <li>• Review pending items daily</li>
+              <li>• Look for spam or inappropriate content</li>
+              <li>• Approve genuine customer feedback</li>
+              <li>• Delete offensive reviews promptly</li>
+            </ul>
+          </div>
+        </div>
+      </aside>
     </div>
   )
 }

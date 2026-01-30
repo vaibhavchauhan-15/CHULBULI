@@ -31,7 +31,6 @@ export async function uploadImage(file: string | Buffer, folder: string = 'chulb
       publicId: uploadResult.public_id,
     };
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Upload failed',
@@ -48,7 +47,6 @@ export async function deleteImage(publicId: string) {
     await cloudinary.uploader.destroy(publicId);
     return { success: true };
   } catch (error) {
-    console.error('Cloudinary delete error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Delete failed',

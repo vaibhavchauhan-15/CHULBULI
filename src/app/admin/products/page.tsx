@@ -5,7 +5,12 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
-import { FiEdit, FiTrash2, FiPlus, FiPackage, FiStar, FiEyeOff, FiMoreVertical } from 'react-icons/fi'
+import AdminSidebar from '@/components/AdminSidebar'
+import ProductFormModal from '@/components/ProductFormModal'
+import { 
+  FiBell, FiSettings, FiSearch, FiEdit, FiTrash2, 
+  FiPlus, FiEyeOff, FiMoreVertical, FiX, FiPackage, FiStar
+} from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
 export default function AdminProductsPage() {
@@ -21,15 +26,67 @@ export default function AdminProductsPage() {
   const [uploading, setUploading] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const [formData, setFormData] = useState({
+    // Basic Information
     name: '',
+    sku: '',
     description: '',
+    shortDescription: '',
+    category: 'earrings',
+    subCategory: '',
+    brand: '',
+    productStatus: 'draft',
+    
+    // Pricing & Tax
+    basePrice: '',
     price: '',
     discount: '0',
-    category: 'earrings',
+    discountType: 'percentage',
+    gstPercentage: '3',
+    costPrice: '',
+    
+    // Inventory & Stock
     stock: '',
+    lowStockAlert: '5',
+    stockStatus: 'in_stock',
+    
+    // Images & Media
     images: '',
+    thumbnailImage: '',
+    videoUrl: '',
+    
+    // Earring-Specific Attributes
     material: '',
+    stoneType: '',
+    color: '',
+    earringType: '',
+    closureType: '',
+    weight: '',
+    dimensionLength: '',
+    dimensionWidth: '',
+    finish: '',
+    
+    // Shipping & Packaging
+    productWeight: '',
+    shippingClass: 'standard',
+    packageIncludes: '',
+    codAvailable: true,
+    
+    // SEO & Visibility
+    seoTitle: '',
+    metaDescription: '',
+    urlSlug: '',
+    searchTags: '',
     featured: false,
+    isNewArrival: false,
+    
+    // Compliance & Trust
+    careInstructions: '',
+    returnPolicy: '',
+    warranty: '',
+    certification: '',
+    
+    // Reviews
+    reviewsEnabled: true,
   })
 
   useEffect(() => {
@@ -50,7 +107,7 @@ export default function AdminProductsPage() {
         setProducts(data)
       }
     } catch (error) {
-      console.error('Error fetching products:', error)
+      // Error fetching products
     } finally {
       setLoading(false)
     }
@@ -59,8 +116,6 @@ export default function AdminProductsPage() {
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
     setSelectedImages(files)
-
-    // Create preview URLs
     const previewUrls = files.map((file) => URL.createObjectURL(file))
     setImagePreviewUrls(previewUrls)
   }
@@ -84,7 +139,6 @@ export default function AdminProductsPage() {
     setUploading(true)
     
     try {
-      // Upload images to Cloudinary
       const uploadFormData = new FormData()
       selectedImages.forEach((file) => {
         uploadFormData.append('images', file)
@@ -102,7 +156,6 @@ export default function AdminProductsPage() {
 
       const { urls } = await uploadResponse.json()
 
-      // Create product with uploaded image URLs
       const response = await fetch('/api/admin/products', {
         method: 'POST',
         headers: {
@@ -115,25 +168,12 @@ export default function AdminProductsPage() {
       if (response.ok) {
         toast.success('Product added successfully')
         setShowAddModal(false)
-        setFormData({
-          name: '',
-          description: '',
-          price: '',
-          discount: '0',
-          category: 'earrings',
-          stock: '',
-          images: '',
-          material: '',
-          featured: false,
-        })
-        setSelectedImages([])
-        setImagePreviewUrls([])
+        resetForm()
         fetchProducts()
       } else {
         toast.error('Failed to add product')
       }
     } catch (error) {
-      console.error('Error adding product:', error)
       toast.error('Failed to add product')
     } finally {
       setUploading(false)
@@ -144,7 +184,6 @@ export default function AdminProductsPage() {
     if (!confirm('Are you sure you want to delete this product?')) return
 
     try {
-      // Force delete by default (removes product and all order references)
       const response = await fetch(`/api/admin/products/${id}?force=true`, {
         method: 'DELETE',
         credentials: 'include',
@@ -158,7 +197,6 @@ export default function AdminProductsPage() {
         toast.error(data.error || 'Failed to delete product')
       }
     } catch (error) {
-      console.error('Delete error:', error)
       toast.error('Failed to delete product')
     }
   }
@@ -166,15 +204,67 @@ export default function AdminProductsPage() {
   const handleEditProduct = (product: any) => {
     setEditingProduct(product)
     setFormData({
-      name: product.name,
-      description: product.description,
-      price: product.price.toString(),
+      // Basic Information
+      name: product.name || '',
+      sku: product.sku || '',
+      description: product.description || '',
+      shortDescription: product.shortDescription || '',
+      category: product.category || 'earrings',
+      subCategory: product.subCategory || '',
+      brand: product.brand || '',
+      productStatus: product.productStatus || 'draft',
+      
+      // Pricing & Tax
+      basePrice: product.basePrice?.toString() || '',
+      price: product.price?.toString() || '',
       discount: product.discount?.toString() || '0',
-      category: product.category,
-      stock: product.stock.toString(),
-      images: product.images,
+      discountType: product.discountType || 'percentage',
+      gstPercentage: product.gstPercentage?.toString() || '3',
+      costPrice: product.costPrice?.toString() || '',
+      
+      // Inventory & Stock
+      stock: product.stock?.toString() || '',
+      lowStockAlert: product.lowStockAlert?.toString() || '5',
+      stockStatus: product.stockStatus || 'in_stock',
+      
+      // Images & Media
+      images: product.images || '',
+      thumbnailImage: product.thumbnailImage || '',
+      videoUrl: product.videoUrl || '',
+      
+      // Earring-Specific Attributes
       material: product.material || '',
+      stoneType: product.stoneType || '',
+      color: product.color || '',
+      earringType: product.earringType || '',
+      closureType: product.closureType || '',
+      weight: product.weight?.toString() || '',
+      dimensionLength: product.dimensionLength?.toString() || '',
+      dimensionWidth: product.dimensionWidth?.toString() || '',
+      finish: product.finish || '',
+      
+      // Shipping & Packaging
+      productWeight: product.productWeight?.toString() || '',
+      shippingClass: product.shippingClass || 'standard',
+      packageIncludes: product.packageIncludes || '',
+      codAvailable: product.codAvailable !== undefined ? product.codAvailable : true,
+      
+      // SEO & Visibility
+      seoTitle: product.seoTitle || '',
+      metaDescription: product.metaDescription || '',
+      urlSlug: product.urlSlug || '',
+      searchTags: Array.isArray(product.searchTags) ? product.searchTags.join(', ') : '',
       featured: product.featured || false,
+      isNewArrival: product.isNewArrival || false,
+      
+      // Compliance & Trust
+      careInstructions: product.careInstructions || '',
+      returnPolicy: product.returnPolicy || '',
+      warranty: product.warranty || '',
+      certification: product.certification || '',
+      
+      // Reviews
+      reviewsEnabled: product.reviewsEnabled !== undefined ? product.reviewsEnabled : true,
     })
     setImagePreviewUrls(Array.isArray(product.images) ? product.images : [product.images])
     setShowEditModal(true)
@@ -190,7 +280,6 @@ export default function AdminProductsPage() {
     try {
       let imageUrls = imagePreviewUrls
 
-      // Upload new images if selected
       if (selectedImages.length > 0) {
         const uploadFormData = new FormData()
         selectedImages.forEach((file) => {
@@ -224,96 +313,82 @@ export default function AdminProductsPage() {
         toast.success('Product updated successfully')
         setShowEditModal(false)
         setEditingProduct(null)
-        setSelectedImages([])
-        setImagePreviewUrls([])
+        resetForm()
         fetchProducts()
       } else {
         const data = await response.json()
         toast.error(data.error || 'Failed to update product')
       }
     } catch (error) {
-      console.error('Error updating product:', error)
       toast.error('Failed to update product')
     } finally {
       setUploading(false)
     }
   }
 
-  const handleQuickAction = async (productId: string, action: string) => {
-    const product = products.find((p: any) => p.id === productId)
-    if (!product) return
-
-    setActiveDropdown(null)
-
-    try {
-      let updateData = {}
-      
-      switch (action) {
-        case 'out-of-stock':
-          updateData = { ...product, stock: 0 }
-          break
-        case 'toggle-featured':
-          updateData = { ...product, featured: !product.featured }
-          break
-        case 'duplicate':
-          // Create a duplicate product
-          const response = await fetch('/api/admin/products', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({
-              ...product,
-              name: `${product.name} (Copy)`,
-              id: undefined,
-            }),
-          })
-          if (response.ok) {
-            toast.success('Product duplicated successfully')
-            fetchProducts()
-          }
-          return
-        default:
-          return
-      }
-
-      const response = await fetch(`/api/admin/products/${productId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(updateData),
-      })
-
-      if (response.ok) {
-        const actionMessages = {
-          'out-of-stock': 'Product marked as out of stock',
-          'toggle-featured': product.featured ? 'Removed from featured' : 'Marked as featured',
-        }
-        toast.success(actionMessages[action as keyof typeof actionMessages])
-        fetchProducts()
-      } else {
-        toast.error('Failed to update product')
-      }
-    } catch (error) {
-      console.error('Quick action error:', error)
-      toast.error('Failed to update product')
-    }
-  }
-
   const resetForm = () => {
     setFormData({
+      // Basic Information
       name: '',
+      sku: '',
       description: '',
+      shortDescription: '',
+      category: 'earrings',
+      subCategory: '',
+      brand: '',
+      productStatus: 'draft',
+      
+      // Pricing & Tax
+      basePrice: '',
       price: '',
       discount: '0',
-      category: 'earrings',
+      discountType: 'percentage',
+      gstPercentage: '3',
+      costPrice: '',
+      
+      // Inventory & Stock
       stock: '',
+      lowStockAlert: '5',
+      stockStatus: 'in_stock',
+      
+      // Images & Media
       images: '',
+      thumbnailImage: '',
+      videoUrl: '',
+      
+      // Earring-Specific Attributes
       material: '',
+      stoneType: '',
+      color: '',
+      earringType: '',
+      closureType: '',
+      weight: '',
+      dimensionLength: '',
+      dimensionWidth: '',
+      finish: '',
+      
+      // Shipping & Packaging
+      productWeight: '',
+      shippingClass: 'standard',
+      packageIncludes: '',
+      codAvailable: true,
+      
+      // SEO & Visibility
+      seoTitle: '',
+      metaDescription: '',
+      urlSlug: '',
+      searchTags: '',
       featured: false,
+      isNewArrival: false,
+      
+      // Compliance & Trust
+      careInstructions: '',
+      returnPolicy: '',
+      warranty: '',
+      certification: '',
+      
+      // Reviews
+      reviewsEnabled: true,
     })
     setSelectedImages([])
     setImagePreviewUrls([])
@@ -322,473 +397,222 @@ export default function AdminProductsPage() {
   if (!user || user.role !== 'admin') return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Link href="/admin" className="text-gray-600 hover:text-rose-gold">
-                ← Back
-              </Link>
-              <h1 className="text-2xl font-playfair font-bold">Products</h1>
-            </div>
+    <div className="flex min-h-screen bg-champagne">
+      <AdminSidebar />
+
+      {/* Main Content */}
+      <main className="flex-1 px-6 py-6 overflow-y-auto">
+        {/* Top Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-2xl font-playfair font-semibold text-warmbrown mb-1">Products Management</h1>
+            <p className="text-sm text-taupe">Manage your jewelry inventory</p>
+          </div>
+
+          <div className="flex items-center gap-4">
             <button
               onClick={() => setShowAddModal(true)}
-              className="btn-primary flex items-center gap-2"
+              className="flex items-center gap-2 px-4 py-2.5 bg-rosegold text-pearl rounded-xl hover:bg-softgold transition-colors font-medium text-sm shadow-sm"
             >
-              <FiPlus /> Add Product
+              <FiPlus size={18} /> Add Product
             </button>
+            <div className="flex items-center gap-5 text-taupe pl-4 border-l border-softgold/30">
+              <button className="hover:text-rosegold transition-colors relative">
+                <FiBell size={20} />
+              </button>
+              <button className="hover:text-rosegold transition-colors">
+                <FiSettings size={20} />
+              </button>
+              <div className="w-10 h-10 bg-gradient-to-br from-rosegold to-softgold rounded-xl flex items-center justify-center text-pearl font-semibold">
+                {user.name?.charAt(0).toUpperCase()}
+              </div>
+            </div>
           </div>
         </div>
-      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Products Grid (Card-based instead of table) */}
         {loading ? (
           <div className="grid grid-cols-1 gap-4">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-sm p-6 animate-pulse">
-                <div className="h-6 bg-gray-200 rounded w-1/4 mb-3"></div>
-                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="bg-pearl rounded-2xl p-6 shadow-sm animate-pulse border border-softgold/20">
+                <div className="h-6 bg-sand rounded w-1/4 mb-3"></div>
+                <div className="h-4 bg-sand rounded w-1/2"></div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Category
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Stock
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {products.map((product: any) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        {product.images && product.images.length > 0 && (
-                          <Image
-                            src={Array.isArray(product.images) ? product.images[0] : product.images}
-                            alt={product.name}
-                            width={48}
-                            height={48}
-                            className="w-12 h-12 object-cover rounded-lg"
-                          />
-                        )}
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {product.name}
-                          </div>
-                          <div className="text-xs text-gray-500 max-w-xs truncate">
-                            {product.description}
-                          </div>
+          <div className="space-y-4">
+            {products.map((product: any) => (
+              <div key={product.id} className="bg-pearl rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-softgold/20">
+                <div className="flex items-start gap-6">
+                  {/* Product Image */}
+                  {product.images && product.images.length > 0 && (
+                    <div className="flex-shrink-0">
+                      <Image
+                        src={Array.isArray(product.images) ? product.images[0] : product.images}
+                        alt={product.name}
+                        width={120}
+                        height={120}
+                        className="w-24 h-24 object-cover rounded-xl"
+                      />
+                    </div>
+                  )}
+
+                  {/* Product Details */}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-playfair font-semibold text-warmbrown">{product.name}</h3>
+                          {product.featured && (
+                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-softgold/20 text-rosegold border border-softgold/30">
+                              <FiStar size={12} /> Featured
+                            </span>
+                          )}
                         </div>
+                        <p className="text-sm text-taupe max-w-2xl">{product.description}</p>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blush-pink/30 text-charcoal capitalize">
-                        {product.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">₹{product.price}</div>
-                      {product.discount > 0 && (
-                        <span className="text-xs text-green-600">
-                          {product.discount}% OFF
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          product.stock === 0 
-                            ? 'bg-red-100 text-red-800' 
-                            : product.stock <= 10 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-green-100 text-green-800'
-                        }`}
-                      >
-                        {product.stock === 0 ? 'Out of Stock' : `${product.stock} units`}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {product.featured && (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">
-                          <FiStar className="w-3 h-3" /> Featured
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => handleEditProduct(product)}
-                          className="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit Product"
+                          className="p-2 text-rosegold hover:bg-softgold/20 rounded-lg transition-colors"
+                          title="Edit"
                         >
-                          <FiEdit className="w-4 h-4" />
+                          <FiEdit size={18} />
                         </button>
-                        
-                        <div className="relative">
-                          <button
-                            onClick={() => setActiveDropdown(activeDropdown === product.id ? null : product.id)}
-                            className="text-gray-600 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                            title="More Actions"
-                          >
-                            <FiMoreVertical className="w-4 h-4" />
-                          </button>
-                          
-                          {activeDropdown === product.id && (
-                            <>
-                              <div 
-                                className="fixed inset-0 z-10" 
-                                onClick={() => setActiveDropdown(null)}
-                              />
-                              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                                <button
-                                  onClick={() => handleQuickAction(product.id, 'out-of-stock')}
-                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                  disabled={product.stock === 0}
-                                >
-                                  <FiEyeOff className="w-4 h-4" />
-                                  Mark as Out of Stock
-                                </button>
-                                <button
-                                  onClick={() => handleQuickAction(product.id, 'toggle-featured')}
-                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                >
-                                  <FiStar className="w-4 h-4" />
-                                  {product.featured ? 'Remove from Featured' : 'Mark as Featured'}
-                                </button>
-                                <button
-                                  onClick={() => handleQuickAction(product.id, 'duplicate')}
-                                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                                >
-                                  <FiPackage className="w-4 h-4" />
-                                  Duplicate Product
-                                </button>
-                                <hr className="my-1" />
-                                <button
-                                  onClick={() => handleDeleteProduct(product.id)}
-                                  className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                                >
-                                  <FiTrash2 className="w-4 h-4" />
-                                  Delete Product
-                                </button>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                        <button
+                          onClick={() => handleDeleteProduct(product.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </div>
+
+                    {/* Product Meta */}
+                    <div className="flex items-center gap-6 mt-4">
+                      <div>
+                        <p className="text-xs text-taupe">Price</p>
+                        <p className="text-sm font-semibold text-warmbrown">
+                          ₹{product.price}
+                          {product.discount > 0 && (
+                            <span className="ml-2 text-xs text-rosegold">
+                              {product.discount}% OFF
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-taupe">Stock</p>
+                        <span
+                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-lg ${
+                            product.stock === 0 
+                              ? 'bg-red-50 text-red-700 border border-red-100' 
+                              : product.stock <= 10 
+                              ? 'bg-amber-50 text-amber-700 border border-amber-100' 
+                              : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                          }`}
+                        >
+                          {product.stock === 0 ? 'Out of Stock' : `${product.stock} units`}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-xs text-taupe">Category</p>
+                        <span className="text-sm font-medium text-warmbrown capitalize">{product.category}</span>
+                      </div>
+                      {product.material && (
+                        <div>
+                          <p className="text-xs text-taupe">Material</p>
+                          <span className="text-sm font-medium text-warmbrown">{product.material}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {products.length === 0 && (
+              <div className="bg-pearl rounded-2xl p-12 text-center shadow-sm border border-softgold/20">
+                <FiPackage size={48} className="mx-auto text-sand mb-4" />
+                <p className="text-warmbrown text-lg font-playfair">No products yet</p>
+                <p className="text-taupe text-sm mt-2">Click &quot;Add Product&quot; to create your first product</p>
+              </div>
+            )}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Add Product Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8">
-            <h2 className="text-2xl font-playfair font-bold mb-6">Add New Product</h2>
-            <form onSubmit={handleAddProduct} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Product Name *"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="input-field"
-              />
-              <textarea
-                placeholder="Description *"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                required
-                className="input-field min-h-[100px]"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="number"
-                  placeholder="Price *"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  required
-                  className="input-field"
-                />
-                <input
-                  type="number"
-                  placeholder="Discount %"
-                  value={formData.discount}
-                  onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-                  className="input-field"
-                />
+      {/* Right Panel - Product Stats */}
+      <aside className="w-[28%] px-4 py-6 hidden xl:block">
+        <div className="space-y-6">
+          {/* Quick Stats */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">Product Overview</h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-gray-600">Total Products</span>
+                <span className="font-semibold text-gray-800">{products.length}</span>
               </div>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="input-field"
-              >
-                <option value="earrings">Earrings</option>
-                <option value="necklaces">Necklaces</option>
-                <option value="rings">Rings</option>
-                <option value="bangles">Bangles</option>
-                <option value="sets">Sets</option>
-              </select>
-              <input
-                type="number"
-                placeholder="Stock Quantity *"
-                value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                required
-                className="input-field"
-              />
-              
-              {/* Image Upload */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Product Images *
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageSelect}
-                  required={selectedImages.length === 0}
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-full file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-rose-gold/10 file:text-rose-gold
-                    hover:file:bg-rose-gold/20
-                    cursor-pointer"
-                />
-                {imagePreviewUrls.length > 0 && (
-                  <div className="grid grid-cols-4 gap-3">
-                    {imagePreviewUrls.map((url, index) => (
-                      <div key={index} className="relative group">
-                        <Image
-                          src={url}
-                          alt={`Preview ${index + 1}`}
-                          width={96}
-                          height={96}
-                          className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-gray-600">In Stock</span>
+                <span className="font-medium text-emerald-600">
+                  {products.filter((p: any) => p.stock > 0).length}
+                </span>
               </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-gray-600">Out of Stock</span>
+                <span className="font-medium text-red-600">
+                  {products.filter((p: any) => p.stock === 0).length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-sm text-gray-600">Featured</span>
+                <span className="font-medium text-amber-600">
+                  {products.filter((p: any) => p.featured).length}
+                </span>
+              </div>
+            </div>
+          </div>
 
-              <input
-                type="text"
-                placeholder="Material (optional)"
-                value={formData.material}
-                onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                className="input-field"
-              />
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="w-4 h-4 text-rose-gold"
-                />
-                <span>Featured Product</span>
-              </label>
-              <div className="flex gap-3 pt-4">
-                <button 
-                  type="submit" 
-                  className="btn-primary flex-1"
-                  disabled={uploading}
-                >
-                  {uploading ? 'Uploading...' : 'Add Product'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowAddModal(false)
-                    resetForm()
-                  }}
-                  className="btn-secondary flex-1"
-                  disabled={uploading}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
+          {/* Categories */}
+          <div className="bg-gray-100 rounded-2xl p-5">
+            <h3 className="text-sm font-semibold text-gray-700 mb-4">Categories</h3>
+            <div className="space-y-2">
+              {Array.from(new Set(products.map((p: any) => p.category))).map((category: any) => (
+                <div key={category} className="flex items-center justify-between py-2">
+                  <span className="text-sm text-gray-700 capitalize">{category}</span>
+                  <span className="text-xs font-medium text-gray-500 bg-white px-2 py-1 rounded-lg">
+                    {products.filter((p: any) => p.category === category).length}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      )}
+      </aside>
 
-      {/* Edit Product Modal */}
-      {showEditModal && editingProduct && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8">
-            <h2 className="text-2xl font-playfair font-bold mb-6">Edit Product</h2>
-            <form onSubmit={handleUpdateProduct} className="space-y-4">
-              <input
-                type="text"
-                placeholder="Product Name *"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="input-field"
-              />
-              <textarea
-                placeholder="Description *"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                required
-                className="input-field min-h-[100px]"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="number"
-                  placeholder="Price *"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  required
-                  className="input-field"
-                />
-                <input
-                  type="number"
-                  placeholder="Discount %"
-                  value={formData.discount}
-                  onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-                  className="input-field"
-                />
-              </div>
-              <select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                className="input-field"
-              >
-                <option value="earrings">Earrings</option>
-                <option value="necklaces">Necklaces</option>
-                <option value="rings">Rings</option>
-                <option value="bangles">Bangles</option>
-                <option value="sets">Sets</option>
-              </select>
-              <input
-                type="number"
-                placeholder="Stock Quantity *"
-                value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                required
-                className="input-field"
-              />
-              
-              {/* Image Upload */}
-              <div className="space-y-3">
-                <label className="block text-sm font-medium text-gray-700">
-                  Product Images (Upload new images to replace current ones)
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageSelect}
-                  className="block w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-full file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-rose-gold/10 file:text-rose-gold
-                    hover:file:bg-rose-gold/20
-                    cursor-pointer"
-                />
-                {imagePreviewUrls.length > 0 && (
-                  <div className="grid grid-cols-4 gap-3">
-                    {imagePreviewUrls.map((url, index) => (
-                      <div key={index} className="relative group">
-                        <Image
-                          src={url}
-                          alt={`Preview ${index + 1}`}
-                          width={96}
-                          height={96}
-                          className="w-full h-24 object-cover rounded-lg border-2 border-gray-200"
-                        />
-                        {selectedImages.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <input
-                type="text"
-                placeholder="Material (optional)"
-                value={formData.material}
-                onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                className="input-field"
-              />
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                  className="w-4 h-4 text-rose-gold"
-                />
-                <span>Featured Product</span>
-              </label>
-              <div className="flex gap-3 pt-4">
-                <button 
-                  type="submit" 
-                  className="btn-primary flex-1"
-                  disabled={uploading}
-                >
-                  {uploading ? 'Updating...' : 'Update Product'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowEditModal(false)
-                    setEditingProduct(null)
-                    resetForm()
-                  }}
-                  className="btn-secondary flex-1"
-                  disabled={uploading}
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Add/Edit Product Modal */}
+      <ProductFormModal
+        show={showAddModal || showEditModal}
+        isEdit={showEditModal}
+        formData={formData}
+        setFormData={setFormData}
+        onClose={() => {
+          setShowAddModal(false)
+          setShowEditModal(false)
+          resetForm()
+          setEditingProduct(null)
+        }}
+        onSubmit={showEditModal ? handleUpdateProduct : handleAddProduct}
+        uploading={uploading}
+        selectedImages={selectedImages}
+        imagePreviewUrls={imagePreviewUrls}
+        handleImageSelect={handleImageSelect}
+        removeImage={removeImage}
+      />
     </div>
   )
 }

@@ -3,6 +3,9 @@ import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { getConfig, SECURITY_CONFIG } from './config'
 
+// JWT Configuration
+const JWT_EXPIRY = process.env.JWT_EXPIRES_IN || '7d'
+
 // Validate JWT_SECRET on import (server-side only)
 const getJWTSecret = (): string => {
   if (typeof window !== 'undefined') {

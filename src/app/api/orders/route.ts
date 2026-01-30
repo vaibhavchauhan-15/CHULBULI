@@ -172,7 +172,10 @@ export async function POST(request: NextRequest) {
 
     if (error.message?.includes('not found')) {
       return NextResponse.json(
-        { error: error.message },
+        { 
+          error: error.message,
+          suggestion: 'One or more items in your cart are no longer available. Please refresh your cart and try again.'
+        },
         { status: 404 }
       )
     }

@@ -117,12 +117,14 @@ async function seed() {
     ]
 
     for (const product of sampleProducts) {
+      const now = new Date()
       await db
         .insert(products)
         .values({
           id: product.id,
           name: product.name,
           description: product.description,
+          basePrice: product.price, // Same as selling price for demo
           price: product.price,
           discount: product.discount,
           category: product.category,
@@ -130,6 +132,8 @@ async function seed() {
           images: product.images,
           material: product.material,
           featured: product.featured,
+          createdAt: now,
+          updatedAt: now,
         })
         .onConflictDoNothing()
     }

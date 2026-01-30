@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
+import { FiMail, FiLock, FiArrowRight, FiUserCheck } from 'react-icons/fi'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -23,11 +24,9 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Login form submitted');
     setLoading(true)
 
     try {
-      console.log('Sending login request...');
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -35,9 +34,7 @@ export default function LoginPage() {
         body: JSON.stringify(formData),
       })
 
-      console.log('Login response status:', response.status);
       const data = await response.json()
-      console.log('Login response data:', data);
 
       if (response.ok) {
         setAuth(data.user, null)
@@ -47,7 +44,6 @@ export default function LoginPage() {
         toast.error(data.error || 'Login failed')
       }
     } catch (error) {
-      console.error('Login error:', error)
       toast.error('Login failed. Please check your network connection and try again.')
     } finally {
       setLoading(false)
@@ -57,60 +53,110 @@ export default function LoginPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 px-4 pb-12 flex items-center justify-center">
+      <main className="min-h-screen pt-24 px-4 pb-12 flex items-center justify-center bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-md w-full">
-          <div className="card p-8">
-            <h1 className="text-3xl font-playfair font-bold text-center mb-8">
-              Welcome Back
-            </h1>
+          <div className="card-luxury p-10 shadow-luxury-lg">
+            {/* Header */}
+            <div className="text-center mb-10">
+              <div className="bg-[#C89A7A]/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiUserCheck className="w-10 h-10 text-[#C89A7A]" />
+              </div>
+              <h1 className="text-4xl font-playfair font-bold text-[#5A3E2B] mb-2">
+                Welcome Back
+              </h1>
+              <p className="text-[#5A3E2B]/60">Sign in to your account</p>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email Field */}
               <div>
-                <label className="block text-sm font-medium mb-2">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="input-field"
-                  placeholder="your@email.com"
-                />
+                <label className="block text-sm font-semibold text-[#5A3E2B] mb-2">
+                  Email
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiMail className="w-5 h-5 text-[#C89A7A]/60" />
+                  </div>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="input-luxury w-full !pl-12 pr-4"
+                    placeholder="user@gmail.com"
+                  />
+                </div>
               </div>
 
+              {/* Password Field */}
               <div>
-                <label className="block text-sm font-medium mb-2">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="input-field"
-                  placeholder="••••••••"
-                />
+                <label className="block text-sm font-semibold text-[#5A3E2B] mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiLock className="w-5 h-5 text-[#C89A7A]/60" />
+                  </div>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="input-luxury w-full !pl-12 pr-4"
+                    placeholder="••••••••"
+                  />
+                </div>
               </div>
 
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full disabled:opacity-50"
+                className="btn-primary w-full py-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
               >
-                {loading ? 'Logging in...' : 'Login'}
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    Login
+                    <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </button>
             </form>
 
-            <p className="text-center mt-6 text-gray-600">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-rose-gold hover:underline font-medium">
-                Sign up
-              </Link>
-            </p>
+            {/* Footer Links */}
+            <div className="mt-8 space-y-4">
+              <p className="text-center text-[#5A3E2B]/70">
+                Don&apos;t have an account?{' '}
+                <Link href="/signup" className="text-[#C89A7A] hover:text-[#E6C9A8] font-semibold transition-colors">
+                  Sign up
+                </Link>
+              </p>
 
-            <div className="mt-6 text-center">
-              <Link href="/products" className="text-sm text-gray-500 hover:text-rose-gold">
-                Continue as Guest →
-              </Link>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#C89A7A]/20"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-gradient-to-br from-[#F7F6F3] to-[#F2E6D8] text-[#5A3E2B]/60">or</span>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <Link 
+                  href="/products" 
+                  className="inline-flex items-center gap-2 text-sm text-[#5A3E2B]/70 hover:text-[#C89A7A] transition-colors"
+                >
+                  Continue as Guest
+                  <FiArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>

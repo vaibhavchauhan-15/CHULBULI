@@ -269,18 +269,70 @@ export function validatePincode(pincode: string): { valid: boolean; error?: stri
 }
 
 /**
- * Sanitize product data
+ * Sanitize product data - Comprehensive version with all fields
  */
 export function sanitizeProductData(data: any) {
   return {
+    // Basic Information
     name: sanitizeText(data.name),
+    sku: data.sku ? sanitizeText(data.sku) : null,
     description: sanitizeText(data.description),
+    shortDescription: data.shortDescription ? sanitizeText(data.shortDescription) : null,
+    category: sanitizeText(data.category),
+    subCategory: data.subCategory ? sanitizeText(data.subCategory) : null,
+    brand: data.brand ? sanitizeText(data.brand) : null,
+    productStatus: data.productStatus ? sanitizeText(data.productStatus) : 'draft',
+    
+    // Pricing & Tax
+    basePrice: data.basePrice ? safeParseFloat(data.basePrice, 0) : null,
     price: safeParseFloat(data.price, 0),
     discount: data.discount ? safeParseFloat(data.discount, 0) : 0,
-    category: sanitizeText(data.category),
+    discountType: data.discountType ? sanitizeText(data.discountType) : 'percentage',
+    gstPercentage: data.gstPercentage ? safeParseFloat(data.gstPercentage, 3) : 3,
+    costPrice: data.costPrice ? safeParseFloat(data.costPrice, 0) : null,
+    
+    // Inventory & Stock
     stock: safeParseInt(data.stock, 0),
+    lowStockAlert: data.lowStockAlert ? safeParseInt(data.lowStockAlert, 5) : 5,
+    stockStatus: data.stockStatus ? sanitizeText(data.stockStatus) : 'in_stock',
+    
+    // Images & Media
     images: Array.isArray(data.images) ? data.images : [],
+    thumbnailImage: data.thumbnailImage ? sanitizeText(data.thumbnailImage) : null,
+    videoUrl: data.videoUrl ? sanitizeText(data.videoUrl) : null,
+    
+    // Attributes
     material: data.material ? sanitizeText(data.material) : null,
+    stoneType: data.stoneType ? sanitizeText(data.stoneType) : null,
+    color: data.color ? sanitizeText(data.color) : null,
+    earringType: data.earringType ? sanitizeText(data.earringType) : null,
+    closureType: data.closureType ? sanitizeText(data.closureType) : null,
+    weight: data.weight ? safeParseFloat(data.weight, 0) : null,
+    dimensionLength: data.dimensionLength ? safeParseFloat(data.dimensionLength, 0) : null,
+    dimensionWidth: data.dimensionWidth ? safeParseFloat(data.dimensionWidth, 0) : null,
+    finish: data.finish ? sanitizeText(data.finish) : null,
+    
+    // Shipping & Packaging
+    productWeight: data.productWeight ? safeParseFloat(data.productWeight, 0) : null,
+    shippingClass: data.shippingClass ? sanitizeText(data.shippingClass) : 'standard',
+    packageIncludes: data.packageIncludes ? sanitizeText(data.packageIncludes) : null,
+    codAvailable: data.codAvailable !== undefined ? Boolean(data.codAvailable) : true,
+    
+    // SEO & Visibility
+    seoTitle: data.seoTitle ? sanitizeText(data.seoTitle) : null,
+    metaDescription: data.metaDescription ? sanitizeText(data.metaDescription) : null,
+    urlSlug: data.urlSlug ? sanitizeText(data.urlSlug) : null,
+    searchTags: data.searchTags || [],
     featured: Boolean(data.featured),
+    isNewArrival: Boolean(data.isNewArrival),
+    
+    // Compliance & Trust
+    careInstructions: data.careInstructions ? sanitizeText(data.careInstructions) : null,
+    returnPolicy: data.returnPolicy ? sanitizeText(data.returnPolicy) : null,
+    warranty: data.warranty ? sanitizeText(data.warranty) : null,
+    certification: data.certification ? sanitizeText(data.certification) : null,
+    
+    // Reviews
+    reviewsEnabled: data.reviewsEnabled !== undefined ? Boolean(data.reviewsEnabled) : true,
   }
 }

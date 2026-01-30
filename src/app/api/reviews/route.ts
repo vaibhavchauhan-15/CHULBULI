@@ -78,16 +78,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has purchased this product (verified buyer)
-    const order = await db.query.orders.findFirst({
+    const userOrders = await db.query.orders.findMany({
       where: eq(orders.userId, payload.userId),
       with: {
-        orderItems: {
-          where: eq(orderItems.productId, productId),
-        },
+        orderItems: true,
       },
     })
 
-    if (!order || !order.orderItems || order.orderItems.length === 0) {
+    // Check if any order contains the product
+    const hasPurchased = userOrders.some(order => 
+      order.orderItems.some(item => item.productId === productId)
+    )
+
+    if (!hasPurchased) {
       return NextResponse.json(
         { error: 'You can only review products you have purchased' },
         { status: 403 }
