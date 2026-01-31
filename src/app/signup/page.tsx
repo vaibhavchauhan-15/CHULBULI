@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import GoogleSignInButton from '@/components/GoogleSignInButton'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 import { FiMail, FiLock, FiUser, FiCheck, FiArrowRight, FiUserPlus } from 'react-icons/fi'
@@ -95,6 +96,21 @@ export default function SignupPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Google Sign-In Button */}
+              <GoogleSignInButton redirectTo="/" />
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#C89A7A]/20"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-gradient-to-br from-[#F7F6F3] to-[#F2E6D8] text-[#5A3E2B]/60">
+                    or sign up with email
+                  </span>
+                </div>
+              </div>
+
               {/* Full Name Field */}
               <div>
                 <label className="block text-sm font-semibold text-[#5A3E2B] mb-2">

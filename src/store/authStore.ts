@@ -7,6 +7,10 @@ interface User {
   name: string
   email: string
   role: string
+  // OAuth fields
+  provider?: string // 'email' or 'google'
+  googleId?: string
+  photoUrl?: string // Profile picture URL from Google
 }
 
 interface AuthStore {
@@ -123,11 +127,17 @@ export const useAuthStore = create<AuthStore>()(
             set({ isInitialized: true })
           } finally {
             set({ isVerifying: false })
-            verificationPromise = null
           }
         })()
 
-        return verificationPromise
+        // Wait for promise to complete before clearing reference
+        try {
+          await verificationPromise
+        } finally {
+          verificationPromise = null
+        }
+
+        return Promise.resolve()
       },
     }),
     {

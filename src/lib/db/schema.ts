@@ -8,13 +8,21 @@ export const users = pgTable(
     id: text('id').primaryKey(),
     name: text('name').notNull(),
     email: varchar('email', { length: 255 }).notNull().unique(),
-    password: text('password').notNull(),
+    password: text('password'), // Nullable for OAuth users (Google Sign-In)
     role: varchar('role', { length: 50 }).notNull().default('customer'), // 'customer' or 'admin'
+    
+    // OAuth fields
+    provider: varchar('provider', { length: 50 }).notNull().default('email'), // 'email' or 'google'
+    googleId: text('googleId').unique(), // Google user ID for OAuth
+    photoUrl: text('photoUrl'), // Profile picture URL from Google
+    
     createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
   },
   (table) => ({
     emailIdx: index('User_email_idx').on(table.email),
+    googleIdIdx: index('User_googleId_idx').on(table.googleId),
+    providerIdx: index('User_provider_idx').on(table.provider),
   })
 )
 

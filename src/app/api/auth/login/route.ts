@@ -51,6 +51,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if user has a password (OAuth users don't have passwords)
+    if (!user.password) {
+      logAuthEvent(AuditAction.LOGIN_FAILED, user.email, request, false, user.id)
+      return NextResponse.json(
+        { error: 'This account uses Google Sign-In. Please sign in with Google.' },
+        { status: 401 }
+      )
+    }
+
     // Verify password using constant-time comparison
     const isValidPassword = await verifyPassword(password, user.password)
 
@@ -77,6 +86,9 @@ export async function POST(request: NextRequest) {
         name: user.name,
         email: user.email,
         role: user.role,
+        provider: user.provider,
+        googleId: user.googleId,
+        photoUrl: user.photoUrl,
       },
     })
 

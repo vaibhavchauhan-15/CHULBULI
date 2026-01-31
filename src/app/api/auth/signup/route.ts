@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
         email: emailValidation.email,
         password: hashedPassword,
         role: 'customer',
+        provider: 'email',
         createdAt: now,
         updatedAt: now,
       })
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
         name: users.name,
         email: users.email,
         role: users.role,
+        provider: users.provider,
         createdAt: users.createdAt,
       })
 
@@ -120,6 +122,9 @@ export async function POST(request: NextRequest) {
           name: newUser.name,
           email: newUser.email,
           role: newUser.role,
+          provider: newUser.provider || 'email',
+          googleId: null,
+          photoUrl: null,
         },
       },
       { status: 201 }

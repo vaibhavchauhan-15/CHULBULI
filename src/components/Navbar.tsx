@@ -88,7 +88,15 @@ export default function Navbar() {
             {user ? (
               <div className="relative group">
                 <button className="p-2 hover:text-rosegold transition-all duration-500">
-                  <FiUser className="w-5 h-5 text-warmbrown hover:text-rosegold" />
+                  {user.photoUrl ? (
+                    <img
+                      src={user.photoUrl}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover border-2 border-[#C89A7A]/30 hover:border-[#C89A7A]"
+                    />
+                  ) : (
+                    <FiUser className="w-5 h-5 text-warmbrown hover:text-rosegold" />
+                  )}
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-pearl/95 backdrop-blur-lg border border-softgold/40 shadow-luxury rounded-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-600">
                   <Link

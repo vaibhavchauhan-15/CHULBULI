@@ -55,6 +55,9 @@ export async function GET(request: NextRequest) {
         name: true,
         email: true,
         role: true,
+        provider: true,
+        googleId: true,
+        photoUrl: true,
       },
     })
 
@@ -82,6 +85,9 @@ export async function GET(request: NextRequest) {
           name: user.name,
           email: user.email,
           role: user.role,
+          provider: user.provider,
+          googleId: user.googleId,
+          photoUrl: user.photoUrl,
         },
       },
       {

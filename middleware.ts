@@ -15,15 +15,31 @@ export function middleware(request: NextRequest) {
   // Prevent clickjacking
   response.headers.set('X-Frame-Options', 'DENY')
   
-  // Validate origin for state-changing requests
+  // Validate origin for state-changing requests (CSRF protection)
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
     const origin = request.headers.get('origin')
+    const referer = request.headers.get('referer')
     const host = request.headers.get('host')
     
-    // In production, validate origin matches host
-    if (process.env.NODE_ENV === 'production' && origin) {
-      const originHost = new URL(origin).host
-      if (originHost !== host) {
+    // Skip validation for health check endpoints
+    if (request.nextUrl.pathname === '/api/health') {
+      return response
+    }
+    
+    // In production, validate origin or referer matches host
+    if (process.env.NODE_ENV === 'production') {
+      const hasValidOrigin = origin && new URL(origin).host === host
+      const hasValidReferer = referer && new URL(referer).host === host
+      
+      if (!hasValidOrigin && !hasValidReferer) {
+        console.warn('[SECURITY] CSRF attempt detected:', {
+          method: request.method,
+          path: request.nextUrl.pathname,
+          origin,
+          referer,
+          host
+        })
+        
         return NextResponse.json(
           { error: 'Invalid request origin' },
           { status: 403 }
