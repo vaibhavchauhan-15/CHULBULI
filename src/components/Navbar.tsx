@@ -89,6 +89,7 @@ export default function Navbar() {
               <div className="relative group">
                 <button className="p-2 hover:text-rosegold transition-all duration-500">
                   {user.photoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={user.photoUrl}
                       alt={user.name}

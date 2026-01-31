@@ -21,12 +21,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('7D')
 
-  useEffect(() => {
-    if (user && !isLoading) {
-      fetchDashboardStats()
-    }
-  }, [user, isLoading, timeFilter])
-
   const fetchDashboardStats = async () => {
     try {
       setLoading(true)
@@ -44,6 +38,13 @@ export default function AdminPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (user && !isLoading) {
+      fetchDashboardStats()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isLoading, timeFilter])
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
