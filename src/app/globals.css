@@ -211,5 +211,143 @@
   .border-luxury:hover {
     border-color: rgba(200, 154, 122, 0.4);
   }
-}
 
+  /* Admin Panel Utilities */
+  .admin-card {
+    @apply bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border-2 border-softgold/20;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .admin-card:hover {
+    @apply shadow-2xl border-rosegold/30;
+  }
+
+  .admin-stat-card {
+    @apply rounded-3xl p-6 shadow-xl border-2 transition-all duration-300 cursor-pointer;
+  }
+
+  .admin-stat-card:hover {
+    @apply scale-105 shadow-2xl;
+  }
+
+  /* Status Badge Utilities */
+  .status-badge {
+    @apply inline-flex px-3 py-1.5 text-xs font-bold rounded-xl shadow-sm;
+  }
+
+  .status-success {
+    @apply bg-emerald-100 text-emerald-700 border-2 border-emerald-200;
+  }
+
+  .status-warning {
+    @apply bg-amber-100 text-amber-700 border-2 border-amber-200;
+  }
+
+  .status-error {
+    @apply bg-red-100 text-red-700 border-2 border-red-200;
+  }
+
+  .status-info {
+    @apply bg-blue-100 text-blue-700 border-2 border-blue-200;
+  }
+
+  /* Button Hover Effects */
+  .btn-hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .btn-hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Glassmorphism Effect */
+  .glass-effect {
+    @apply bg-white/80 backdrop-blur-sm border border-white/30;
+    box-shadow: 0 8px 32px 0 rgba(200, 154, 122, 0.1);
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    background: linear-gradient(135deg, #C89A7A 0%, #E6C9A8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Smooth Scroll */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+
+  /* Desktop Optimized Spacing */
+  @media (min-width: 1024px) {
+    .desktop-spacing {
+      @apply px-8 py-8;
+    }
+
+    .desktop-card-gap {
+      @apply gap-6;
+    }
+  }
+
+  /* Enhanced Focus Styles */
+  .focus-luxury:focus {
+    outline: none;
+    @apply ring-2 ring-rosegold/50 ring-offset-2;
+  }
+
+  /* Animated Gradient Background */
+  .animated-gradient {
+    background: linear-gradient(-45deg, #F2E6D8, #E8D5C2, #F7F6F3, #E6C9A8);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Shimmer Effect for Loading */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(247, 246, 243, 0) 0%,
+      rgba(200, 154, 122, 0.2) 50%,
+      rgba(247, 246, 243, 0) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Pulse Animation for Badges */
+  .pulse-badge {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+}

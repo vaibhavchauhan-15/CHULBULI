@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
 import AdminSidebar from '@/components/AdminSidebar'
+import AdminMobileNav from '@/components/AdminMobileNav'
 import ProductFormModal from '@/components/ProductFormModal'
 import { 
   FiBell, FiSettings, FiSearch, FiEdit, FiTrash2, 
@@ -397,33 +398,35 @@ export default function AdminProductsPage() {
   if (!user || user.role !== 'admin') return null
 
   return (
-    <div className="flex min-h-screen bg-champagne">
-      <AdminSidebar />
+    <div className="min-h-screen bg-gradient-to-br from-champagne via-pearl to-sand">
+      <div className="hidden lg:block">
+        <AdminSidebar />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 px-6 py-6 overflow-y-auto">
+      <main className="lg:ml-72 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen">
         {/* Top Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
           <div>
-            <h1 className="text-2xl font-playfair font-semibold text-warmbrown mb-1">Products Management</h1>
-            <p className="text-sm text-taupe">Manage your jewelry inventory</p>
+            <h1 className="text-2xl lg:text-3xl font-playfair font-bold text-warmbrown mb-2">Products Management</h1>
+            <p className="text-sm text-taupe font-medium">Manage your jewelry inventory and product catalog</p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 w-full lg:w-auto">
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-rosegold text-pearl rounded-xl hover:bg-softgold transition-colors font-medium text-sm shadow-sm"
+              className="flex items-center justify-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-rosegold to-softgold text-white rounded-2xl hover:shadow-xl transition-all font-semibold text-sm shadow-lg hover:scale-105 flex-1 lg:flex-none"
             >
-              <FiPlus size={18} /> Add Product
+              <FiPlus size={20} className="font-bold" /> <span>Add New Product</span>
             </button>
-            <div className="flex items-center gap-5 text-taupe pl-4 border-l border-softgold/30">
-              <button className="hover:text-rosegold transition-colors relative">
-                <FiBell size={20} />
+            <div className="flex items-center gap-4 pl-5 border-l-2 border-softgold/40">
+              <button className="relative p-2.5 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group">
+                <FiBell size={22} className="transition-transform group-hover:scale-110" />
               </button>
-              <button className="hover:text-rosegold transition-colors">
-                <FiSettings size={20} />
+              <button className="p-2.5 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group hidden md:block">
+                <FiSettings size={22} className="transition-transform group-hover:rotate-90 duration-500" />
               </button>
-              <div className="w-10 h-10 bg-gradient-to-br from-rosegold to-softgold rounded-xl flex items-center justify-center text-pearl font-semibold">
+              <div className="w-11 h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-lg ring-2 ring-white/50 hover:scale-105 transition-transform cursor-pointer">
                 {user.name?.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -432,100 +435,100 @@ export default function AdminProductsPage() {
 
         {/* Products Grid (Card-based instead of table) */}
         {loading ? (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-5">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-pearl rounded-2xl p-6 shadow-sm animate-pulse border border-softgold/20">
-                <div className="h-6 bg-sand rounded w-1/4 mb-3"></div>
-                <div className="h-4 bg-sand rounded w-1/2"></div>
+              <div key={i} className="bg-white/80 rounded-3xl p-7 shadow-lg animate-pulse border-2 border-softgold/20">
+                <div className="h-8 bg-sand/40 rounded-xl w-1/3 mb-4"></div>
+                <div className="h-5 bg-sand/40 rounded-lg w-2/3"></div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {products.map((product: any) => (
-              <div key={product.id} className="bg-pearl rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow border border-softgold/20">
-                <div className="flex items-start gap-6">
+              <div key={product.id} className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-7 shadow-xl hover:shadow-2xl transition-all border-2 border-softgold/20 hover:border-rosegold/30 group">
+                <div className="flex flex-col lg:flex-row items-start gap-6">
                   {/* Product Image */}
                   {product.images && product.images.length > 0 && (
-                    <div className="flex-shrink-0">
+                    <div className="flex-shrink-0 w-full lg:w-auto">
                       <Image
                         src={Array.isArray(product.images) ? product.images[0] : product.images}
                         alt={product.name}
-                        width={120}
-                        height={120}
-                        className="w-24 h-24 object-cover rounded-xl"
+                        width={140}
+                        height={140}
+                        className="w-full lg:w-32 h-56 lg:h-32 object-cover rounded-2xl shadow-md border-2 border-softgold/30 group-hover:scale-105 transition-transform"
                       />
                     </div>
                   )}
 
                   {/* Product Details */}
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-playfair font-semibold text-warmbrown">{product.name}</h3>
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-col lg:flex-row items-start justify-between mb-4 gap-4">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-3 mb-2">
+                          <h3 className="font-playfair font-bold text-warmbrown text-lg lg:text-xl">{product.name}</h3>
                           {product.featured && (
-                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg bg-softgold/20 text-rosegold border border-softgold/30">
-                              <FiStar size={12} /> Featured
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-2 border-amber-300 shadow-sm">
+                              <FiStar size={14} /> Featured
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-taupe max-w-2xl">{product.description}</p>
+                        <p className="text-sm text-taupe line-clamp-2 leading-relaxed">{product.description}</p>
                       </div>
                       
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
                         <button
                           onClick={() => handleEditProduct(product)}
-                          className="p-2 text-rosegold hover:bg-softgold/20 rounded-lg transition-colors"
+                          className="flex-1 lg:flex-none px-4 py-2.5 text-rosegold bg-rosegold/10 hover:bg-rosegold hover:text-white rounded-xl transition-all font-semibold text-sm shadow-sm hover:shadow-md border-2 border-rosegold/30 hover:border-rosegold flex items-center justify-center gap-2"
                           title="Edit"
                         >
-                          <FiEdit size={18} />
+                          <FiEdit size={18} /> <span className="hidden sm:inline">Edit</span>
                         </button>
                         <button
                           onClick={() => handleDeleteProduct(product.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="flex-1 lg:flex-none px-4 py-2.5 text-red-600 bg-red-50 hover:bg-red-600 hover:text-white rounded-xl transition-all font-semibold text-sm shadow-sm hover:shadow-md border-2 border-red-200 hover:border-red-600 flex items-center justify-center gap-2"
                           title="Delete"
                         >
-                          <FiTrash2 size={18} />
+                          <FiTrash2 size={18} /> <span className="hidden sm:inline">Delete</span>
                         </button>
                       </div>
                     </div>
 
                     {/* Product Meta */}
-                    <div className="flex items-center gap-6 mt-4">
+                    <div className="flex flex-wrap items-center gap-6 mt-5 pt-5 border-t-2 border-softgold/20">
                       <div>
-                        <p className="text-xs text-taupe">Price</p>
-                        <p className="text-sm font-semibold text-warmbrown">
+                        <p className="text-xs text-taupe font-medium mb-1">Price</p>
+                        <p className="text-base font-bold text-warmbrown">
                           ₹{product.price}
                           {product.discount > 0 && (
-                            <span className="ml-2 text-xs text-rosegold">
+                            <span className="ml-2 text-sm font-semibold text-rosegold bg-rosegold/10 px-2 py-1 rounded-lg">
                               {product.discount}% OFF
                             </span>
                           )}
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-taupe">Stock</p>
+                        <p className="text-xs text-taupe font-medium mb-1">Stock Status</p>
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-medium rounded-lg ${
+                          className={`inline-flex px-3 py-1.5 text-xs font-bold rounded-xl shadow-sm ${
                             product.stock === 0 
-                              ? 'bg-red-50 text-red-700 border border-red-100' 
+                              ? 'bg-red-100 text-red-700 border-2 border-red-200' 
                               : product.stock <= 10 
-                              ? 'bg-amber-50 text-amber-700 border border-amber-100' 
-                              : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                              ? 'bg-amber-100 text-amber-700 border-2 border-amber-200' 
+                              : 'bg-emerald-100 text-emerald-700 border-2 border-emerald-200'
                           }`}
                         >
                           {product.stock === 0 ? 'Out of Stock' : `${product.stock} units`}
                         </span>
                       </div>
                       <div>
-                        <p className="text-xs text-taupe">Category</p>
-                        <span className="text-sm font-medium text-warmbrown capitalize">{product.category}</span>
+                        <p className="text-xs text-taupe font-medium mb-1">Category</p>
+                        <span className="text-sm font-semibold text-warmbrown capitalize bg-sand/40 px-3 py-1.5 rounded-xl">{product.category}</span>
                       </div>
                       {product.material && (
                         <div>
-                          <p className="text-xs text-taupe">Material</p>
-                          <span className="text-sm font-medium text-warmbrown">{product.material}</span>
+                          <p className="text-xs text-taupe font-medium mb-1">Material</p>
+                          <span className="text-sm font-semibold text-warmbrown bg-softgold/20 px-3 py-1.5 rounded-xl border border-softgold/30">{product.material}</span>
                         </div>
                       )}
                     </div>
@@ -535,10 +538,18 @@ export default function AdminProductsPage() {
             ))}
 
             {products.length === 0 && (
-              <div className="bg-pearl rounded-2xl p-12 text-center shadow-sm border border-softgold/20">
-                <FiPackage size={48} className="mx-auto text-sand mb-4" />
-                <p className="text-warmbrown text-lg font-playfair">No products yet</p>
-                <p className="text-taupe text-sm mt-2">Click &quot;Add Product&quot; to create your first product</p>
+              <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-16 text-center shadow-xl border-2 border-softgold/30">
+                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-sand/50 to-softgold/30 rounded-3xl flex items-center justify-center">
+                  <FiPackage size={48} className="text-rosegold" />
+                </div>
+                <p className="text-warmbrown text-2xl font-playfair font-bold mb-2">No products yet</p>
+                <p className="text-taupe text-base mb-6">Start building your jewelry catalog by adding your first product</p>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rosegold to-softgold text-white rounded-2xl hover:shadow-xl transition-all font-semibold shadow-lg hover:scale-105"
+                >
+                  <FiPlus size={20} /> Add Your First Product
+                </button>
               </div>
             )}
           </div>
@@ -593,6 +604,9 @@ export default function AdminProductsPage() {
           </div>
         </div>
       </aside>
+
+      {/* Mobile Navigation */}
+      <AdminMobileNav />
 
       {/* Add/Edit Product Modal */}
       <ProductFormModal

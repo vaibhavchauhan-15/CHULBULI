@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import AdminSidebar from '@/components/AdminSidebar'
+import AdminMobileNav from '@/components/AdminMobileNav'
 import { 
   FiBell, FiSettings, FiCheck, FiX, FiTrash2, FiUser, FiStar, FiPackage
 } from 'react-icons/fi'
@@ -115,18 +116,20 @@ export default function AdminReviewsPage() {
 
   return (
     <div className="flex min-h-screen bg-champagne">
-      <AdminSidebar />
+      <div className="hidden lg:block">
+        <AdminSidebar />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 px-6 py-6 overflow-y-auto">
+      <main className="flex-1 px-3 md:px-6 py-4 md:py-6 pb-24 lg:pb-6 overflow-y-auto">
         {/* Top Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
           <div>
-            <h1 className="text-2xl font-playfair font-semibold text-warmbrown mb-1">Review Moderation</h1>
+            <h1 className="text-xl md:text-2xl font-playfair font-semibold text-warmbrown mb-1">Review Moderation</h1>
             <p className="text-sm text-taupe">Approve or moderate customer reviews</p>
           </div>
 
-          <div className="flex items-center gap-5 text-taupe">
+          <div className="flex items-center gap-3 md:gap-5 text-taupe">
             <button className="hover:text-rosegold transition-colors relative">
               <FiBell size={20} />
               {reviews.filter((r: any) => !r.approved).length > 0 && (
@@ -136,12 +139,12 @@ export default function AdminReviewsPage() {
             <button className="hover:text-rosegold transition-colors">
               <FiSettings size={20} />
             </button>
-            <div className="flex items-center gap-3 pl-4 border-l border-softgold/30">
-              <div className="text-right">
+            <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-4 border-l border-softgold/30">
+              <div className="text-right hidden md:block">
                 <p className="text-sm font-medium text-warmbrown font-playfair">{user.name}</p>
                 <p className="text-xs text-taupe">Administrator</p>
               </div>
-              <div className="w-10 h-10 bg-gradient-to-br from-rosegold to-softgold rounded-xl flex items-center justify-center text-pearl font-semibold">
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-rosegold to-softgold rounded-xl flex items-center justify-center text-pearl font-semibold text-sm">
                 {user.name?.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -149,10 +152,10 @@ export default function AdminReviewsPage() {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex gap-3 mb-6">
+        <div className="flex gap-2 md:gap-3 mb-6 overflow-x-auto pb-2">
           <button
             onClick={() => setFilter('pending')}
-            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+            className={`px-3 md:px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
               filter === 'pending'
                 ? 'bg-rosegold text-pearl shadow-sm'
                 : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
@@ -162,7 +165,7 @@ export default function AdminReviewsPage() {
           </button>
           <button
             onClick={() => setFilter('approved')}
-            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+            className={`px-3 md:px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
               filter === 'approved'
                 ? 'bg-rosegold text-pearl shadow-sm'
                 : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
@@ -172,7 +175,7 @@ export default function AdminReviewsPage() {
           </button>
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+            className={`px-3 md:px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
               filter === 'all'
                 ? 'bg-rosegold text-pearl shadow-sm'
                 : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
@@ -195,8 +198,8 @@ export default function AdminReviewsPage() {
         ) : filteredReviews.length > 0 ? (
           <div className="space-y-4">
             {filteredReviews.map((review: any) => (
-              <div key={review.id} className="bg-pearl rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow border border-softgold/20">
-                <div className="flex items-start justify-between">
+              <div key={review.id} className="bg-pearl rounded-2xl shadow-sm p-4 md:p-6 hover:shadow-md transition-shadow border border-softgold/20">
+                <div className="flex flex-col md:flex-row items-start justify-between gap-4">
                   <div className="flex-1">
                     {/* Reviewer Info */}
                     <div className="flex items-center gap-3 mb-4">
@@ -259,31 +262,31 @@ export default function AdminReviewsPage() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-col gap-2 ml-4">
+                  <div className="flex md:flex-col gap-2 md:ml-4 w-full md:w-auto">
                     {!review.approved && (
                       <button
                         onClick={() => handleApprove(review.id)}
-                        className="p-2.5 bg-softgold/20 text-rosegold hover:bg-softgold/30 rounded-xl transition-colors border border-softgold/30"
+                        className="flex-1 md:flex-none p-2.5 bg-softgold/20 text-rosegold hover:bg-softgold/30 rounded-xl transition-colors border border-softgold/30"
                         title="Approve Review"
                       >
-                        <FiCheck size={18} />
+                        <FiCheck size={18} className="mx-auto" />
                       </button>
                     )}
                     {review.approved && (
                       <button
                         onClick={() => handleReject(review.id)}
-                        className="p-2.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-xl transition-colors border border-amber-100"
+                        className="flex-1 md:flex-none p-2.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-xl transition-colors border border-amber-100"
                         title="Unapprove Review"
                       >
-                        <FiX size={18} />
+                        <FiX size={18} className="mx-auto" />
                       </button>
                     )}
                     <button
                       onClick={() => handleDelete(review.id)}
-                      className="p-2.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-xl transition-colors border border-red-100"
+                      className="flex-1 md:flex-none p-2.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-xl transition-colors border border-red-100"
                       title="Delete Review"
                     >
-                      <FiTrash2 size={18} />
+                      <FiTrash2 size={18} className="mx-auto" />
                     </button>
                   </div>
                 </div>
@@ -366,6 +369,9 @@ export default function AdminReviewsPage() {
           </div>
         </div>
       </aside>
+
+      {/* Mobile Navigation */}
+      <AdminMobileNav />
     </div>
   )
 }

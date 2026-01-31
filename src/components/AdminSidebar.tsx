@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
-import { FiHome, FiPackage, FiShoppingBag, FiStar, FiLogOut } from 'react-icons/fi'
+import { FiHome, FiPackage, FiShoppingBag, FiStar, FiLogOut, FiSettings, FiTrendingUp } from 'react-icons/fi'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
@@ -16,77 +16,80 @@ export default function AdminSidebar() {
   }
 
   return (
-    <aside className="w-64 bg-gradient-to-b from-rosegold via-[#B8916B] to-softgold rounded-r-3xl flex flex-col py-6 px-4 gap-6 shadow-2xl border-r-2 border-softgold/40">
+    <aside className="fixed left-0 top-0 w-72 bg-gradient-to-b from-rosegold via-[#C89A7A] to-[#B8916B] rounded-r-[2rem] flex flex-col py-8 px-5 gap-8 shadow-2xl border-r-2 border-white/20 h-screen overflow-y-auto">
       {/* Logo */}
-      <div className="mb-4 flex items-center gap-3 px-2">
-        <div className="w-12 h-12 bg-pearl/30 rounded-xl flex items-center justify-center shadow-lg border border-pearl/40">
-          <span className="text-pearl font-bold text-xl">CJ</span>
+      <div className="mb-2 flex items-center gap-4 px-3">
+        <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-xl border-2 border-white/30 hover:scale-110 transition-transform cursor-pointer">
+          <span className="text-white font-bold text-2xl font-playfair">CJ</span>
         </div>
         <div>
-          <h2 className="text-pearl font-playfair font-semibold text-lg">Chulbuli</h2>
-          <p className="text-pearl/80 text-xs">Admin Panel</p>
+          <h2 className="text-white font-playfair font-bold text-xl tracking-wide">Chulbuli</h2>
+          <p className="text-white/80 text-sm font-medium">Admin Panel</p>
         </div>
       </div>
 
       {/* Navigation with Icons and Labels */}
-      <nav className="flex flex-col gap-2 flex-1">
+      <nav className="flex flex-col gap-3 flex-1">
         <Link
           href="/admin"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+          className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${
             isActive('/admin') && pathname === '/admin'
-              ? 'bg-pearl/30 text-pearl shadow-lg font-semibold border border-pearl/40'
-              : 'text-pearl/90 hover:bg-pearl/20 hover:text-pearl'
+              ? 'bg-white/25 backdrop-blur-sm text-white shadow-xl font-bold border-2 border-white/40 scale-105'
+              : 'text-white/90 hover:bg-white/15 hover:text-white hover:scale-105 border-2 border-transparent hover:border-white/20'
           }`}
         >
-          <FiHome size={20} />
-          <span className="font-medium">Dashboard</span>
+          <FiHome size={22} className="group-hover:scale-110 transition-transform" />
+          <span className="font-semibold text-base">Dashboard</span>
         </Link>
 
         <Link
           href="/admin/products"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+          className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${
             isActive('/admin/products')
-              ? 'bg-pearl/30 text-pearl shadow-lg font-semibold border border-pearl/40'
-              : 'text-pearl/90 hover:bg-pearl/20 hover:text-pearl'
+              ? 'bg-white/25 backdrop-blur-sm text-white shadow-xl font-bold border-2 border-white/40 scale-105'
+              : 'text-white/90 hover:bg-white/15 hover:text-white hover:scale-105 border-2 border-transparent hover:border-white/20'
           }`}
         >
-          <FiPackage size={20} />
-          <span className="font-medium">Products</span>
+          <FiPackage size={22} className="group-hover:scale-110 transition-transform" />
+          <span className="font-semibold text-base">Products</span>
         </Link>
 
         <Link
           href="/admin/orders"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+          className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${
             isActive('/admin/orders')
-              ? 'bg-pearl/30 text-pearl shadow-lg font-semibold border border-pearl/40'
-              : 'text-pearl/90 hover:bg-pearl/20 hover:text-pearl'
+              ? 'bg-white/25 backdrop-blur-sm text-white shadow-xl font-bold border-2 border-white/40 scale-105'
+              : 'text-white/90 hover:bg-white/15 hover:text-white hover:scale-105 border-2 border-transparent hover:border-white/20'
           }`}
         >
-          <FiShoppingBag size={20} />
-          <span className="font-medium">Orders</span>
+          <FiShoppingBag size={22} className="group-hover:scale-110 transition-transform" />
+          <span className="font-semibold text-base">Orders</span>
         </Link>
 
         <Link
           href="/admin/reviews"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+          className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${
             isActive('/admin/reviews')
-              ? 'bg-pearl/30 text-pearl shadow-lg font-semibold border border-pearl/40'
-              : 'text-pearl/90 hover:bg-pearl/20 hover:text-pearl'
+              ? 'bg-white/25 backdrop-blur-sm text-white shadow-xl font-bold border-2 border-white/40 scale-105'
+              : 'text-white/90 hover:bg-white/15 hover:text-white hover:scale-105 border-2 border-transparent hover:border-white/20'
           }`}
         >
-          <FiStar size={20} />
-          <span className="font-medium">Reviews</span>
+          <FiStar size={22} className="group-hover:scale-110 transition-transform" />
+          <span className="font-semibold text-base">Reviews</span>
         </Link>
       </nav>
 
+      {/* Divider */}
+      <div className="border-t-2 border-white/20 my-2"></div>
+
       {/* Bottom Actions */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         <Link
           href="/"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl text-pearl/90 hover:bg-pearl/20 hover:text-pearl transition-all"
+          className="flex items-center gap-4 px-5 py-4 rounded-2xl text-white/90 hover:bg-white/15 hover:text-white transition-all duration-300 border-2 border-transparent hover:border-white/20 hover:scale-105 group"
         >
-          <FiLogOut size={20} />
-          <span className="font-medium">Back to Store</span>
+          <FiLogOut size={22} className="group-hover:scale-110 transition-transform" />
+          <span className="font-semibold text-base">Back to Store</span>
         </Link>
       </div>
     </aside>
