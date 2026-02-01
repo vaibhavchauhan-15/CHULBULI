@@ -15,6 +15,27 @@ export default function CheckoutPage() {
   const user = useAuthStore((state) => state.user)
   const [loading, setLoading] = useState(false)
 
+  // Shipping options
+  const subtotal = getTotalPrice()
+  const [selectedShipping, setSelectedShipping] = useState<'free' | 'standard' | 'express'>(
+    subtotal >= 500 ? 'free' : 'standard'
+  )
+
+  const shippingCosts = {
+    free: 0,
+    standard: 59,
+    express: 149,
+  }
+
+  const getShippingCost = () => {
+    if (subtotal >= 500 && selectedShipping === 'free') return 0
+    return shippingCosts[selectedShipping]
+  }
+
+  const gstRate = 0.03 // 3% GST
+  const gstAmount = subtotal * gstRate
+  const totalAmount = subtotal + getShippingCost() + gstAmount
+
   const [formData, setFormData] = useState({
     customerName: user?.name || '',
     customerEmail: user?.email || '',
@@ -32,6 +53,15 @@ export default function CheckoutPage() {
       router.push('/cart')
     }
   }, [items.length, router])
+
+  // Update shipping selection when cart total changes
+  useEffect(() => {
+    if (subtotal >= 500) {
+      setSelectedShipping('free')
+    } else if (selectedShipping === 'free') {
+      setSelectedShipping('standard')
+    }
+  }, [subtotal])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -97,6 +127,10 @@ export default function CheckoutPage() {
           productId: item.id,
           quantity: item.quantity,
         })),
+        shippingMethod: selectedShipping,
+        shippingCost: getShippingCost(),
+        gstAmount: gstAmount,
+        totalAmount: totalAmount,
       }
 
       const response = await fetch('/api/orders', {
@@ -315,6 +349,161 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
+              {/* Shipping Options */}
+              <div className="card-luxury p-6 md:p-8 shadow-luxury">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="bg-[#C89A7A]/10 p-3 rounded-xl">
+                    <FiTruck className="w-5 h-5 text-[#C89A7A]" />
+                  </div>
+                  <h2 className="text-2xl font-playfair font-semibold text-[#5A3E2B]">Shipping Method</h2>
+                </div>
+                
+                <div className="space-y-4">
+                  {/* FREE Shipping Notice */}
+                  {subtotal >= 500 && (
+                    <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 border border-emerald-200 rounded-xl p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-emerald-500 p-2 rounded-full">
+                          <FiCheck className="w-4 h-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-emerald-800">🎉 FREE Shipping Unlocked!</p>
+                          <p className="text-sm text-emerald-700">Your order qualifies for free shipping</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Shipping Options */}
+                  <div className="space-y-3">
+                    {/* FREE Shipping Option */}
+                    <label 
+                      className={`relative block cursor-pointer ${
+                        subtotal < 500 ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="shipping"
+                        value="free"
+                        checked={selectedShipping === 'free'}
+                        onChange={(e) => setSelectedShipping('free')}
+                        disabled={subtotal < 500}
+                        className="sr-only"
+                      />
+                      <div className={`bg-white/60 border-2 rounded-xl p-4 transition-all ${
+                        selectedShipping === 'free' && subtotal >= 500
+                          ? 'border-emerald-500 bg-emerald-50/50 shadow-md'
+                          : subtotal >= 500
+                          ? 'border-[#C89A7A]/20 hover:border-[#C89A7A]/40'
+                          : 'border-gray-300'
+                      }`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
+                            selectedShipping === 'free' && subtotal >= 500
+                              ? 'border-emerald-500 bg-emerald-500'
+                              : 'border-gray-300 bg-white'
+                          }`}>
+                            {selectedShipping === 'free' && subtotal >= 500 && (
+                              <FiCheck className="w-3 h-3 text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-[#5A3E2B]">FREE Shipping</p>
+                            <p className="text-sm text-[#5A3E2B]/60">On all orders above ₹500 • 3-7 business days</p>
+                          </div>
+                          <span className={`font-bold text-lg ${
+                            selectedShipping === 'free' && subtotal >= 500
+                              ? 'text-emerald-600'
+                              : 'text-[#5A3E2B]/40'
+                          }`}>FREE</span>
+                        </div>
+                        {subtotal < 500 && (
+                          <p className="text-xs text-red-600 mt-2 ml-9">
+                            Add ₹{(500 - subtotal).toFixed(2)} more to unlock free shipping
+                          </p>
+                        )}
+                      </div>
+                    </label>
+
+                    {/* Standard Shipping Option */}
+                    <label className="relative block cursor-pointer">
+                      <input
+                        type="radio"
+                        name="shipping"
+                        value="standard"
+                        checked={selectedShipping === 'standard'}
+                        onChange={(e) => setSelectedShipping('standard')}
+                        className="sr-only"
+                      />
+                      <div className={`bg-white/60 border-2 rounded-xl p-4 transition-all ${
+                        selectedShipping === 'standard'
+                          ? 'border-[#C89A7A] bg-[#C89A7A]/5 shadow-md'
+                          : 'border-[#C89A7A]/20 hover:border-[#C89A7A]/40'
+                      }`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
+                            selectedShipping === 'standard'
+                              ? 'border-[#C89A7A] bg-[#C89A7A]'
+                              : 'border-gray-300 bg-white'
+                          }`}>
+                            {selectedShipping === 'standard' && (
+                              <FiCheck className="w-3 h-3 text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-[#5A3E2B]">Standard Shipping</p>
+                            <p className="text-sm text-[#5A3E2B]/60">5-7 business days</p>
+                          </div>
+                          <span className="font-bold text-lg text-[#C89A7A]">₹59</span>
+                        </div>
+                      </div>
+                    </label>
+
+                    {/* Express Shipping Option */}
+                    <label className="relative block cursor-pointer">
+                      <input
+                        type="radio"
+                        name="shipping"
+                        value="express"
+                        checked={selectedShipping === 'express'}
+                        onChange={(e) => setSelectedShipping('express')}
+                        className="sr-only"
+                      />
+                      <div className={`bg-white/60 border-2 rounded-xl p-4 transition-all ${
+                        selectedShipping === 'express'
+                          ? 'border-[#C89A7A] bg-[#C89A7A]/5 shadow-md'
+                          : 'border-[#C89A7A]/20 hover:border-[#C89A7A]/40'
+                      }`}>
+                        <div className="flex items-center gap-4">
+                          <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
+                            selectedShipping === 'express'
+                              ? 'border-[#C89A7A] bg-[#C89A7A]'
+                              : 'border-gray-300 bg-white'
+                          }`}>
+                            {selectedShipping === 'express' && (
+                              <FiCheck className="w-3 h-3 text-white" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-[#5A3E2B]">Express Shipping</p>
+                            <p className="text-sm text-[#5A3E2B]/60">2-3 business days in metro cities</p>
+                          </div>
+                          <span className="font-bold text-lg text-[#C89A7A]">₹149</span>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Note */}
+                  <div className="bg-[#C89A7A]/5 border border-[#C89A7A]/20 rounded-lg p-4 mt-4">
+                    <p className="text-xs text-[#5A3E2B]/70 italic leading-relaxed">
+                      💡 Shipping charges are calculated based on your location and order value. Delivery times may vary.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Place Order Button */}
               <button
                 type="submit"
@@ -373,21 +562,29 @@ export default function CheckoutPage() {
                 <div className="border-t border-[#C89A7A]/20 pt-5 space-y-3">
                   <div className="flex justify-between text-[#5A3E2B]/70">
                     <span className="font-medium">Subtotal</span>
-                    <span className="font-semibold">₹{getTotalPrice().toFixed(2)}</span>
+                    <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-[#5A3E2B]/70">Shipping</span>
-                    <span className="font-semibold text-emerald-600 flex items-center gap-1">
-                      <FiCheck className="w-4 h-4" />
-                      FREE
-                    </span>
+                    {getShippingCost() === 0 ? (
+                      <span className="font-semibold text-emerald-600 flex items-center gap-1">
+                        <FiCheck className="w-4 h-4" />
+                        FREE
+                      </span>
+                    ) : (
+                      <span className="font-semibold text-[#C89A7A]">₹{getShippingCost().toFixed(2)}</span>
+                    )}
+                  </div>
+                  <div className="flex justify-between text-[#5A3E2B]/70">
+                    <span className="font-medium">GST (3%)</span>
+                    <span className="font-semibold">₹{gstAmount.toFixed(2)}</span>
                   </div>
                   
                   <div className="bg-gradient-to-r from-[#C89A7A]/10 to-[#E6C9A8]/10 rounded-xl p-4 mt-4">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-playfair font-semibold text-[#5A3E2B]">Total</span>
                       <span className="text-2xl md:text-3xl font-playfair font-bold text-[#C89A7A]">
-                        ₹{getTotalPrice().toFixed(2)}
+                        ₹{totalAmount.toFixed(2)}
                       </span>
                     </div>
                   </div>

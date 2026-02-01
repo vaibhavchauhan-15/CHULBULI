@@ -65,9 +65,9 @@ export default function ShippingPolicy() {
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
             <div className="space-y-3 text-warmbrown/80">
-              <p><strong className="text-warmbrown">FREE Shipping:</strong> On all orders above ₹2,000</p>
-              <p><strong className="text-warmbrown">Standard Shipping:</strong> ₹99 for orders below ₹2,000</p>
-              <p><strong className="text-warmbrown">Express Shipping:</strong> ₹299 (Delivery within 2-3 business days in metro cities)</p>
+              <p><strong className="text-warmbrown">FREE Shipping:</strong> On all orders above ₹500</p>
+              <p><strong className="text-warmbrown">Standard Shipping:</strong> ₹59 for orders below ₹500</p>
+              <p><strong className="text-warmbrown">Express Shipping:</strong> ₹149 (Delivery within 2-3 business days in metro cities)</p>
               <p className="text-sm italic">* Shipping charges are calculated at checkout based on your location and order value.</p>
             </div>
           </section>
