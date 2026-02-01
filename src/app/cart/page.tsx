@@ -12,9 +12,30 @@ import toast from 'react-hot-toast'
 
 export default function CartPage() {
   const router = useRouter()
-  const { items, removeItem, updateQuantity, getTotalPrice, clearCart } = useCartStore()
+  const { 
+    items, 
+    removeItem, 
+    updateQuantity, 
+    getTotalPrice, 
+    clearCart,
+    selectedItems,
+    toggleItemSelection,
+    selectAllItems,
+    deselectAllItems,
+    getSelectedTotalPrice,
+    getSelectedItems,
+    isItemSelected
+  } = useCartStore()
   const [unavailableItems, setUnavailableItems] = useState<string[]>([])
   const [validating, setValidating] = useState(false)
+
+  // Auto-select all items on mount if none are selected
+  useEffect(() => {
+    if (items.length > 0 && selectedItems.length === 0) {
+      selectAllItems()
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Validate cart items on mount
   useEffect(() => {
@@ -64,6 +85,11 @@ export default function CartPage() {
   const handleCheckout = () => {
     if (items.length === 0) return
     
+    if (selectedItems.length === 0) {
+      toast.error('Please select at least one item to checkout')
+      return
+    }
+    
     // Remove unavailable items before proceeding
     if (unavailableItems.length > 0) {
       unavailableItems.forEach(id => removeItem(id))
@@ -112,13 +138,18 @@ export default function CartPage() {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-10">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
                 <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-3 text-[#5A3E2B]">
                   Shopping Cart
                 </h1>
                 <p className="text-lg text-[#5A3E2B]/70 font-light">
                   {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
+                  {selectedItems.length > 0 && (
+                    <span className="ml-2 text-[#C89A7A] font-medium">
+                      ({selectedItems.length} selected)
+                    </span>
+                  )}
                 </p>
               </div>
               
@@ -141,6 +172,31 @@ export default function CartPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-5">
+              {/* Select All Checkbox */}
+              {items.length > 1 && (
+                <div className="card-luxury p-4 shadow-luxury flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="select-all"
+                    checked={selectedItems.length === items.length && items.length > 0}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        selectAllItems()
+                      } else {
+                        deselectAllItems()
+                      }
+                    }}
+                    className="w-5 h-5 text-[#C89A7A] bg-white border-2 border-[#C89A7A]/30 rounded focus:ring-2 focus:ring-[#C89A7A]/20 cursor-pointer"
+                  />
+                  <label htmlFor="select-all" className="text-sm font-medium text-[#5A3E2B] cursor-pointer flex-1">
+                    Select All Items
+                  </label>
+                  <span className="text-sm text-[#5A3E2B]/60">
+                    {selectedItems.length} of {items.length} selected
+                  </span>
+                </div>
+              )}
+
               {items.map((item) => {
                 const finalPrice = item.price - (item.price * item.discount) / 100
                 const isUnavailable = unavailableItems.includes(item.id)
@@ -164,6 +220,18 @@ export default function CartPage() {
                     )}
                     
                     <div className="flex gap-5">
+                      {/* Selection Checkbox */}
+                      <div className="flex items-start pt-2">
+                        <input
+                          type="checkbox"
+                          id={`select-${item.id}`}
+                          checked={isItemSelected(item.id)}
+                          onChange={() => toggleItemSelection(item.id)}
+                          disabled={isUnavailable}
+                          className="w-5 h-5 text-[#C89A7A] bg-white border-2 border-[#C89A7A]/30 rounded focus:ring-2 focus:ring-[#C89A7A]/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        />
+                      </div>
+
                       {/* Product Image */}
                       <div className="relative w-28 h-28 flex-shrink-0 rounded-xl overflow-hidden bg-white/50 border border-[#C89A7A]/20">
                         <Image
@@ -276,9 +344,9 @@ export default function CartPage() {
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between text-[#5A3E2B]/70">
                     <span className="font-medium">
-                      Subtotal ({items.length} {items.length === 1 ? 'item' : 'items'})
+                      Subtotal ({selectedItems.length} {selectedItems.length === 1 ? 'item' : 'items'} selected)
                     </span>
-                    <span className="font-semibold">₹{getTotalPrice().toFixed(2)}</span>
+                    <span className="font-semibold">₹{getSelectedTotalPrice().toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="font-medium text-[#5A3E2B]/70">Shipping</span>
@@ -292,7 +360,7 @@ export default function CartPage() {
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-playfair font-semibold text-[#5A3E2B]">Total</span>
                       <span className="text-2xl md:text-3xl font-playfair font-bold text-[#C89A7A]">
-                        ₹{getTotalPrice().toFixed(2)}
+                        ₹{getSelectedTotalPrice().toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -301,7 +369,8 @@ export default function CartPage() {
                 <div className="space-y-3">
                   <button 
                     onClick={handleCheckout} 
-                    className="btn-primary w-full py-4 flex items-center justify-center gap-2 group"
+                    disabled={selectedItems.length === 0}
+                    className="btn-primary w-full py-4 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <FiShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
                     Proceed to Checkout

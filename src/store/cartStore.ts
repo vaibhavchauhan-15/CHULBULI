@@ -13,18 +13,26 @@ interface CartItem {
 
 interface CartStore {
   items: CartItem[]
+  selectedItems: string[]
   addItem: (item: CartItem) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
   getTotalPrice: () => number
   getTotalItems: () => number
+  getSelectedTotalPrice: () => number
+  getSelectedItems: () => CartItem[]
+  toggleItemSelection: (id: string) => void
+  selectAllItems: () => void
+  deselectAllItems: () => void
+  isItemSelected: (id: string) => boolean
 }
 
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      selectedItems: [],
       
       addItem: (item) => {
         const items = get().items
@@ -39,12 +47,19 @@ export const useCartStore = create<CartStore>()(
             ),
           })
         } else {
-          set({ items: [...items, item] })
+          // Auto-select newly added items
+          set({ 
+            items: [...items, item],
+            selectedItems: [...get().selectedItems, item.id]
+          })
         }
       },
       
       removeItem: (id) => {
-        set({ items: get().items.filter((i) => i.id !== id) })
+        set({ 
+          items: get().items.filter((i) => i.id !== id),
+          selectedItems: get().selectedItems.filter((selectedId) => selectedId !== id)
+        })
       },
       
       updateQuantity: (id, quantity) => {
@@ -73,6 +88,42 @@ export const useCartStore = create<CartStore>()(
       
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0)
+      },
+
+      getSelectedTotalPrice: () => {
+        const selectedIds = get().selectedItems
+        return get().items
+          .filter((item) => selectedIds.includes(item.id))
+          .reduce((total, item) => {
+            const finalPrice = item.price - (item.price * item.discount) / 100
+            return total + finalPrice * item.quantity
+          }, 0)
+      },
+
+      getSelectedItems: () => {
+        const selectedIds = get().selectedItems
+        return get().items.filter((item) => selectedIds.includes(item.id))
+      },
+
+      toggleItemSelection: (id) => {
+        const selectedItems = get().selectedItems
+        if (selectedItems.includes(id)) {
+          set({ selectedItems: selectedItems.filter((selectedId) => selectedId !== id) })
+        } else {
+          set({ selectedItems: [...selectedItems, id] })
+        }
+      },
+
+      selectAllItems: () => {
+        set({ selectedItems: get().items.map((item) => item.id) })
+      },
+
+      deselectAllItems: () => {
+        set({ selectedItems: [] })
+      },
+
+      isItemSelected: (id) => {
+        return get().selectedItems.includes(id)
       },
     }),
     {

@@ -11,12 +11,13 @@ import { FiUser, FiMail, FiPhone, FiMapPin, FiCreditCard, FiShoppingBag, FiCheck
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, getTotalPrice, clearCart, removeItem } = useCartStore()
+  const { items, getTotalPrice, clearCart, removeItem, getSelectedItems, getSelectedTotalPrice, deselectAllItems } = useCartStore()
   const user = useAuthStore((state) => state.user)
   const [loading, setLoading] = useState(false)
 
-  // Shipping options
-  const subtotal = getTotalPrice()
+  // Use selected items for checkout
+  const selectedItems = getSelectedItems()
+  const subtotal = getSelectedTotalPrice()
   const [selectedShipping, setSelectedShipping] = useState<'free' | 'standard' | 'express'>(
     subtotal >= 500 ? 'free' : 'standard'
   )
@@ -47,12 +48,12 @@ export default function CheckoutPage() {
     pincode: '',
   })
 
-  // Redirect to cart if empty
+  // Redirect to cart if no items selected
   useEffect(() => {
-    if (items.length === 0) {
+    if (selectedItems.length === 0) {
       router.push('/cart')
     }
-  }, [items.length, router])
+  }, [selectedItems.length, router])
 
   // Update shipping selection when cart total changes
   useEffect(() => {
@@ -68,7 +69,7 @@ export default function CheckoutPage() {
   }
 
   const validateCartItems = async () => {
-    const productIds = items.map(item => item.id)
+    const productIds = selectedItems.map(item => item.id)
     
     const response = await fetch('/api/cart/validate', {
       method: 'POST',
@@ -88,8 +89,8 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (items.length === 0) {
-      toast.error('Your cart is empty')
+    if (selectedItems.length === 0) {
+      toast.error('No items selected for checkout')
       return
     }
 
@@ -123,7 +124,7 @@ export default function CheckoutPage() {
       const orderData = {
         ...formData,
         userId: user?.id || null,
-        items: items.map((item) => ({
+        items: selectedItems.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
         })),
@@ -143,7 +144,9 @@ export default function CheckoutPage() {
 
       if (response.ok) {
         const order = await response.json()
-        clearCart()
+        // Remove selected items from cart
+        selectedItems.forEach(item => removeItem(item.id))
+        deselectAllItems()
         toast.success('Order placed successfully!')
         router.push(`/order-success?orderId=${order.id}`)
       } else {
@@ -158,7 +161,7 @@ export default function CheckoutPage() {
   }
 
   // Show loading or empty state while redirecting
-  if (items.length === 0) {
+  if (selectedItems.length === 0) {
     return null
   }
 
@@ -541,7 +544,7 @@ export default function CheckoutPage() {
                 </h2>
 
                 <div className="space-y-4 mb-6">
-                  {items.map((item) => {
+                  {selectedItems.map((item) => {
                     const finalPrice = item.price - (item.price * item.discount) / 100
                     return (
                       <div key={item.id} className="bg-white/50 rounded-lg p-4 border border-[#C89A7A]/10">
