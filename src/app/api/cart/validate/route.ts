@@ -38,14 +38,15 @@ export async function POST(request: NextRequest) {
     const unavailableProductIds = productIds.filter(id => !foundProductIds.has(id))
 
     // Check for products that exist but are not available for purchase
+    // Only mark as unavailable if stock is 0 or productStatus is explicitly 'out_of_stock'
     const unavailableProducts = foundProducts.filter(
-      p => p.productStatus !== 'active' || p.stock <= 0
+      p => p.stock <= 0 || p.productStatus === 'out_of_stock'
     )
 
     return NextResponse.json({
       valid: unavailableProductIds.length === 0 && unavailableProducts.length === 0,
       availableProducts: foundProducts.filter(
-        p => p.productStatus === 'active' && p.stock > 0
+        p => p.stock > 0 && p.productStatus !== 'out_of_stock'
       ),
       unavailableProductIds,
       unavailableProducts: unavailableProducts.map(p => ({

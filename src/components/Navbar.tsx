@@ -11,13 +11,15 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isClient, setIsClient] = useState(false)
-  const totalItems = useCartStore((state) => state.getTotalItems())
+  const [totalItems, setTotalItems] = useState(0)
+  const getTotalItems = useCartStore((state) => state.getTotalItems)
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
 
   useEffect(() => {
     setIsClient(true)
-  }, [])
+    setTotalItems(getTotalItems())
+  }, [getTotalItems])
 
   useEffect(() => {
     const handleScroll = () => {
