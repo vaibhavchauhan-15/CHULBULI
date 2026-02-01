@@ -115,13 +115,12 @@ export default function AdminReviewsPage() {
   if (!user || user.role !== 'admin') return null
 
   return (
-    <div className="flex min-h-screen bg-champagne">
-      <div className="hidden lg:block">
-        <AdminSidebar />
-      </div>
+    <div className="min-h-screen bg-champagne">
+      <AdminSidebar />
+      <AdminMobileNav />
 
       {/* Main Content */}
-      <main className="flex-1 px-3 md:px-6 py-4 md:py-6 pb-24 lg:pb-6 overflow-y-auto">
+      <main className="ml-0 lg:ml-72 xl:mr-[28%] px-3 md:px-6 py-4 md:py-6 pb-24 lg:pb-6 overflow-y-auto">
         {/* Top Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
           <div>
@@ -307,7 +306,7 @@ export default function AdminReviewsPage() {
       </main>
 
       {/* Right Panel - Review Stats */}
-      <aside className="w-[28%] px-4 py-6 hidden xl:block">
+      <aside className="hidden xl:block fixed right-0 top-0 w-[28%] h-screen px-4 py-6 bg-champagne overflow-y-auto">
         <div className="space-y-6">
           {/* Review Summary */}
           <div className="bg-pearl rounded-2xl p-5 shadow-sm border border-softgold/20">

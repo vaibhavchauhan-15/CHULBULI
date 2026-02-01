@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
-import { FiHome, FiPackage, FiShoppingBag, FiStar, FiLogOut, FiSettings, FiTrendingUp } from 'react-icons/fi'
+import { FiHome, FiPackage, FiShoppingBag, FiStar, FiUsers, FiLogOut, FiSettings, FiTrendingUp } from 'react-icons/fi'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
@@ -76,6 +76,18 @@ export default function AdminSidebar() {
         >
           <FiStar size={22} className="group-hover:scale-110 transition-transform" />
           <span className="font-semibold text-base">Reviews</span>
+        </Link>
+
+        <Link
+          href="/admin/users"
+          className={`flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 group ${
+            isActive('/admin/users')
+              ? 'bg-white/25 backdrop-blur-sm text-white shadow-xl font-bold border-2 border-white/40 scale-105'
+              : 'text-white/90 hover:bg-white/15 hover:text-white hover:scale-105 border-2 border-transparent hover:border-white/20'
+          }`}
+        >
+          <FiUsers size={22} className="group-hover:scale-110 transition-transform" />
+          <span className="font-semibold text-base">Users</span>
         </Link>
       </nav>
 

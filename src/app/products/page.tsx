@@ -165,6 +165,27 @@ function ProductsContent() {
             </div>
           </div>
         </div>
+
+        {/* Mobile Category Navigation - Bottom Fixed */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-softgold/30 shadow-lg z-40">
+          <div className="overflow-x-auto">
+            <div className="flex px-4 py-3 gap-3 min-w-max">
+              {categories.map((cat) => (
+                <button
+                  key={cat.value}
+                  onClick={() => setCategory(cat.value)}
+                  className={`px-5 py-2.5 rounded-full whitespace-nowrap transition-all duration-300 text-sm font-medium tracking-wide ${
+                    category === cat.value
+                      ? 'bg-rosegold text-white shadow-md'
+                      : 'bg-pearl text-warmbrown border border-softgold/30 hover:bg-champagne'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </main>
     </>
   )

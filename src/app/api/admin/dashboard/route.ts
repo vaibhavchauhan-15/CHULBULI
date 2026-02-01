@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db/client'
-import { orders, orderItems, products } from '@/lib/db/schema'
+import { orders, orderItems, products, users } from '@/lib/db/schema'
 import { lte, asc, sql, gte, and, eq, desc } from 'drizzle-orm'
 import { authMiddleware } from '@/lib/middleware'
 
@@ -200,6 +200,30 @@ async function handleGET(request: NextRequest) {
     const bestRatedProduct = bestSellingProducts[0] || { name: 'N/A' }
     const trendingProduct = bestSellingProducts[0] || { name: 'N/A' }
 
+    // User statistics
+    const allUsers = await db.query.users.findMany()
+    const currentPeriodUsers = allUsers.filter(user => user.createdAt >= startDate)
+    const previousPeriodUsers = period !== 'ALL' 
+      ? allUsers.filter(user => user.createdAt >= previousStartDate && user.createdAt < previousEndDate)
+      : []
+
+    const totalUsers = allUsers.length
+    const newUsers = currentPeriodUsers.length
+    const previousNewUsers = previousPeriodUsers.length
+    const usersGrowth = previousNewUsers > 0 ? ((newUsers - previousNewUsers) / previousNewUsers * 100).toFixed(1) : 0
+
+    // Users by role
+    const usersByRole = {
+      admin: allUsers.filter(u => u.role === 'admin').length,
+      customer: allUsers.filter(u => u.role === 'customer').length,
+    }
+
+    // Users by provider
+    const usersByProvider = {
+      email: allUsers.filter(u => u.provider === 'email').length,
+      google: allUsers.filter(u => u.provider === 'google').length,
+    }
+
     return NextResponse.json({
       totalSales,
       totalOrders,
@@ -219,6 +243,11 @@ async function handleGET(request: NextRequest) {
       mostViewedProduct,
       bestRatedProduct,
       trendingProduct,
+      totalUsers,
+      newUsers,
+      usersGrowth: parseFloat(usersGrowth as string),
+      usersByRole,
+      usersByProvider,
     })
   } catch (error) {
     console.error('Dashboard stats error:', error)

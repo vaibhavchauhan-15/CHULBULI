@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { FiHome, FiPackage, FiShoppingBag, FiStar } from 'react-icons/fi'
+import { FiHome, FiPackage, FiShoppingBag, FiStar, FiUsers } from 'react-icons/fi'
 
 export default function AdminMobileNav() {
   const pathname = usePathname()
@@ -62,6 +62,18 @@ export default function AdminMobileNav() {
         >
           <FiStar size={20} />
           <span className="text-xs font-medium">Reviews</span>
+        </Link>
+
+        <Link
+          href="/admin/users"
+          className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all min-w-[70px] ${
+            isActive('/admin/users')
+              ? 'bg-gradient-to-br from-rosegold to-softgold text-pearl shadow-md'
+              : 'text-taupe hover:text-rosegold'
+          }`}
+        >
+          <FiUsers size={20} />
+          <span className="text-xs font-medium">Users</span>
         </Link>
       </div>
     </nav>

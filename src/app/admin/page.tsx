@@ -9,7 +9,7 @@ import AdminMobileNav from '@/components/AdminMobileNav'
 import { 
   FiTrendingUp, FiAlertCircle, FiBell, FiSettings, FiSearch,
   FiArrowUp, FiDollarSign, FiShoppingBag, FiPackage, FiArrowDown, 
-  FiBarChart2, FiActivity, FiEye, FiStar, FiPlus
+  FiBarChart2, FiActivity, FiEye, FiStar, FiPlus, FiUsers
 } from 'react-icons/fi'
 
 type TimeFilter = '1D' | '7D' | '1M' | '3M' | '1Y' | 'ALL'
@@ -220,6 +220,29 @@ export default function AdminPage() {
                 <FiActivity size={14} className="text-white" />
                 <span className="text-sm text-white/95 font-medium">
                   {stats?.activeProducts || 0} active
+                </span>
+              </div>
+            </div>
+
+            {/* Total Users */}
+            <div className="group rounded-3xl bg-gradient-to-br from-rosegold via-[#C89A7A] to-[#B8916B] p-6 shadow-xl hover:shadow-2xl text-white border-2 border-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm text-white/90 font-medium">Total Users</p>
+                <div className="p-2.5 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
+                  <FiUsers size={22} className="text-white" />
+                </div>
+              </div>
+              <h2 className="text-3xl lg:text-4xl font-playfair font-bold mb-2">
+                {stats?.totalUsers || 0}
+              </h2>
+              <div className="flex items-center gap-1.5">
+                {stats?.usersGrowth >= 0 ? (
+                  <FiArrowUp size={14} className="text-white" />
+                ) : (
+                  <FiArrowDown size={14} className="text-white" />
+                )}
+                <span className="text-sm text-white/95 font-medium">
+                  {Math.abs(stats?.usersGrowth || 0)}% • {stats?.newUsers || 0} new
                 </span>
               </div>
             </div>
