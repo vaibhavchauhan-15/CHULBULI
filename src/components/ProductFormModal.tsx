@@ -131,6 +131,13 @@ export default function ProductFormModal({
                   <option value="bracelets">Bracelets</option>
                   <option value="anklets">Anklets</option>
                   <option value="sets">Sets</option>
+                  <option value="bangles">Bangles</option>
+                  <option value="pendants">Pendants</option>
+                  <option value="nose_pins">Nose Pins</option>
+                  <option value="maang_tikka">Maang Tikka</option>
+                  <option value="hair_accessories">Hair Accessories</option>
+                  <option value="toe_rings">Toe Rings</option>
+                  <option value="waist_belt">Waist Belt/Kamarbandh</option>
                 </select>
               </div>
 
@@ -145,8 +152,17 @@ export default function ProductFormModal({
                   <option value="stud">Stud</option>
                   <option value="hoop">Hoop</option>
                   <option value="drop">Drop</option>
+                  <option value="dangle">Dangle</option>
                   <option value="jhumka">Jhumka</option>
                   <option value="chandbali">Chandbali</option>
+                  <option value="bali">Bali</option>
+                  <option value="threader">Threader</option>
+                  <option value="cuff">Cuff</option>
+                  <option value="climber">Climber</option>
+                  <option value="huggies">Huggies</option>
+                  <option value="cluster">Cluster</option>
+                  <option value="sui_dhaga">Sui Dhaga</option>
+                  <option value="ear_jacket">Ear Jacket</option>
                 </select>
               </div>
 
@@ -162,6 +178,16 @@ export default function ProductFormModal({
                   <option value="festive_collection">Festive Collection</option>
                   <option value="bridal_collection">Bridal Collection</option>
                   <option value="daily_wear">Daily Wear</option>
+                  <option value="party_wear">Party Wear</option>
+                  <option value="ethnic_collection">Ethnic Collection</option>
+                  <option value="modern_minimalist">Modern Minimalist</option>
+                  <option value="traditional_collection">Traditional Collection</option>
+                  <option value="royal_heritage">Royal Heritage</option>
+                  <option value="contemporary_fusion">Contemporary Fusion</option>
+                  <option value="temple_jewellery">Temple Jewellery</option>
+                  <option value="navratri_special">Navratri Special</option>
+                  <option value="wedding_essentials">Wedding Essentials</option>
+                  <option value="office_wear">Office Wear</option>
                 </select>
               </div>
 
@@ -442,6 +468,19 @@ export default function ProductFormModal({
                   <option value="pearl">Pearl</option>
                   <option value="kundan">Kundan</option>
                   <option value="polki">Polki</option>
+                  <option value="diamond">Diamond</option>
+                  <option value="ruby">Ruby</option>
+                  <option value="emerald">Emerald</option>
+                  <option value="sapphire">Sapphire</option>
+                  <option value="amethyst">Amethyst</option>
+                  <option value="topaz">Topaz</option>
+                  <option value="garnet">Garnet</option>
+                  <option value="turquoise">Turquoise</option>
+                  <option value="opal">Opal</option>
+                  <option value="crystal">Crystal</option>
+                  <option value="semi_precious">Semi-Precious</option>
+                  <option value="glass">Glass</option>
+                  <option value="meenakari">Meenakari</option>
                   <option value="none">None</option>
                 </select>
               </div>
@@ -459,6 +498,22 @@ export default function ProductFormModal({
                   <option value="silver">Silver</option>
                   <option value="antique_gold">Antique Gold</option>
                   <option value="oxidized">Oxidized</option>
+                  <option value="white_gold">White Gold</option>
+                  <option value="platinum">Platinum</option>
+                  <option value="copper">Copper</option>
+                  <option value="bronze">Bronze</option>
+                  <option value="black">Black</option>
+                  <option value="multicolor">Multicolor</option>
+                  <option value="red">Red</option>
+                  <option value="green">Green</option>
+                  <option value="blue">Blue</option>
+                  <option value="pink">Pink</option>
+                  <option value="purple">Purple</option>
+                  <option value="yellow">Yellow</option>
+                  <option value="white">White</option>
+                  <option value="pearl_white">Pearl White</option>
+                  <option value="two_tone">Two Tone</option>
+                  <option value="tri_color">Tri Color</option>
                 </select>
               </div>
 
@@ -473,8 +528,21 @@ export default function ProductFormModal({
                   <option value="stud">Stud</option>
                   <option value="hoop">Hoop</option>
                   <option value="drop">Drop</option>
+                  <option value="dangle">Dangle</option>
                   <option value="jhumka">Jhumka</option>
                   <option value="chandbali">Chandbali</option>
+                  <option value="bali">Bali</option>
+                  <option value="threader">Threader</option>
+                  <option value="cuff">Cuff</option>
+                  <option value="climber">Climber</option>
+                  <option value="huggies">Huggies</option>
+                  <option value="cluster">Cluster</option>
+                  <option value="tassel">Tassel</option>
+                  <option value="sui_dhaga">Sui Dhaga</option>
+                  <option value="ear_jacket">Ear Jacket</option>
+                  <option value="long_earring">Long Earring</option>
+                  <option value="bahubali">Bahubali</option>
+                  <option value="kaan_chain">Kaan Chain</option>
                 </select>
               </div>
 
@@ -490,6 +558,14 @@ export default function ProductFormModal({
                   <option value="screw_back">Screw Back</option>
                   <option value="hook">Hook</option>
                   <option value="lever_back">Lever Back</option>
+                  <option value="french_hook">French Hook</option>
+                  <option value="clip_on">Clip On</option>
+                  <option value="magnetic">Magnetic</option>
+                  <option value="hinge">Hinge</option>
+                  <option value="latch_back">Latch Back</option>
+                  <option value="stud_post">Stud Post</option>
+                  <option value="ear_wire">Ear Wire</option>
+                  <option value="kidney_wire">Kidney Wire</option>
                 </select>
               </div>
 
@@ -505,6 +581,16 @@ export default function ProductFormModal({
                   <option value="glossy">Glossy</option>
                   <option value="antique">Antique</option>
                   <option value="brushed">Brushed</option>
+                  <option value="polished">Polished</option>
+                  <option value="hammered">Hammered</option>
+                  <option value="satin">Satin</option>
+                  <option value="textured">Textured</option>
+                  <option value="oxidized">Oxidized</option>
+                  <option value="matte_gold">Matte Gold</option>
+                  <option value="high_polish">High Polish</option>
+                  <option value="rhodium">Rhodium</option>
+                  <option value="dual_tone">Dual Tone</option>
+                  <option value="sandblast">Sandblast</option>
                 </select>
               </div>
 
