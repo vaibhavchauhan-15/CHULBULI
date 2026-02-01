@@ -130,7 +130,7 @@ export default function Footer() {
     </a>
 
     <a
-      href="#"
+      href="https://www.facebook.com/profile.php?id=61587171489601"
       target="_blank"
       rel="noopener noreferrer"
       className="w-10 h-10 rounded-full bg-rosegold/10 border border-rosegold/30 flex items-center justify-center hover:bg-rosegold hover:border-rosegold hover:scale-110 hover:shadow-lg hover:shadow-rosegold/30 transition-all duration-500 group"
@@ -139,7 +139,7 @@ export default function Footer() {
     </a>
 
     <a
-      href="#"
+      href="https://whatsapp.com/channel/0029Vb7CuMe9MF8tE3LGor3R"
       target="_blank"
       rel="noopener noreferrer"
       className="w-10 h-10 rounded-full bg-rosegold/10 border border-rosegold/30 flex items-center justify-center hover:bg-rosegold hover:border-rosegold hover:scale-110 hover:shadow-lg hover:shadow-rosegold/30 transition-all duration-500 group"
