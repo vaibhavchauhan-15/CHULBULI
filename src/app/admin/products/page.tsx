@@ -466,7 +466,9 @@ export default function AdminProductsPage() {
                     <div className="flex flex-col lg:flex-row items-start justify-between mb-4 gap-4">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-3 mb-2">
-                          <h3 className="font-playfair font-bold text-warmbrown text-lg lg:text-xl">{product.name}</h3>
+                          <Link href={`/products/${product.id}`}>
+                            <h3 className="font-playfair font-bold text-warmbrown text-lg lg:text-xl hover:text-rosegold transition-colors cursor-pointer">{product.name}</h3>
+                          </Link>
                           {product.featured && (
                             <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-gradient-to-r from-amber-100 to-amber-200 text-amber-700 border-2 border-amber-300 shadow-sm">
                               <FiStar size={14} /> Featured
