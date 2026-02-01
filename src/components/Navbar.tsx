@@ -93,7 +93,7 @@ export default function Navbar() {
                     <img
                       src={user.photoUrl}
                       alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover border-2 border-[#C89A7A]/30 hover:border-[#C89A7A]"
+                      className="w-8 h-8 min-w-[2rem] min-h-[2rem] rounded-full object-cover border-2 border-[#C89A7A]/30 hover:border-[#C89A7A] aspect-square"
                     />
                   ) : (
                     <FiUser className="w-5 h-5 text-warmbrown hover:text-rosegold" />
