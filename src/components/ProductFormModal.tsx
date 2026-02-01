@@ -215,6 +215,19 @@ export default function ProductFormModal({
                   required
                 />
               </div>
+
+              <div className="md:col-span-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                    className="w-4 h-4 text-[#C89A7A] border-[#C89A7A]/30 rounded focus:ring-[#C89A7A]"
+                  />
+                  <span className="label-luxury">Featured Collection</span>
+                </label>
+                <p className="text-xs text-[#5A3E2B]/50 mt-1 ml-6">Display this product in featured collections on homepage</p>
+              </div>
             </div>
           </Section>
 
