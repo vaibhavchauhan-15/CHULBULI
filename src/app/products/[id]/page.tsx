@@ -243,7 +243,9 @@ export default function ProductDetailPage() {
               </p>
 
               {/* Product Details Card */}
-              {product.material && (
+              {(product.material || product.category || product.stoneType || product.color || 
+                product.weight || product.dimensionLength || product.dimensionWidth || 
+                product.subCategory || product.brand) && (
                 <div className="mb-6 bg-white/60 rounded-xl p-5 border border-[#C89A7A]/10">
                   <h3 className="font-semibold mb-3 text-[#5A3E2B] flex items-center gap-2">
                     <FiPackage className="w-4 h-4 text-[#C89A7A]" />
@@ -263,6 +265,59 @@ export default function ProductDetailPage() {
                         <span className="text-xs text-[#5A3E2B]/60 mb-1">Category</span>
                         <span className="text-sm font-medium text-[#5A3E2B] capitalize">
                           {product.category}
+                        </span>
+                      </div>
+                    )}
+                    {product.subCategory && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[#5A3E2B]/60 mb-1">Sub-Category</span>
+                        <span className="text-sm font-medium text-[#5A3E2B] capitalize">
+                          {product.subCategory.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                    )}
+                    {product.brand && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[#5A3E2B]/60 mb-1">Collection</span>
+                        <span className="text-sm font-medium text-[#5A3E2B] capitalize">
+                          {product.brand.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                    )}
+                    {product.stoneType && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[#5A3E2B]/60 mb-1">Stone Type</span>
+                        <span className="text-sm font-medium text-[#5A3E2B] capitalize">
+                          {product.stoneType.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                    )}
+                    {product.color && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[#5A3E2B]/60 mb-1">Color</span>
+                        <span className="text-sm font-medium text-[#5A3E2B] capitalize">
+                          {product.color.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                    )}
+                    {product.weight && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[#5A3E2B]/60 mb-1">Weight</span>
+                        <span className="text-sm font-medium text-[#5A3E2B]">
+                          {product.weight}g
+                        </span>
+                      </div>
+                    )}
+                    {(product.dimensionLength || product.dimensionWidth) && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-[#5A3E2B]/60 mb-1">Dimensions</span>
+                        <span className="text-sm font-medium text-[#5A3E2B]">
+                          {product.dimensionLength && product.dimensionWidth 
+                            ? `${product.dimensionLength}mm × ${product.dimensionWidth}mm`
+                            : product.dimensionLength 
+                            ? `${product.dimensionLength}mm (L)`
+                            : `${product.dimensionWidth}mm (W)`
+                          }
                         </span>
                       </div>
                     )}
