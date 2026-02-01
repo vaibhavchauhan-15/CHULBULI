@@ -249,7 +249,7 @@ export default function CareInstructions() {
           <section className="bg-gradient-to-br from-rosegold/10 to-softgold/10 rounded-lg p-6 border border-rosegold/30">
             <h3 className="font-playfair text-xl text-warmbrown mb-4 text-center">💡 Pro Tip</h3>
             <p className="text-warmbrown/80 text-center italic">
-              "Create a jewelry care routine: Clean your pieces monthly, check settings quarterly, and get professional inspection annually. Your jewelry will thank you with lasting beauty and brilliance!"
+              &ldquo;Create a jewelry care routine: Clean your pieces monthly, check settings quarterly, and get professional inspection annually. Your jewelry will thank you with lasting beauty and brilliance!&rdquo;
             </p>
           </section>
         </div>

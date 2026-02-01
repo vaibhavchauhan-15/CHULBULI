@@ -89,7 +89,7 @@ export default function ReturnsPolicy() {
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Earrings and other pierced jewelry (for hygiene reasons)</li>
                 <li>Customized or personalized jewelry pieces</li>
-                <li>Products purchased during clearance sales or marked "Final Sale"</li>
+                <li>Products purchased during clearance sales or marked &ldquo;Final Sale&rdquo;</li>
                 <li>Items without original packaging or authenticity certificates</li>
                 <li>Products damaged due to misuse or negligence</li>
               </ul>
@@ -119,7 +119,7 @@ export default function ReturnsPolicy() {
               </div>
               <div className="bg-rosegold/5 border-l-4 border-rosegold p-4 rounded">
                 <p className="font-semibold text-warmbrown mb-2">Step 4: Schedule Pickup</p>
-                <p className="text-sm">We'll arrange a free pickup from your address or you can ship it to our return address.</p>
+                <p className="text-sm">We&apos;ll arrange a free pickup from your address or you can ship it to our return address.</p>
               </div>
               <div className="bg-rosegold/5 border-l-4 border-rosegold p-4 rounded">
                 <p className="font-semibold text-warmbrown mb-2">Step 5: Quality Check & Refund</p>
@@ -139,11 +139,11 @@ export default function ReturnsPolicy() {
             <div className="space-y-3 text-warmbrown/80">
               <p>We accept exchanges for:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong className="text-warmbrown">Different Size:</strong> If the jewelry doesn't fit properly</li>
+                <li><strong className="text-warmbrown">Different Size:</strong> If the jewelry doesn&apos;t fit properly</li>
                 <li><strong className="text-warmbrown">Different Design:</strong> Exchange for another item of equal or greater value</li>
                 <li><strong className="text-warmbrown">Defective Product:</strong> Manufacturing defects covered under warranty</li>
               </ul>
-              <p className="mt-4">Exchange requests follow the same 7-day window and eligibility criteria as returns. If exchanging for a higher-value item, you'll need to pay the difference. For lower-value items, the balance will be issued as store credit.</p>
+              <p className="mt-4">Exchange requests follow the same 7-day window and eligibility criteria as returns. If exchanging for a higher-value item, you&apos;ll need to pay the difference. For lower-value items, the balance will be issued as store credit.</p>
             </div>
           </section>
 
@@ -161,7 +161,7 @@ export default function ReturnsPolicy() {
               <p><strong className="text-warmbrown">Credit/Debit Card:</strong> 5-7 business days after processing</p>
               <p><strong className="text-warmbrown">UPI/Net Banking:</strong> 3-5 business days after processing</p>
               <p><strong className="text-warmbrown">Cash on Delivery:</strong> Bank transfer within 7-10 business days</p>
-              <p className="text-sm italic mt-4">* Actual credit time may vary depending on your bank's processing time.</p>
+              <p className="text-sm italic mt-4">* Actual credit time may vary depending on your bank&apos;s processing time.</p>
             </div>
           </section>
 
@@ -178,7 +178,7 @@ export default function ReturnsPolicy() {
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Contact us immediately within 48 hours of delivery</li>
                 <li>Provide clear photos of the damaged product and packaging</li>
-                <li>We'll arrange a free return pickup and send a replacement at no extra cost</li>
+                <li>We&apos;ll arrange a free return pickup and send a replacement at no extra cost</li>
                 <li>For manufacturing defects, lifetime warranty applies on gold and silver jewelry</li>
               </ul>
               <p className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded text-sm">

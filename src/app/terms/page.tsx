@@ -81,11 +81,11 @@ export default function TermsAndConditions() {
             </h2>
             <div className="space-y-3 text-warmbrown/80">
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong className="text-warmbrown">"We," "Us," "Our"</strong> refers to Chulbuli Jewels</li>
-                <li><strong className="text-warmbrown">"You," "Your," "User"</strong> refers to the person accessing our services</li>
-                <li><strong className="text-warmbrown">"Website"</strong> refers to www.chulbulijewels.com and all related platforms</li>
-                <li><strong className="text-warmbrown">"Products"</strong> refers to jewelry items available for purchase</li>
-                <li><strong className="text-warmbrown">"Services"</strong> refers to all services provided through our platform</li>
+                <li><strong className="text-warmbrown">&ldquo;We,&rdquo; &ldquo;Us,&rdquo; &ldquo;Our&rdquo;</strong> refers to Chulbuli Jewels</li>
+                <li><strong className="text-warmbrown">&ldquo;You,&rdquo; &ldquo;Your,&rdquo; &ldquo;User&rdquo;</strong> refers to the person accessing our services</li>
+                <li><strong className="text-warmbrown">&ldquo;Website&rdquo;</strong> refers to www.chulbulijewels.com and all related platforms</li>
+                <li><strong className="text-warmbrown">&ldquo;Products&rdquo;</strong> refers to jewelry items available for purchase</li>
+                <li><strong className="text-warmbrown">&ldquo;Services&rdquo;</strong> refers to all services provided through our platform</li>
               </ul>
             </div>
           </section>

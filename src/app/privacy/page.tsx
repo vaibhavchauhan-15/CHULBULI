@@ -260,7 +260,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Children's Privacy
+              Children&apos;s Privacy
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
             <div className="space-y-3 text-warmbrown/80">
@@ -277,7 +277,7 @@ export default function PrivacyPolicy() {
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
             <div className="space-y-3 text-warmbrown/80">
-              <p>We may update this privacy policy from time to time. Changes will be posted on this page with an updated "Last Updated" date. We encourage you to review this policy periodically. Continued use of our services after changes constitutes acceptance of the updated policy.</p>
+              <p>We may update this privacy policy from time to time. Changes will be posted on this page with an updated &ldquo;Last Updated&rdquo; date. We encourage you to review this policy periodically. Continued use of our services after changes constitutes acceptance of the updated policy.</p>
             </div>
           </section>
 

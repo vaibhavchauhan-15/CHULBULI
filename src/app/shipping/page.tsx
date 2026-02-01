@@ -133,7 +133,7 @@ export default function ShippingPolicy() {
               <p>Once your order is shipped, you will receive a tracking number via email and SMS. You can track your order through:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
                 <li>Your Chulbuli Jewels account dashboard</li>
-                <li>The courier partner's website using your tracking number</li>
+                <li>The courier partner&apos;s website using your tracking number</li>
                 <li>Our customer support team at hello@chulbulijewels.com</li>
               </ul>
             </div>
