@@ -59,6 +59,11 @@ export default function GoogleSignInButton({
         router.push(redirectTo)
       } else {
         const errorMessage = data.error || 'Google sign-in failed'
+        console.error('Backend authentication error:', {
+          status: response.status,
+          error: data.error,
+          details: data.details
+        })
         toast.error(errorMessage)
         
         if (onError) {
@@ -66,7 +71,14 @@ export default function GoogleSignInButton({
         }
       }
     } catch (error: any) {
-      console.error('Google sign-in error:', error)
+      console.error('==========================================')
+      console.error('🔴 GOOGLE SIGN-IN ERROR (Client-side):')
+      console.error('==========================================')
+      console.error('Error:', error)
+      console.error('Error Code:', error.code)
+      console.error('Error Message:', error.message)
+      console.error('Firebase Auth Error:', error.customData)
+      console.error('==========================================')
       
       let errorMessage = 'Google sign-in failed. Please try again.'
       let showSetupGuide = false
