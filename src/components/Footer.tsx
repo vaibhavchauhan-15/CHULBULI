@@ -105,13 +105,13 @@ export default function Footer() {
                 <div className="w-8 h-8 rounded-full bg-rosegold/10 border border-rosegold/30 flex items-center justify-center flex-shrink-0 group-hover:bg-rosegold group-hover:border-rosegold transition-all duration-500">
                   <FiMail className="w-4 h-4 text-softgold group-hover:text-white transition-colors" />
                 </div>
-                <span className="mt-1">hello@chulbulijewels.com</span>
+                <span className="mt-1">chulbulijewels@gmail.com</span>
               </li>
               <li className="flex items-start gap-3 text-pearl/90 text-sm font-light group hover:text-white transition-colors duration-500">
                 <div className="w-8 h-8 rounded-full bg-rosegold/10 border border-rosegold/30 flex items-center justify-center flex-shrink-0 group-hover:bg-rosegold group-hover:border-rosegold transition-all duration-500">
                   <FiPhone className="w-4 h-4 text-softgold group-hover:text-white transition-colors" />
                 </div>
-                <span className="mt-1">+91 98765 43210</span>
+                <span className="mt-1">+91 9867732204</span>
               </li>
             </ul>
             
