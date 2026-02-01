@@ -452,7 +452,6 @@ export default function ProductFormModal({
                   <option value="silver">Silver</option>
                   <option value="brass">Brass</option>
                   <option value="alloy">Alloy</option>
-                  <option value="german_silver">German Silver</option>
                 </select>
               </div>
 
@@ -464,23 +463,15 @@ export default function ProductFormModal({
                   className="input-luxury w-full"
                 >
                   <option value="">Select Stone Type</option>
-                  <option value="cz">CZ (Cubic Zirconia)</option>
-                  <option value="pearl">Pearl</option>
-                  <option value="kundan">Kundan</option>
-                  <option value="polki">Polki</option>
-                  <option value="diamond">Diamond</option>
-                  <option value="ruby">Ruby</option>
-                  <option value="emerald">Emerald</option>
-                  <option value="sapphire">Sapphire</option>
-                  <option value="amethyst">Amethyst</option>
-                  <option value="topaz">Topaz</option>
-                  <option value="garnet">Garnet</option>
-                  <option value="turquoise">Turquoise</option>
-                  <option value="opal">Opal</option>
+                  <option value="pearl">Artificial Pearl</option>
+                  <option value="diamond">Artificial Diamond</option>
+                  <option value="ruby">Artificial Ruby</option>
                   <option value="crystal">Crystal</option>
                   <option value="semi_precious">Semi-Precious</option>
                   <option value="glass">Glass</option>
                   <option value="meenakari">Meenakari</option>
+                  <option value="artificial_beads">Artificial Beads</option>
+                  <option value="studs">Artificial Studs</option>
                   <option value="none">None</option>
                 </select>
               </div>
@@ -493,9 +484,9 @@ export default function ProductFormModal({
                   className="input-luxury w-full"
                 >
                   <option value="">Select Color</option>
-                  <option value="gold">Gold</option>
+                  <option value="gold">Oxidized Gold</option>
                   <option value="rose_gold">Rose Gold</option>
-                  <option value="silver">Silver</option>
+                  <option value="silver">Oxidized Silver</option>
                   <option value="antique_gold">Antique Gold</option>
                   <option value="oxidized">Oxidized</option>
                   <option value="white_gold">White Gold</option>
