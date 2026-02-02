@@ -20,56 +20,58 @@ function OrderSuccessContent() {
 
   return (
     <>
-      <main className="min-h-screen pt-24 px-4 pb-12 flex items-center justify-center">
+      <main className="min-h-screen pt-20 md:pt-24 px-4 pb-12 flex items-center justify-center bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-2xl w-full text-center">
-          <div className="card p-12">
-            <div className="flex justify-center mb-6">
-              <FiCheckCircle className="w-20 h-20 text-green-500" />
+          <div className="card-luxury p-6 md:p-10 lg:p-12 shadow-luxury-lg">
+            <div className="flex justify-center mb-4 md:mb-6">
+              <div className="bg-emerald-50 p-4 md:p-5 rounded-full">
+                <FiCheckCircle className="w-16 h-16 md:w-20 md:h-20 text-emerald-500" />
+              </div>
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-playfair font-bold mb-4">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold mb-3 md:mb-4 text-[#5A3E2B]">
               Order Placed Successfully!
-          </h1>
+            </h1>
 
-          <p className="text-gray-600 mb-2">
-            Thank you for your order. We&apos;ve received your order and will process it soon.
-          </p>
-
-          {orderId && (
-            <p className="text-sm text-gray-500 mb-8">
-              Order ID: <span className="font-mono">{orderId.slice(0, 12)}</span>
+            <p className="text-[#5A3E2B]/60 mb-2 text-sm md:text-base">
+              Thank you for your order. We&apos;ve received your order and will process it soon.
             </p>
-          )}
 
-          <div className="space-y-4">
-            <Link href="/dashboard" className="btn-primary w-full inline-block">
-              View Order Details
-            </Link>
-            <Link
-              href="/products"
-                className="btn-secondary w-full inline-block"
+            {orderId && (
+              <p className="text-xs md:text-sm text-[#5A3E2B]/50 mb-6 md:mb-8">
+                Order ID: <span className="font-mono font-semibold">{orderId.slice(0, 12)}</span>
+              </p>
+            )}
+
+            <div className="space-y-3 md:space-y-4">
+              <Link href="/dashboard" className="btn-primary btn-mobile-full md:w-full inline-block touch-target">
+                View Order Details
+              </Link>
+              <Link
+                href="/products"
+                className="btn-secondary btn-mobile-full md:w-full inline-block touch-target"
               >
                 Continue Shopping
               </Link>
             </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h3 className="font-semibold mb-4">What happens next?</h3>
-              <div className="space-y-3 text-left max-w-md mx-auto text-sm text-gray-600">
-                <div className="flex gap-3">
-                  <span className="font-semibold text-rose-gold">1.</span>
+            <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-[#C89A7A]/20">
+              <h3 className="font-semibold mb-3 md:mb-4 text-[#5A3E2B] text-sm md:text-base">What happens next?</h3>
+              <div className="space-y-2.5 md:space-y-3 text-left max-w-md mx-auto text-xs md:text-sm text-[#5A3E2B]/70">
+                <div className="flex gap-2 md:gap-3">
+                  <span className="font-semibold text-[#C89A7A] flex-shrink-0">1.</span>
                   <p>Order confirmation email will be sent to your email address</p>
                 </div>
-                <div className="flex gap-3">
-                  <span className="font-semibold text-rose-gold">2.</span>
+                <div className="flex gap-2 md:gap-3">
+                  <span className="font-semibold text-[#C89A7A] flex-shrink-0">2.</span>
                   <p>We&apos;ll pack your order with care</p>
                 </div>
-                <div className="flex gap-3">
-                  <span className="font-semibold text-rose-gold">3.</span>
+                <div className="flex gap-2 md:gap-3">
+                  <span className="font-semibold text-[#C89A7A] flex-shrink-0">3.</span>
                   <p>Your order will be shipped to your address</p>
                 </div>
-                <div className="flex gap-3">
-                  <span className="font-semibold text-rose-gold">4.</span>
+                <div className="flex gap-2 md:gap-3">
+                  <span className="font-semibold text-[#C89A7A] flex-shrink-0">4.</span>
                   <p>Pay cash on delivery when you receive your order</p>
                 </div>
               </div>

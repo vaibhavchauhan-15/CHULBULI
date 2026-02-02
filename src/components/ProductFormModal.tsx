@@ -46,8 +46,8 @@ export default function ProductFormModal({
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gradient-to-br from-[#F7F6F3] to-[#F2E6D8] rounded-2xl p-6 max-w-6xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-[#C89A7A]/20">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center sm:p-4 z-50">
+      <div className="bg-gradient-to-br from-[#F7F6F3] to-[#F2E6D8] h-full w-full sm:rounded-2xl p-4 md:p-6 sm:max-w-6xl sm:max-h-[92vh] overflow-y-auto shadow-2xl border border-[#C89A7A]/20">
         {/* Modal Header */}
         <div className="flex items-center justify-between mb-6 sticky top-0 bg-gradient-to-br from-[#F7F6F3] to-[#F2E6D8] pb-4 border-b border-[#C89A7A]/20 z-10">
           <div>
@@ -60,10 +60,11 @@ export default function ProductFormModal({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/50 rounded-xl transition-colors text-[#5A3E2B]"
+            className="p-2 hover:bg-white/50 rounded-xl transition-colors text-[#5A3E2B] touch-target active:scale-95"
             type="button"
+            aria-label="Close modal"
           >
-            <FiX size={20} />
+            <FiX size={24} />
           </button>
         </div>
 
@@ -562,19 +563,19 @@ export default function ProductFormModal({
             </div>
           </Section>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-6 border-t border-[#C89A7A]/20 sticky bottom-0 bg-gradient-to-br from-[#F7F6F3] to-[#F2E6D8]">
+          {/* Action Buttons - Sticky with safe area for mobile */}
+          <div className="flex gap-3 pt-6 pb-safe border-t border-[#C89A7A]/20 sticky bottom-0 bg-gradient-to-br from-[#F7F6F3] to-[#F2E6D8] z-10 -mx-4 md:-mx-6 px-4 md:px-6">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-3 border-2 border-[#C89A7A]/30 text-[#5A3E2B] rounded-xl hover:bg-white/50 transition-colors font-semibold"
+              className="flex-1 min-h-12 px-4 py-3 border-2 border-[#C89A7A]/30 text-[#5A3E2B] rounded-xl hover:bg-white/50 active:scale-98 transition-all font-semibold touch-target"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={uploading}
-              className="flex-1 px-4 py-3 bg-gradient-to-r from-[#C89A7A] to-[#E6C9A8] text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 min-h-12 px-4 py-3 bg-gradient-to-r from-[#C89A7A] to-[#E6C9A8] text-white rounded-xl hover:shadow-lg active:scale-98 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-target"
             >
               {uploading ? (
                 <>
@@ -609,13 +610,13 @@ function Section({
       <button
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/60 transition-colors"
+        className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-white/60 active:bg-white/70 transition-colors touch-target"
       >
         <h3 className="text-sm font-semibold text-[#5A3E2B]">{title}</h3>
         {expanded ? <FiChevronUp className="text-[#C89A7A]" /> : <FiChevronDown className="text-[#C89A7A]" />}
       </button>
       {expanded && (
-        <div className="p-4 pt-0">
+        <div className="p-4 md:p-6 pt-0">
           {children}
         </div>
       )}

@@ -442,24 +442,24 @@ export default function ProductDetailPage() {
 
               {product.stock > 0 && (
                 <>
-                  {/* Quantity Selector */}
+                  {/* Quantity Selector - Mobile optimized */}
                   <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6 text-sm md:text-base">
                     <span className="font-semibold text-[#5A3E2B]">Quantity:</span>
-                    <div className="flex items-center bg-white/60 border-2 border-[#C89A7A]/30 rounded-lg overflow-hidden">
+                    <div className="flex items-center bg-white/60 border-2 border-[#C89A7A]/30 rounded-xl overflow-hidden">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="p-2.5 md:p-3 hover:bg-[#C89A7A]/10 active:bg-[#C89A7A]/20 transition-colors text-[#C89A7A] touch-manipulation"
+                        className="p-3 md:p-3.5 hover:bg-[#C89A7A]/10 active:bg-[#C89A7A]/20 transition-all duration-200 text-[#C89A7A] touch-target active:scale-95"
                       >
-                        <FiMinus className="w-4 h-4 md:w-5 md:h-5" />
+                        <FiMinus className="w-5 h-5" />
                       </button>
-                      <span className="px-4 md:px-6 font-semibold text-[#5A3E2B] min-w-[2.5rem] md:min-w-[3rem] text-center">{quantity}</span>
+                      <span className="px-5 md:px-6 font-semibold text-[#5A3E2B] min-w-[3rem] md:min-w-[3.5rem] text-center text-lg">{quantity}</span>
                       <button
                         onClick={() =>
                           setQuantity(Math.min(product.stock, quantity + 1))
                         }
-                        className="p-2.5 md:p-3 hover:bg-[#C89A7A]/10 active:bg-[#C89A7A]/20 transition-colors text-[#C89A7A] touch-manipulation"
+                        className="p-3 md:p-3.5 hover:bg-[#C89A7A]/10 active:bg-[#C89A7A]/20 transition-all duration-200 text-[#C89A7A] touch-target active:scale-95"
                       >
-                        <FiPlus className="w-4 h-4 md:w-5 md:h-5" />
+                        <FiPlus className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
@@ -587,25 +587,26 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Reviews Section */}
-          <div className="border-t border-[#C89A7A]/20 pt-8 md:pt-12">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-playfair font-bold mb-6 md:mb-8 text-[#5A3E2B]">
+          <div className="border-t border-[#C89A7A]/20 pt-6 md:pt-8 lg:pt-12">
+            <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-playfair font-bold mb-4 md:mb-6 lg:mb-8 text-[#5A3E2B]">
               Customer Reviews
             </h2>
 
             {user && (
-              <div className="card-luxury p-4 md:p-6 mb-6 md:mb-8 shadow-luxury">
-                <h3 className="text-lg md:text-xl font-playfair font-semibold mb-4 md:mb-6 text-[#5A3E2B]">Write a Review</h3>
-                <div className="mb-4 md:mb-6">
-                  <label className="block text-xs md:text-sm font-semibold mb-2 md:mb-3 text-[#5A3E2B]">Rating</label>
-                  <div className="flex gap-1.5 md:gap-2">
+              <div className="card-luxury p-4 md:p-5 lg:p-6 mb-4 md:mb-6 lg:mb-8 shadow-luxury">
+                <h3 className="text-base md:text-lg lg:text-xl font-playfair font-semibold mb-3 md:mb-4 lg:mb-6 text-[#5A3E2B]">Write a Review</h3>
+                <div className="mb-3 md:mb-4 lg:mb-6">
+                  <label className="block text-xs md:text-sm font-semibold mb-2 text-[#5A3E2B]">Rating</label>
+                  <div className="flex gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         onClick={() => setRating(star)}
-                        className="transition-transform hover:scale-110 active:scale-95 touch-manipulation"
+                        className="transition-transform hover:scale-110 active:scale-95 touch-target p-1"
+                        aria-label={`Rate ${star} stars`}
                       >
                         <FiStar
-                          className={`w-7 h-7 md:w-8 md:h-8 transition-colors ${
+                          className={`w-8 h-8 md:w-9 md:h-9 transition-colors ${
                             star <= rating
                               ? 'fill-amber-400 text-amber-400'
                               : 'text-gray-300 hover:text-amber-300'
@@ -615,8 +616,8 @@ export default function ProductDetailPage() {
                     ))}
                   </div>
                 </div>
-                <div className="mb-4 md:mb-6">
-                  <label className="block text-xs md:text-sm font-semibold mb-2 md:mb-3 text-[#5A3E2B]">Your Review</label>
+                <div className="mb-3 md:mb-4 lg:mb-6">
+                  <label className="block text-xs md:text-sm font-semibold mb-2 text-[#5A3E2B]">Your Review</label>
                   <textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
@@ -624,29 +625,29 @@ export default function ProductDetailPage() {
                     className="input-luxury min-h-[120px] md:min-h-[150px] resize-none text-sm md:text-base"
                   />
                 </div>
-                <button onClick={handleSubmitReview} className="btn-primary flex items-center gap-2 w-full md:w-auto touch-manipulation">
-                  <FiCheck className="w-4 h-4" />
+                <button onClick={handleSubmitReview} className="btn-primary btn-mobile-full md:w-auto flex items-center justify-center gap-2 touch-target">
+                  <FiCheck className="w-4 h-4 md:w-5 md:h-5" />
                   Submit Review
                 </button>
               </div>
             )}
 
-            <div className="space-y-4 md:space-y-6">
+            <div className="space-y-3 md:space-y-4 lg:space-y-6">
               {product.reviews.length > 0 ? (
                 product.reviews.map((review: any) => (
-                  <div key={review.id} className="card-luxury p-4 md:p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
-                    <div className="flex items-start justify-between mb-3 md:mb-4 gap-2">
-                      <div className="flex items-center gap-3 md:gap-4">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md flex-shrink-0">
-                          <FiUser className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                  <div key={review.id} className="card-luxury p-3 md:p-4 lg:p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-200">
+                    <div className="flex items-start justify-between mb-2 md:mb-3 lg:mb-4 gap-2">
+                      <div className="flex items-center gap-2 md:gap-3 lg:gap-4">
+                        <div className="w-9 h-9 md:w-10 md:h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                          <FiUser className="w-4 h-4 md:w-5 md:h-5 lg:w-6 lg:h-6 text-white" />
                         </div>
                         <div>
-                          <p className="font-semibold text-[#5A3E2B] text-base md:text-lg">{review.user.name}</p>
-                          <div className="flex gap-0.5 md:gap-1 mt-1">
+                          <p className="font-semibold text-[#5A3E2B] text-sm md:text-base lg:text-lg">{review.user.name}</p>
+                          <div className="flex gap-0.5 mt-1">
                             {[...Array(5)].map((_, i) => (
                               <FiStar
                                 key={i}
-                                className={`w-4 h-4 md:w-5 md:h-5 ${
+                                className={`w-3.5 h-3.5 md:w-4 md:h-4 lg:w-5 lg:h-5 ${
                                   i < review.rating
                                     ? 'fill-amber-400 text-amber-400'
                                     : 'text-gray-300'
@@ -668,9 +669,9 @@ export default function ProductDetailPage() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-10 md:py-12 card-luxury shadow-luxury">
-                  <FiStar className="w-12 h-12 md:w-16 md:h-16 text-[#C89A7A]/30 mx-auto mb-3 md:mb-4" />
-                  <p className="text-[#5A3E2B]/60 text-base md:text-lg font-medium">
+                <div className="text-center py-8 md:py-10 lg:py-12 card-luxury shadow-luxury">
+                  <FiStar className="w-10 h-10 md:w-12 md:h-12 lg:w-16 lg:h-16 text-[#C89A7A]/30 mx-auto mb-2 md:mb-3 lg:mb-4" />
+                  <p className="text-[#5A3E2B]/60 text-sm md:text-base lg:text-lg font-medium">
                     No reviews yet. Be the first to review!
                   </p>
                 </div>

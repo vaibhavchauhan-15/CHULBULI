@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -10,8 +10,10 @@ import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 import { FiMail, FiLock, FiUser, FiCheck, FiArrowRight, FiUserPlus } from 'react-icons/fi'
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || '/'
   const setAuth = useAuthStore((state) => state.setAuth)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -67,7 +69,7 @@ export default function SignupPage() {
       if (response.ok) {
         setAuth(data.user, null)
         toast.success('Account created successfully!')
-        router.push('/')
+        router.push(redirectTo)
       } else {
         toast.error(data.error || 'Signup failed')
       }
@@ -81,23 +83,23 @@ export default function SignupPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 px-4 pb-12 flex items-center justify-center bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
+      <main className="min-h-screen pt-20 md:pt-24 px-4 pb-12 flex items-center justify-center bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-md w-full">
-          <div className="card-luxury p-10 shadow-luxury-lg">
+          <div className="card-luxury p-6 md:p-8 lg:p-10 shadow-luxury-lg">
             {/* Header */}
-            <div className="text-center mb-10">
-              <div className="bg-[#C89A7A]/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiUserPlus className="w-10 h-10 text-[#C89A7A]" />
+            <div className="text-center mb-6 md:mb-8 lg:mb-10">
+              <div className="bg-[#C89A7A]/10 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                <FiUserPlus className="w-8 h-8 md:w-10 md:h-10 text-[#C89A7A]" />
               </div>
-              <h1 className="text-4xl font-playfair font-bold text-[#5A3E2B] mb-2">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold text-[#5A3E2B] mb-1 md:mb-2">
                 Create Account
               </h1>
-              <p className="text-[#5A3E2B]/60">Join our exclusive jewelry collection</p>
+              <p className="text-[#5A3E2B]/60 text-sm md:text-base">Join our exclusive jewelry collection</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-3.5 md:space-y-4 lg:space-y-5">
               {/* Google Sign-In Button */}
-              <GoogleSignInButton redirectTo="/" />
+              <GoogleSignInButton redirectTo={redirectTo} />
 
               {/* Divider */}
               <div className="relative">
@@ -204,7 +206,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full py-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-6"
+                className="btn-primary btn-mobile-full py-3.5 md:py-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group mt-4 md:mt-6 touch-target"
               >
                 {loading ? (
                   <>
@@ -221,9 +223,9 @@ export default function SignupPage() {
             </form>
 
             {/* Footer Link */}
-            <p className="text-center mt-8 text-[#5A3E2B]/70">
+            <p className="text-center mt-6 md:mt-8 text-[#5A3E2B]/70 text-sm md:text-base">
               Already have an account?{' '}
-              <Link href="/login" className="text-[#C89A7A] hover:text-[#E6C9A8] font-semibold transition-colors">
+              <Link href={`/login${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-[#C89A7A] hover:text-[#E6C9A8] font-semibold transition-colors touch-target">
                 Login
               </Link>
             </p>
@@ -232,5 +234,17 @@ export default function SignupPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rosegold"></div>
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
   )
 }

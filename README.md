@@ -24,12 +24,52 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 
 ---
 
-<div style="background: linear-gradient(135deg, #F7F6F3 0%, #F2E6D8 100%); padding: 25px; border-radius: 16px; border: 1px solid #C89A7A; margin: 20px 0;">
+<div style="background: linear-gradient(135deg, #E8D5C2 0%, #F7F6F3 100%); padding: 25px; border-radius: 16px; border: 2px solid #C89A7A; margin: 20px 0;">
+
+## 🆕 Recent Updates
+
+<div style="color: #5A3E2B;">
+
+### ✨ Latest Features (February 2026)
+
+#### 🔐 Google OAuth Authentication
+- **Firebase Integration** - Seamless Google Sign-In with Firebase Authentication
+- **One-Click Login** - Users can sign in instantly with their Google account
+- **Profile Sync** - Automatic profile picture and name synchronization
+- **Account Linking** - Existing email users can link their Google accounts
+- **Secure Token Verification** - Server-side validation using Firebase Admin SDK
+
+#### 🎨 UI/UX Improvements
+- **Responsive Discount Badges** - Mobile-optimized circular badges on product cards
+- **Better Image Handling** - SVG placeholders for missing product images
+- **Enhanced Product Cards** - Improved hover effects and transitions
+- **Google Sign-In Button** - Branded Google OAuth button with loading states
+
+#### 🔒 Security Enhancements
+- **Multi-Provider Authentication** - Support for email/password and Google OAuth
+- **Enhanced Rate Limiting** - Separate limits for OAuth endpoints
+- **Audit Logging** - Track Google sign-in events and account linking
+- **Token Security** - Firebase ID token verification with expiry checks
+
+#### 📊 Database Updates
+- **OAuth Fields** - New columns: `provider`, `googleId`, `photoUrl`
+- **Nullable Passwords** - Support for OAuth-only users
+- **Indexed Lookups** - Fast queries for Google IDs and providers
+- **Account Migration** - Seamless linking of email and OAuth accounts
+
+</div>
+
+</div>
+
+---
+
+<div align="center">
 
 ## 📋 Table of Contents
 
 <div style="color: #5A3E2B;">
 
+- [Recent Updates](#recent-updates)
 - [Overview](#overview)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
@@ -42,6 +82,7 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 - [Security Features](#security-features)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
+- [Firebase Setup](#firebase-setup-google-oauth)
 - [Database Setup](#database-setup)
 - [Design System](#design-system)
 
@@ -82,12 +123,14 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 
 ### 🛍️ Customer Features
 - 🔐 **Secure Authentication** - Email/password signup & login with JWT tokens
+- � **Google OAuth Sign-In** - One-click sign-in with Google account (Firebase Authentication)
 - 🛍️ **Product Catalog** - Browse jewelry by category (Earrings, Necklaces, Rings, Bangles, Sets)
 - 🔍 **Advanced Filtering** - Filter by price range, category, sort by price/latest/rating
 - 🛒 **Shopping Cart** - Add/remove items, quantity management, cart validation
 - ⭐ **Product Reviews** - Verified buyer reviews with 1-5 star ratings (admin-moderated)
 - 📦 **Order Management** - Place orders, track status, view order history
 - 💳 **Cash on Delivery** - COD payment method (online payment in Phase 2)
+- 👤 **User Profile Management** - Profile pictures from Google OAuth, account linking
 </div>
 
 <div style="background: linear-gradient(135deg, #E8D5C2 0%, #F2E6D8 100%); padding: 25px; border-radius: 16px; border-left: 5px solid #C89A7A; margin: 20px 0;">
@@ -129,6 +172,8 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 
 ### 🔐 Authentication & Security
 - **JWT (jsonwebtoken)** - Token-based authentication
+- **Firebase Authentication** - Google OAuth 2.0 integration
+- **Firebase Admin SDK** - Server-side token verification
 - **bcryptjs** - Password hashing
 - **Validator.js** - Input validation & sanitization
 - **Zod** - Schema validation
@@ -288,8 +333,14 @@ Stores customer and admin accounts.
   id: string (PK)              // Unique user ID
   name: string                 // Full name
   email: string (unique)       // Email address
-  password: string             // Bcrypt hashed password
+  password: string (nullable)  // Bcrypt hashed password (null for OAuth users)
   role: 'customer' | 'admin'   // User role
+  
+  // OAuth fields
+  provider: string             // 'email' or 'google'
+  googleId: string (unique)    // Google user ID for OAuth
+  photoUrl: string             // Profile picture URL from Google
+  
   createdAt: timestamp         // Account creation date
   updatedAt: timestamp         // Last update date
 }
@@ -463,6 +514,8 @@ Separate image management.
 
 ### 📊 Database Indexes
 - Email (User) - Fast user lookup
+- GoogleId (User) - OAuth user lookup
+- Provider (User) - Filter by authentication provider
 - Category, Featured, Price (Product) - Optimized filtering
 - Status, CreatedAt (Order) - Order queries
 - ProductId, Approved (Review) - Review filtering
@@ -620,16 +673,19 @@ Separate image management.
 
 **Features:**
 - Email & password form
+- **Google Sign-In button** - One-click authentication with Google OAuth
 - JWT authentication
 - HTTP-only cookie storage
 - Error handling with toast notifications
 - "Sign up" link
 - "Continue as Guest" option
+- **Divider** - Visual separation between OAuth and email login
 
 **Security:**
 - Rate limiting (prevents brute force)
 - Constant-time password comparison
 - Generic error messages (prevents user enumeration)
+- Detects OAuth-only accounts and prompts for Google Sign-In
 
 ---
 
@@ -756,6 +812,48 @@ Separate image management.
 ## 🔌 Backend API Routes
 
 ### Authentication APIs
+
+#### `POST /api/auth/google`
+**File:** [src/app/api/auth/google/route.ts](src/app/api/auth/google/route.ts)
+
+**Request Body:**
+```json
+{
+  "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "user": {
+    "id": "user_...",
+    "name": "Aloo Kumar",
+    "email": "aloo@example.com",
+    "role": "customer",
+    "provider": "google",
+    "googleId": "1234567890",
+    "photoUrl": "https://lh3.googleusercontent.com/..."
+  }
+}
+```
+
+**Features:**
+- Firebase ID token verification
+- Automatic user creation for new Google users
+- Account linking for existing email/password users
+- Profile picture and name sync
+- Rate limiting
+- Audit logging
+
+**Security:**
+- Firebase Admin SDK token verification
+- Secure token validation
+- Prevents token reuse
+- XSS protection via HTTP-only cookies
+
+---
 
 #### `POST /api/auth/signup`
 **File:** [src/app/api/auth/signup/route.ts](src/app/api/auth/signup/route.ts)
@@ -1134,6 +1232,18 @@ Separate image management.
 
 <div style="color: #5A3E2B;">
 
+### **GoogleSignInButton** (`src/components/GoogleSignInButton.tsx`)
+- Google OAuth sign-in button
+- Firebase Authentication integration
+- Popup-based authentication flow
+- Error handling and user feedback
+- Loading states
+- Customizable styling and redirect
+- Toast notifications for success/error
+- Automatic account creation/linking
+
+---
+
 ### **Navbar** (`src/components/Navbar.tsx`)
 - Fixed top navigation
 - Logo and brand name
@@ -1160,11 +1270,16 @@ Separate image management.
 
 ### **ProductCard** (`src/components/ProductCard.tsx`)
 - Product thumbnail image
+- **Responsive design** - Optimized for mobile and desktop
+- **SVG placeholder** - Fallback for missing images
 - Product name
 - Price with discount
-- Hover effects
+- **Circular discount badge** - Responsive sizing (smaller on mobile)
+- Hover effects with smooth transitions
+- Category label
 - "Quick View" button
 - Link to product detail page
+- Image error handling
 
 ---
 
@@ -1258,16 +1373,22 @@ Separate image management.
 
 <div style="color: #5A3E2B;">
 
-### 🛡️ Authentication & Authorization
+### � Authentication & Security
 - **JWT Tokens** - Secure token-based authentication
   - Algorithm: HS256
   - Expiry: 7 days
   - Issuer: `chulbuli-jewels`
   - Audience: `chulbuli-api`
+- **Google OAuth 2.0** - Firebase Authentication integration
+  - One-click sign-in with Google
+  - Automatic user creation/linking
+  - Profile picture sync
+  - Secure ID token verification
 - **HTTP-only Cookies** - XSS protection (token not accessible via JavaScript)
 - **Bcrypt Password Hashing** - 12 salt rounds
 - **Constant-time Comparison** - Prevents timing attacks
 - **Role-based Access Control** - Admin vs Customer permissions
+- **Multi-Provider Support** - Email/password and Google OAuth accounts can be linked
 
 ---
 
@@ -1389,6 +1510,19 @@ DATABASE_URL=postgresql://user:password@localhost:5432/chulbuli
 # JWT Secret (minimum 32 characters)
 JWT_SECRET=your-super-secret-jwt-key-min-32-chars
 
+# Firebase Configuration (for Google OAuth)
+FIREBASE_API_KEY=your-firebase-api-key
+FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+FIREBASE_PROJECT_ID=your-project-id
+FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+FIREBASE_APP_ID=your-app-id
+
+# Firebase Admin SDK (for server-side token verification)
+FIREBASE_ADMIN_PROJECT_ID=your-project-id
+FIREBASE_ADMIN_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+
 # Cloudinary (for image uploads)
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
@@ -1453,6 +1587,15 @@ http://localhost:3000
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@localhost:5432/db` |
 | `JWT_SECRET` | Secret key for JWT signing (min 32 chars) | `abc123...xyz` |
+| `FIREBASE_API_KEY` | Firebase Web API key | `AIzaSyC...` |
+| `FIREBASE_AUTH_DOMAIN` | Firebase Auth domain | `project.firebaseapp.com` |
+| `FIREBASE_PROJECT_ID` | Firebase project ID | `my-project-123` |
+| `FIREBASE_STORAGE_BUCKET` | Firebase storage bucket | `project.appspot.com` |
+| `FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID | `123456789` |
+| `FIREBASE_APP_ID` | Firebase app ID | `1:123:web:abc` |
+| `FIREBASE_ADMIN_PROJECT_ID` | Firebase Admin project ID | `my-project-123` |
+| `FIREBASE_ADMIN_PRIVATE_KEY` | Firebase Admin private key | `-----BEGIN PRIVATE KEY-----...` |
+| `FIREBASE_ADMIN_CLIENT_EMAIL` | Firebase Admin service account email | `firebase-adminsdk@...iam.gserviceaccount.com` |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | `my-cloud` |
 | `CLOUDINARY_API_KEY` | Cloudinary API key | `123456789` |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret | `abc...xyz` |
@@ -1470,7 +1613,82 @@ http://localhost:3000
 
 ---
 
-<div style="background: linear-gradient(135deg, #E8D5C2 0%, #F7F6F3 100%); padding: 30px; border-radius: 16px; border: 2px solid #C89A7A; margin: 20px 0;">
+<div style="background: linear-gradient(135deg, #F7F6F3 0%, #F2E6D8 100%); padding: 30px; border-radius: 16px; border-left: 5px solid #C89A7A; margin: 20px 0;">
+
+## 🔥 Firebase Setup (Google OAuth)
+
+<div style="color: #5A3E2B;">
+
+### Overview
+
+The application uses **Firebase Authentication** for Google OAuth 2.0 sign-in, providing a seamless one-click authentication experience.
+
+### Setup Steps
+
+1. **Create a Firebase Project**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Click "Add project"
+   - Enter project name (e.g., "chulbuli-jewels")
+   - Disable Google Analytics (optional)
+
+2. **Enable Google Authentication**
+   - In Firebase Console, go to **Authentication** → **Sign-in method**
+   - Enable **Google** provider
+   - Set support email
+   - Save configuration
+
+3. **Register Web App**
+   - Go to **Project Settings** → **General**
+   - Scroll to "Your apps" → Click **Web** icon (`</>`)
+   - Register app with nickname (e.g., "Chulbuli Web")
+   - Copy configuration values
+
+4. **Create Service Account (for Admin SDK)**
+   - Go to **Project Settings** → **Service accounts**
+   - Click "Generate new private key"
+   - Download JSON file
+   - Extract values for `.env.local`:
+     - `project_id` → `FIREBASE_ADMIN_PROJECT_ID`
+     - `private_key` → `FIREBASE_ADMIN_PRIVATE_KEY`
+     - `client_email` → `FIREBASE_ADMIN_CLIENT_EMAIL`
+
+5. **Configure Environment Variables**
+   - Add Firebase config to `.env.local` (see [Environment Variables](#environment-variables))
+   - **Important:** Keep `private_key` with newlines (`\n`) intact
+
+6. **Add Authorized Domains**
+   - In Firebase Console, go to **Authentication** → **Settings** → **Authorized domains**
+   - Add your domain(s):
+     - `localhost` (for development)
+     - Your production domain
+
+### Security Considerations
+
+- ✅ Firebase ID tokens are verified server-side using Firebase Admin SDK
+- ✅ Tokens are validated for expiry and signature
+- ✅ HTTP-only cookies prevent XSS attacks
+- ✅ Rate limiting prevents abuse
+- ✅ User creation is audited and logged
+
+### How It Works
+
+1. User clicks "Sign in with Google" button
+2. Firebase popup opens for Google account selection
+3. User authorizes the application
+4. Firebase returns an ID token to the client
+5. Client sends ID token to `/api/auth/google`
+6. Server verifies token using Firebase Admin SDK
+7. Server creates/updates user in database
+8. Server generates JWT and sets HTTP-only cookie
+9. User is authenticated and redirected
+
+</div>
+
+</div>
+
+---
+
+<div style="background: linear-gradient(135deg, #F7F6F3 0%, #E8D5C2 100%); padding: 30px; border-radius: 16px; border: 2px solid #C89A7A; margin: 20px 0;">
 
 ## 🗃️ Database Setup
 
@@ -1644,15 +1862,16 @@ Example Primary Button
 
 ### Phase 1 (MVP) ✅
 - [x] User authentication (email/password)
+- [x] **Google OAuth Sign-In** - Firebase Authentication integration
 - [x] Product catalog with filtering
 - [x] Shopping cart
 - [x] Order placement (COD)
 - [x] Admin panel (products, orders, reviews)
 - [x] Review system
+- [x] **Multi-provider authentication** - Account linking for email and Google
 
 ### Phase 2 (In Progress)
 - [ ] Online payment (Razorpay/Stripe)
-- [ ] Google OAuth login
 - [ ] Email notifications (order confirmation, shipping)
 - [ ] Order tracking page
 - [ ] Wishlist feature

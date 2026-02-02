@@ -74,17 +74,17 @@ function ProductsContent() {
   return (
     <>
       <main className="min-h-screen bg-pearl">
-        {/* Page Title Section - Left Aligned */}
-        <div className="pt-32 pb-12 px-6 lg:px-12 bg-gradient-to-b from-champagne/30 to-pearl">
+        {/* Page Title Section - Mobile optimized */}
+        <div className="pt-20 md:pt-32 pb-6 md:pb-12 px-4 md:px-6 lg:px-12 bg-gradient-to-b from-champagne/30 to-pearl">
           <div className="max-w-[1600px] mx-auto">
-            <h1 className="text-5xl lg:text-6xl font-playfair font-medium text-rosegold tracking-luxury mb-3">
+            <h1 className="text-2xl md:text-5xl lg:text-6xl font-playfair font-medium text-rosegold tracking-wide mb-2 md:mb-3">
               {categories.find(c => c.value === category)?.label || 'All Products'}
             </h1>
-            <p className="text-taupe/70 text-sm mb-8 tracking-wide">
+            <p className="text-taupe/70 text-xs md:text-sm mb-4 md:mb-8 tracking-wide">
               {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} {searchQuery && `matching "${searchQuery}"`}
             </p>
             
-            {/* Search Bar - Prominent */}
+            {/* Search Bar - Mobile optimized */}
             <div id="search" className="max-w-3xl scroll-mt-24">
               <SearchBar 
                 value={searchQuery}
@@ -97,11 +97,11 @@ function ProductsContent() {
         </div>
 
         {/* Two-Column Layout: Sidebar + Grid */}
-        <div className="px-6 lg:px-12 pb-20">
+        <div className="px-4 md:px-6 lg:px-12 pb-24 md:pb-20">
           <div className="max-w-[1600px] mx-auto">
-            <div className="flex gap-12 lg:gap-16">
+            <div className="flex gap-8 lg:gap-16">
               
-              {/* LEFT SIDEBAR - Fixed Width, Clean Filters */}
+              {/* LEFT SIDEBAR - Hidden on mobile */}
               <aside className="hidden lg:block w-72 flex-shrink-0">
                 <div className="sticky top-32 space-y-10">
                   
@@ -112,7 +112,7 @@ function ProductsContent() {
                         <button
                           key={cat.value}
                           onClick={() => setCategory(cat.value)}
-                          className={`block w-full text-left py-2 transition-all duration-300 tracking-wide ${
+                          className={`block w-full text-left py-2 transition-all duration-200 md:duration-300 tracking-wide touch-target ${
                             category === cat.value
                               ? 'text-rosegold font-medium text-lg border-l-2 border-rosegold pl-4'
                               : 'text-warmbrown/70 hover:text-rosegold hover:pl-4 text-base'
@@ -138,14 +138,14 @@ function ProductsContent() {
                         placeholder="Min Price"
                         value={minPrice}
                         onChange={(e) => setMinPrice(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/50 border border-softgold/30 rounded-lg text-warmbrown placeholder:text-taupe/40 focus:outline-none focus:border-rosegold/50 transition-colors"
+                        className="input-luxury"
                       />
                       <input
                         type="number"
                         placeholder="Max Price"
                         value={maxPrice}
                         onChange={(e) => setMaxPrice(e.target.value)}
-                        className="w-full px-4 py-3 bg-white/50 border border-softgold/30 rounded-lg text-warmbrown placeholder:text-taupe/40 focus:outline-none focus:border-rosegold/50 transition-colors"
+                        className="input-luxury"
                       />
                     </div>
                   </div>
@@ -161,7 +161,7 @@ function ProductsContent() {
                     <select
                       value={sort}
                       onChange={(e) => setSort(e.target.value)}
-                      className="w-full px-4 py-3 bg-white/50 border border-softgold/30 rounded-lg text-warmbrown focus:outline-none focus:border-rosegold/50 transition-colors cursor-pointer"
+                      className="input-luxury cursor-pointer"
                     >
                       <option value="latest">Latest</option>
                       <option value="price-asc">Price: Low to High</option>
@@ -172,40 +172,40 @@ function ProductsContent() {
                 </div>
               </aside>
 
-              {/* MAIN PRODUCT GRID */}
+              {/* MAIN PRODUCT GRID - Mobile optimized */}
               <div className="flex-1">
                 {loading ? (
-                  <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 lg:gap-10">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 lg:gap-10">
                     {[...Array(9)].map((_, i) => (
                       <div key={i} className="animate-pulse">
-                        <div className="aspect-[4/5] bg-champagne rounded-[20px]"></div>
-                        <div className="mt-6 space-y-3">
-                          <div className="h-3 bg-champagne rounded w-1/3"></div>
-                          <div className="h-5 bg-champagne rounded w-3/4"></div>
-                          <div className="h-6 bg-champagne rounded w-1/2"></div>
+                        <div className="aspect-[3/4] md:aspect-[4/5] bg-champagne rounded-2xl md:rounded-[20px]"></div>
+                        <div className="mt-3 md:mt-6 space-y-2 md:space-y-3">
+                          <div className="h-2 md:h-3 bg-champagne rounded w-1/3"></div>
+                          <div className="h-3 md:h-5 bg-champagne rounded w-3/4"></div>
+                          <div className="h-4 md:h-6 bg-champagne rounded w-1/2"></div>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : filteredProducts.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 lg:gap-10">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 lg:gap-10">
                     {filteredProducts.map((product: any) => (
                       <ProductCard key={product.id} product={product} />
                     ))}
                   </div>
                 ) : searchQuery ? (
-                  <div className="text-center py-24">
-                    <p className="text-taupe text-lg tracking-wide mb-2">No products found matching &quot;{searchQuery}&quot;</p>
+                  <div className="text-center py-12 md:py-24">
+                    <p className="text-taupe text-sm md:text-lg tracking-wide mb-2">No products found matching &quot;{searchQuery}&quot;</p>
                     <button 
                       onClick={() => setSearchQuery('')}
-                      className="text-rosegold hover:text-softgold font-medium text-sm tracking-wider transition-colors duration-300"
+                      className="text-rosegold hover:text-softgold font-medium text-xs md:text-sm tracking-wider transition-colors duration-300 touch-target"
                     >
                       Clear search
                     </button>
                   </div>
                 ) : (
-                  <div className="text-center py-24">
-                    <p className="text-taupe text-lg tracking-wide">No products found</p>
+                  <div className="text-center py-12 md:py-24">
+                    <p className="text-taupe text-sm md:text-lg tracking-wide">No products found</p>
                   </div>
                 )}
               </div>
@@ -213,18 +213,18 @@ function ProductsContent() {
           </div>
         </div>
 
-        {/* Mobile Category Navigation - Bottom Fixed */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-softgold/30 shadow-lg z-40">
-          <div className="overflow-x-auto">
-            <div className="flex px-4 py-3 gap-3 min-w-max">
+        {/* Mobile Category Navigation - Sticky bottom with safe area */}
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/98 backdrop-blur-md border-t-2 border-softgold/30 shadow-2xl z-40 safe-area-bottom">
+          <div className="overflow-x-auto scrollbar-hide">
+            <div className="flex px-4 py-3 gap-2 min-w-max">
               {categories.map((cat) => (
                 <button
                   key={cat.value}
                   onClick={() => setCategory(cat.value)}
-                  className={`px-5 py-2.5 rounded-full whitespace-nowrap transition-all duration-300 text-sm font-medium tracking-wide ${
+                  className={`px-4 py-2.5 rounded-xl whitespace-nowrap transition-all duration-200 text-sm font-medium tracking-wide touch-target active:scale-95 ${
                     category === cat.value
-                      ? 'bg-rosegold text-white shadow-md'
-                      : 'bg-pearl text-warmbrown border border-softgold/30 hover:bg-champagne'
+                      ? 'bg-rosegold text-white shadow-lg ring-2 ring-rosegold/30'
+                      : 'bg-pearl text-warmbrown border-2 border-softgold/30 hover:bg-champagne active:bg-softgold/20'
                   }`}
                 >
                   {cat.label}

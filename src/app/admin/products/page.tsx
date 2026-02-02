@@ -402,31 +402,32 @@ export default function AdminProductsPage() {
       <div className="hidden lg:block">
         <AdminSidebar />
       </div>
+      <AdminMobileNav />
 
       {/* Main Content */}
       <main className="lg:ml-72 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen">
         {/* Top Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 md:mb-8 gap-4 md:gap-6">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-playfair font-bold text-warmbrown mb-2">Products Management</h1>
-            <p className="text-sm text-taupe font-medium">Manage your jewelry inventory and product catalog</p>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-playfair font-bold text-warmbrown mb-1 md:mb-2">Products Management</h1>
+            <p className="text-xs md:text-sm text-taupe font-medium">Manage your product catalog</p>
           </div>
 
-          <div className="flex items-center gap-4 w-full lg:w-auto">
+          <div className="flex items-center gap-3 md:gap-4 w-full lg:w-auto">
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center justify-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-rosegold to-softgold text-white rounded-2xl hover:shadow-xl transition-all font-semibold text-sm shadow-lg hover:scale-105 flex-1 lg:flex-none"
+              className="btn-mobile-full flex items-center justify-center gap-2 md:gap-2.5 px-5 md:px-6 py-3 md:py-3.5 bg-gradient-to-r from-rosegold to-softgold text-white rounded-xl md:rounded-2xl hover:shadow-xl transition-all duration-300 font-semibold text-sm shadow-lg active:scale-95 md:hover:scale-105 touch-target"
             >
-              <FiPlus size={20} className="font-bold" /> <span>Add New Product</span>
+              <FiPlus size={18} className="md:w-5 md:h-5 font-bold" /> <span>Add Product</span>
             </button>
-            <div className="flex items-center gap-4 pl-5 border-l-2 border-softgold/40">
-              <button className="relative p-2.5 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group">
-                <FiBell size={22} className="transition-transform group-hover:scale-110" />
+            <div className="hidden md:flex items-center gap-3 md:gap-4 pl-4 md:pl-5 border-l-2 border-softgold/40">
+              <button className="relative p-2.5 md:p-3 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group touch-target active:scale-95">
+                <FiBell size={20} className="md:w-5 md:h-5 transition-transform group-hover:scale-110" />
               </button>
-              <button className="p-2.5 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group hidden md:block">
-                <FiSettings size={22} className="transition-transform group-hover:rotate-90 duration-500" />
+              <button className="p-2.5 md:p-3 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group hidden md:block touch-target active:scale-95">
+                <FiSettings size={20} className="md:w-5 md:h-5 transition-transform group-hover:rotate-90 duration-300" />
               </button>
-              <div className="w-11 h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-lg ring-2 ring-white/50 hover:scale-105 transition-transform cursor-pointer">
+              <div className="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-white font-bold text-sm md:text-base shadow-lg ring-2 ring-white/50 hover:scale-105 transition-transform cursor-pointer touch-target active:scale-95">
                 {user.name?.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -435,19 +436,19 @@ export default function AdminProductsPage() {
 
         {/* Products Grid (Card-based instead of table) */}
         {loading ? (
-          <div className="grid grid-cols-1 gap-5">
+          <div className="grid grid-cols-1 gap-4 md:gap-5">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white/80 rounded-3xl p-7 shadow-lg animate-pulse border-2 border-softgold/20">
-                <div className="h-8 bg-sand/40 rounded-xl w-1/3 mb-4"></div>
-                <div className="h-5 bg-sand/40 rounded-lg w-2/3"></div>
+              <div key={i} className="bg-white/80 rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-lg animate-pulse border-2 border-softgold/20">
+                <div className="h-6 md:h-8 bg-sand/40 rounded-xl w-1/3 mb-3 md:mb-4"></div>
+                <div className="h-4 md:h-5 bg-sand/40 rounded-lg w-2/3"></div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-4 md:space-y-5">
             {products.map((product: any) => (
-              <div key={product.id} className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-7 shadow-xl hover:shadow-2xl transition-all border-2 border-softgold/20 hover:border-rosegold/30 group">
-                <div className="flex flex-col lg:flex-row items-start gap-6">
+              <div key={product.id} className="bg-white/90 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-7 shadow-xl hover:shadow-2xl transition-all border-2 border-softgold/20 hover:border-rosegold/30 group">
+                <div className="flex flex-col lg:flex-row items-start gap-4 md:gap-6">
                   {/* Product Image */}
                   {product.images && product.images.length > 0 && (
                     <div className="flex-shrink-0 w-full lg:w-auto">

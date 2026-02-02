@@ -94,26 +94,26 @@ export default function AdminOrdersPage() {
       {/* Main Content */}
       <main className="lg:ml-72 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen">
         {/* Top Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 md:mb-8 gap-4 md:gap-6">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-playfair font-bold text-warmbrown mb-2">Orders Management</h1>
-            <p className="text-sm text-taupe font-medium">Manage and track all customer orders and deliveries</p>
+            <h1 className="text-xl md:text-2xl lg:text-3xl font-playfair font-bold text-warmbrown mb-1 md:mb-2">Orders Management</h1>
+            <p className="text-xs md:text-sm text-taupe font-medium">Manage and track customer orders</p>
           </div>
 
-          <div className="flex items-center gap-4 text-taupe">
-            <button className="relative p-2.5 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group">
-              <FiBell size={22} className="transition-transform group-hover:scale-110" />
+          <div className="flex items-center gap-3 md:gap-4 text-taupe">
+            <button className="relative p-2.5 md:p-3 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group touch-target active:scale-95">
+              <FiBell size={20} className="md:w-5 md:h-5 transition-transform group-hover:scale-110" />
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rosegold rounded-full animate-pulse shadow-lg"></span>
             </button>
-            <button className="p-2.5 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group hidden md:block">
-              <FiSettings size={22} className="transition-transform group-hover:rotate-90 duration-500" />
+            <button className="p-2.5 md:p-3 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group hidden md:block touch-target active:scale-95">
+              <FiSettings size={20} className="md:w-5 md:h-5 transition-transform group-hover:rotate-90 duration-300" />
             </button>
-            <div className="flex items-center gap-3 pl-5 border-l-2 border-softgold/40">
+            <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-5 border-l-2 border-softgold/40">
               <div className="text-right hidden lg:block">
                 <p className="text-sm font-semibold text-warmbrown font-playfair">{user.name}</p>
                 <p className="text-xs text-taupe font-medium">Administrator</p>
               </div>
-              <div className="w-11 h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-white font-bold text-base shadow-lg ring-2 ring-white/50 hover:scale-105 transition-transform cursor-pointer">
+              <div className="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-white font-bold text-sm md:text-base shadow-lg ring-2 ring-white/50 hover:scale-105 transition-transform cursor-pointer touch-target active:scale-95">
                 {user.name?.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -122,29 +122,29 @@ export default function AdminOrdersPage() {
 
         {/* Orders List */}
         {loading ? (
-          <div className="space-y-5">
+          <div className="space-y-4 md:space-y-5">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="bg-white/80 rounded-3xl p-7 shadow-lg animate-pulse border-2 border-softgold/20">
-                <div className="h-8 bg-sand/40 rounded-xl w-1/3 mb-4"></div>
-                <div className="h-5 bg-sand/40 rounded-lg w-2/3"></div>
+              <div key={i} className="bg-white/80 rounded-2xl md:rounded-3xl p-5 md:p-7 shadow-lg animate-pulse border-2 border-softgold/20">
+                <div className="h-6 md:h-8 bg-sand/40 rounded-xl w-1/3 mb-3 md:mb-4"></div>
+                <div className="h-4 md:h-5 bg-sand/40 rounded-lg w-2/3"></div>
               </div>
             ))}
           </div>
         ) : orders.length > 0 ? (
-          <div className="space-y-5">
+          <div className="space-y-4 md:space-y-5">
             {orders.map((order: any) => (
-              <div key={order.id} className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 md:p-7 shadow-xl hover:shadow-2xl transition-all border-2 border-softgold/20 hover:border-rosegold/30">
+              <div key={order.id} className="bg-white/90 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-7 shadow-xl hover:shadow-2xl transition-all border-2 border-softgold/20 hover:border-rosegold/30">
                 {/* Order Header */}
-                <div className="flex flex-col lg:flex-row items-start justify-between mb-6 pb-5 border-b-2 border-softgold/30 gap-4">
+                <div className="flex flex-col lg:flex-row items-start justify-between mb-4 md:mb-6 pb-4 md:pb-5 border-b-2 border-softgold/30 gap-3 md:gap-4">
                   <div className="w-full lg:w-auto">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-2">
-                      <h3 className="font-playfair font-bold text-warmbrown text-lg lg:text-xl">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3 mb-2">
+                      <h3 className="font-playfair font-bold text-warmbrown text-base md:text-lg lg:text-xl">
                         Order #{order.id.slice(0, 8)}
                       </h3>
                       <select
                         value={order.status}
                         onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                        className={`px-4 py-2 rounded-xl text-sm font-bold capitalize border-2 w-full sm:w-auto shadow-sm hover:shadow-md transition-all cursor-pointer ${getStatusColor(
+                        className={`input-luxury px-3 md:px-4 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-bold capitalize border-2 w-full sm:w-auto shadow-sm hover:shadow-md transition-all cursor-pointer touch-target active:scale-95 ${getStatusColor(
                           order.status
                         )}`}
                       >

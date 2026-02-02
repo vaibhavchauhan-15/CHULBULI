@@ -31,17 +31,17 @@ export default function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link href={`/products/${product.id}`} className="group block">
-      {/* Card Container - Clean, Large Rounded Corners, Soft Shadow */}
-      <div className="bg-white rounded-[20px] overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_12px_40px_rgba(200,154,122,0.2)] transition-all duration-700">
+      {/* Card Container - Mobile-optimized */}
+      <div className="bg-white rounded-2xl md:rounded-[20px] overflow-hidden shadow-md hover:shadow-xl md:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:hover:shadow-[0_12px_40px_rgba(200,154,122,0.2)] transition-all duration-300 md:duration-700 active:scale-[0.98] md:active:scale-100">
         
-        {/* Image Area - Hero Element, 60-65% of Card */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-champagne/30">
+        {/* Image Area - Mobile-first aspect ratio */}
+        <div className="relative aspect-[3/4] md:aspect-[4/5] overflow-hidden bg-champagne/30">
           <Image
             src={imageUrl}
             alt={product.name}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+            sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 25vw, 20vw"
+            className="object-cover transition-transform duration-300 md:duration-700 ease-out group-hover:scale-[1.05] md:group-hover:scale-[1.03]"
             loading="eager"
             quality={85}
             onError={() => setImgError(true)}
@@ -49,40 +49,40 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
           
           {/* Subtle Hover Overlay */}
-          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-700" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-all duration-300 md:duration-700" />
           
-          {/* Discount Badge - Top Right, Small & Circular */}
+          {/* Discount Badge - Larger on mobile for visibility */}
           {product.discount > 0 && (
-            <div className="absolute top-4 right-4 w-14 h-14 rounded-full bg-rosegold/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-              <span className="text-white text-xs font-medium">
+            <div className="absolute top-2 right-2 w-12 h-12 md:w-14 md:h-14 rounded-full bg-rosegold/95 backdrop-blur-sm flex items-center justify-center shadow-lg ring-2 ring-white/50">
+              <span className="text-white text-xs md:text-xs font-bold leading-tight text-center">
                 {product.discount}%<br/>OFF
               </span>
             </div>
           )}
         </div>
         
-        {/* Product Meta - Below Image, Clean Spacing */}
-        <div className="p-6 space-y-3">
+        {/* Product Meta - Mobile-optimized spacing */}
+        <div className="p-3 md:p-6 space-y-2 md:space-y-3">
           
-          {/* Category/Style - Small, Muted, Lowercase */}
+          {/* Category - Smaller on mobile */}
           {product.category && (
-            <p className="text-xs lowercase tracking-wide text-taupe/70">
+            <p className="text-[10px] md:text-xs lowercase tracking-wide text-taupe/70 font-medium">
               {product.category}
             </p>
           )}
           
-          {/* Product Name - Serif, Medium Size, 1-2 Lines */}
-          <h3 className="font-playfair text-lg leading-tight text-warmbrown group-hover:text-rosegold transition-colors duration-500 line-clamp-2">
+          {/* Product Name - Smaller font on mobile, 2 lines max */}
+          <h3 className="font-playfair text-sm md:text-lg leading-snug md:leading-tight text-warmbrown group-hover:text-rosegold transition-colors duration-300 md:duration-500 line-clamp-2 min-h-[2.5rem] md:min-h-[3rem]">
             {product.name}
           </h3>
           
-          {/* Price Section - Horizontal Layout */}
-          <div className="flex items-center gap-3 pt-2">
-            <span className="text-2xl font-playfair font-light text-warmbrown tracking-wide">
+          {/* Price Section - Prominent on mobile */}
+          <div className="flex items-center gap-2 md:gap-3 pt-1 md:pt-2">
+            <span className="text-xl md:text-2xl font-playfair font-semibold md:font-light text-warmbrown tracking-wide">
               ₹{finalPrice.toLocaleString('en-IN')}
             </span>
             {product.discount > 0 && (
-              <span className="text-sm text-taupe/50 line-through font-light">
+              <span className="text-xs md:text-sm text-taupe/50 line-through font-light">
                 ₹{product.price.toLocaleString('en-IN')}
               </span>
             )}

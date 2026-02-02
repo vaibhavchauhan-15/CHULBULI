@@ -55,6 +55,14 @@ export default function CheckoutPage() {
     }
   }, [selectedItems.length, router])
 
+  // Redirect to login if user is not logged in
+  useEffect(() => {
+    if (!user) {
+      toast.error('Please log in to proceed to checkout')
+      router.push('/login?redirect=/checkout')
+    }
+  }, [user, router])
+
   // Update shipping selection when cart total changes
   useEffect(() => {
     if (subtotal >= 500) {
@@ -62,7 +70,7 @@ export default function CheckoutPage() {
     } else if (selectedShipping === 'free') {
       setSelectedShipping('standard')
     }
-  }, [subtotal])
+  }, [subtotal, selectedShipping])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -168,27 +176,27 @@ export default function CheckoutPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 px-4 pb-12 bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
+      <main className="min-h-screen pt-20 md:pt-24 px-4 pb-24 md:pb-12 bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-10">
-            <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-3 text-[#5A3E2B]">
+          {/* Header - Mobile optimized */}
+          <div className="mb-6 md:mb-10">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-playfair font-bold mb-2 md:mb-3 text-[#5A3E2B]">
               Checkout
             </h1>
-            <p className="text-lg text-[#5A3E2B]/70 font-light">Complete your order securely</p>
+            <p className="text-sm md:text-lg text-[#5A3E2B]/70 font-light">Complete your order securely</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
             {/* Checkout Form */}
-            <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
+            <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-4 md:space-y-6">
               
               {/* Contact Information */}
-              <div className="card-luxury p-6 md:p-8 shadow-luxury">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="bg-[#C89A7A]/10 p-3 rounded-xl">
-                    <FiUser className="w-5 h-5 text-[#C89A7A]" />
+              <div className="card-luxury p-4 md:p-6 lg:p-8 shadow-luxury">
+                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                  <div className="bg-[#C89A7A]/10 p-2 md:p-3 rounded-xl">
+                    <FiUser className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A]" />
                   </div>
-                  <h2 className="text-2xl font-playfair font-semibold text-[#5A3E2B]">Contact Information</h2>
+                  <h2 className="text-lg md:text-2xl font-playfair font-semibold text-[#5A3E2B]">Contact Information</h2>
                 </div>
                 <div className="space-y-4">
                   <div className="relative">
@@ -245,12 +253,12 @@ export default function CheckoutPage() {
               </div>
 
               {/* Shipping Address */}
-              <div className="card-luxury p-6 md:p-8 shadow-luxury">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="bg-[#C89A7A]/10 p-3 rounded-xl">
-                    <FiMapPin className="w-5 h-5 text-[#C89A7A]" />
+              <div className="card-luxury p-4 md:p-6 lg:p-8 shadow-luxury">
+                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                  <div className="bg-[#C89A7A]/10 p-2 md:p-3 rounded-xl">
+                    <FiMapPin className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A]" />
                   </div>
-                  <h2 className="text-2xl font-playfair font-semibold text-[#5A3E2B]">Shipping Address</h2>
+                  <h2 className="text-lg md:text-2xl font-playfair font-semibold text-[#5A3E2B]">Shipping Address</h2>
                 </div>
                 <div className="space-y-4">
                   <div>
@@ -331,15 +339,15 @@ export default function CheckoutPage() {
               </div>
 
               {/* Payment Method */}
-              <div className="card-luxury p-6 md:p-8 shadow-luxury">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="bg-[#C89A7A]/10 p-3 rounded-xl">
-                    <FiCreditCard className="w-5 h-5 text-[#C89A7A]" />
+              <div className="card-luxury p-4 md:p-6 lg:p-8 shadow-luxury">
+                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                  <div className="bg-[#C89A7A]/10 p-2 md:p-3 rounded-xl">
+                    <FiCreditCard className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A]" />
                   </div>
-                  <h2 className="text-2xl font-playfair font-semibold text-[#5A3E2B]">Payment Method</h2>
+                  <h2 className="text-lg md:text-2xl font-playfair font-semibold text-[#5A3E2B]">Payment Method</h2>
                 </div>
-                <div className="bg-white/60 border-2 border-[#C89A7A] rounded-xl p-5 transition-all hover:shadow-md">
-                  <div className="flex items-center gap-4">
+                <div className="bg-white/60 border-2 border-[#C89A7A] rounded-xl p-4 md:p-5 transition-all hover:shadow-md active:shadow-lg">
+                  <div className="flex items-center gap-3 md:gap-4">
                     <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-[#C89A7A] bg-[#C89A7A]">
                       <FiCheck className="w-4 h-4 text-white" />
                     </div>
@@ -353,25 +361,25 @@ export default function CheckoutPage() {
               </div>
 
               {/* Shipping Options */}
-              <div className="card-luxury p-6 md:p-8 shadow-luxury">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="bg-[#C89A7A]/10 p-3 rounded-xl">
-                    <FiTruck className="w-5 h-5 text-[#C89A7A]" />
+              <div className="card-luxury p-4 md:p-6 lg:p-8 shadow-luxury">
+                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+                  <div className="bg-[#C89A7A]/10 p-2 md:p-3 rounded-xl">
+                    <FiTruck className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A]" />
                   </div>
-                  <h2 className="text-2xl font-playfair font-semibold text-[#5A3E2B]">Shipping Method</h2>
+                  <h2 className="text-lg md:text-2xl font-playfair font-semibold text-[#5A3E2B]">Shipping Method</h2>
                 </div>
                 
                 <div className="space-y-4">
                   {/* FREE Shipping Notice */}
                   {subtotal >= 500 && (
-                    <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 border border-emerald-200 rounded-xl p-4">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-emerald-500 p-2 rounded-full">
-                          <FiCheck className="w-4 h-4 text-white" />
+                    <div className="bg-gradient-to-r from-emerald-50 to-emerald-100/50 border-2 border-emerald-200 rounded-xl p-3 md:p-4">
+                      <div className="flex items-center gap-2 md:gap-3">
+                        <div className="bg-emerald-500 p-1.5 md:p-2 rounded-full flex-shrink-0">
+                          <FiCheck className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
                         </div>
                         <div>
-                          <p className="font-semibold text-emerald-800">🎉 FREE Shipping Unlocked!</p>
-                          <p className="text-sm text-emerald-700">Your order qualifies for free shipping</p>
+                          <p className="font-semibold text-emerald-800 text-sm md:text-base">🎉 FREE Shipping Unlocked!</p>
+                          <p className="text-xs md:text-sm text-emerald-700">Your order qualifies for free shipping</p>
                         </div>
                       </div>
                     </div>
@@ -381,7 +389,7 @@ export default function CheckoutPage() {
                   <div className="space-y-3">
                     {/* FREE Shipping Option */}
                     <label 
-                      className={`relative block cursor-pointer ${
+                      className={`relative block cursor-pointer touch-target ${
                         subtotal < 500 ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
@@ -394,7 +402,7 @@ export default function CheckoutPage() {
                         disabled={subtotal < 500}
                         className="sr-only"
                       />
-                      <div className={`bg-white/60 border-2 rounded-xl p-4 transition-all ${
+                      <div className={`bg-white/60 border-2 rounded-xl p-3.5 md:p-4 transition-all duration-200 active:scale-[0.99] ${
                         selectedShipping === 'free' && subtotal >= 500
                           ? 'border-emerald-500 bg-emerald-50/50 shadow-md'
                           : subtotal >= 500
@@ -430,7 +438,7 @@ export default function CheckoutPage() {
                     </label>
 
                     {/* Standard Shipping Option */}
-                    <label className="relative block cursor-pointer">
+                    <label className="relative block cursor-pointer touch-target">
                       <input
                         type="radio"
                         name="shipping"
@@ -439,7 +447,7 @@ export default function CheckoutPage() {
                         onChange={(e) => setSelectedShipping('standard')}
                         className="sr-only"
                       />
-                      <div className={`bg-white/60 border-2 rounded-xl p-4 transition-all ${
+                      <div className={`bg-white/60 border-2 rounded-xl p-3.5 md:p-4 transition-all duration-200 active:scale-[0.99] ${
                         selectedShipping === 'standard'
                           ? 'border-[#C89A7A] bg-[#C89A7A]/5 shadow-md'
                           : 'border-[#C89A7A]/20 hover:border-[#C89A7A]/40'
@@ -464,7 +472,7 @@ export default function CheckoutPage() {
                     </label>
 
                     {/* Express Shipping Option */}
-                    <label className="relative block cursor-pointer">
+                    <label className="relative block cursor-pointer touch-target">
                       <input
                         type="radio"
                         name="shipping"
@@ -473,7 +481,7 @@ export default function CheckoutPage() {
                         onChange={(e) => setSelectedShipping('express')}
                         className="sr-only"
                       />
-                      <div className={`bg-white/60 border-2 rounded-xl p-4 transition-all ${
+                      <div className={`bg-white/60 border-2 rounded-xl p-3.5 md:p-4 transition-all duration-200 active:scale-[0.99] ${
                         selectedShipping === 'express'
                           ? 'border-[#C89A7A] bg-[#C89A7A]/5 shadow-md'
                           : 'border-[#C89A7A]/20 hover:border-[#C89A7A]/40'
@@ -507,11 +515,11 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Place Order Button */}
+              {/* Place Order Button - Desktop only */}
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 group"
+                className="hidden md:flex btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed transition-all items-center justify-center gap-3 group"
               >
                 {loading ? (
                   <>
@@ -537,23 +545,23 @@ export default function CheckoutPage() {
 
             {/* Order Summary */}
             <div className="lg:col-span-1">
-              <div className="card-luxury p-6 md:p-8 sticky top-24 shadow-luxury-lg">
-                <h2 className="text-2xl font-playfair font-semibold mb-6 text-[#5A3E2B] flex items-center">
-                  <span className="w-1 h-6 bg-gradient-to-b from-[#C89A7A] to-[#E6C9A8] rounded-full mr-3"></span>
+              <div className="card-luxury p-4 md:p-6 lg:p-8 lg:sticky lg:top-24 shadow-luxury-lg">
+                <h2 className="text-lg md:text-2xl font-playfair font-semibold mb-4 md:mb-6 text-[#5A3E2B] flex items-center">
+                  <span className="w-1 h-5 md:h-6 bg-gradient-to-b from-[#C89A7A] to-[#E6C9A8] rounded-full mr-2 md:mr-3"></span>
                   Order Summary
                 </h2>
 
-                <div className="space-y-4 mb-6">
+                <div className="space-y-3 md:space-y-4 mb-4 md:mb-6">
                   {selectedItems.map((item) => {
                     const finalPrice = item.price - (item.price * item.discount) / 100
                     return (
-                      <div key={item.id} className="bg-white/50 rounded-lg p-4 border border-[#C89A7A]/10">
-                        <div className="flex justify-between items-start gap-3">
-                          <div className="flex-1">
-                            <p className="font-medium text-[#5A3E2B] mb-1">{item.name}</p>
-                            <p className="text-sm text-[#5A3E2B]/60">Qty: {item.quantity}</p>
+                      <div key={item.id} className="bg-white/50 rounded-lg p-3 md:p-4 border border-[#C89A7A]/10">
+                        <div className="flex justify-between items-start gap-2 md:gap-3">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-[#5A3E2B] mb-1 text-sm md:text-base truncate">{item.name}</p>
+                            <p className="text-xs md:text-sm text-[#5A3E2B]/60">Qty: {item.quantity}</p>
                           </div>
-                          <span className="font-semibold text-[#C89A7A] whitespace-nowrap">
+                          <span className="font-semibold text-[#C89A7A] whitespace-nowrap text-sm md:text-base">
                             ₹{(finalPrice * item.quantity).toFixed(2)}
                           </span>
                         </div>
@@ -616,6 +624,34 @@ export default function CheckoutPage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Mobile Sticky Place Order Button */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/98 backdrop-blur-md border-t-2 border-softgold/30 shadow-2xl z-40 safe-area-bottom">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-[#5A3E2B]/60 font-medium">Total Amount</span>
+              <span className="text-lg font-playfair font-bold text-[#C89A7A]">₹{totalAmount.toFixed(2)}</span>
+            </div>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="btn-primary btn-mobile-full flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Placing Order...
+                </>
+              ) : (
+                <>
+                  <FiShoppingBag className="w-5 h-5" />
+                  Place Order
+                </>
+              )}
+            </button>
           </div>
         </div>
       </main>

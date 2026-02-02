@@ -88,48 +88,48 @@ export default function DashboardPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 px-4 pb-12 bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
+      <main className="min-h-screen pt-20 md:pt-24 px-4 pb-12 bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
-          <div className="mb-12">
-            <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-3 text-editorial">
+          <div className="mb-6 md:mb-10 lg:mb-12">
+            <h1 className="text-2xl md:text-4xl lg:text-5xl font-playfair font-bold mb-2 md:mb-3 text-[#5A3E2B]">
               My Dashboard
             </h1>
-            <p className="text-lg text-[#5A3E2B]/70 font-light">Welcome back, {user.name}!</p>
+            <p className="text-sm md:text-lg text-[#5A3E2B]/70 font-light">Welcome back, {user.name}!</p>
           </div>
 
           {/* Account Information Card */}
-          <div className="card-luxury p-8 mb-10 shadow-luxury">
-            <h2 className="text-2xl font-playfair font-semibold mb-6 flex items-center text-[#5A3E2B]">
-              <span className="w-1 h-6 bg-gradient-to-b from-[#C89A7A] to-[#E6C9A8] rounded-full mr-3"></span>
+          <div className="card-luxury p-4 md:p-6 lg:p-8 mb-6 md:mb-8 lg:mb-10 shadow-luxury">
+            <h2 className="text-lg md:text-2xl font-playfair font-semibold mb-4 md:mb-6 flex items-center text-[#5A3E2B]">
+              <span className="w-1 h-5 md:h-6 bg-gradient-to-b from-[#C89A7A] to-[#E6C9A8] rounded-full mr-2 md:mr-3"></span>
               Account Information
             </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white/50 rounded-xl p-5 border border-[#C89A7A]/10 transition-luxury hover:shadow-md">
-                <p className="text-sm text-[#5A3E2B]/60 mb-2 font-medium uppercase tracking-wide">Name</p>
-                <p className="text-lg font-medium text-[#5A3E2B]">{user.name}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
+              <div className="bg-white/50 rounded-xl p-3.5 md:p-4 lg:p-5 border border-[#C89A7A]/10 transition-all duration-200 hover:shadow-md active:shadow-lg">
+                <p className="text-xs md:text-sm text-[#5A3E2B]/60 mb-1.5 md:mb-2 font-medium uppercase tracking-wide">Name</p>
+                <p className="text-base md:text-lg font-medium text-[#5A3E2B]">{user.name}</p>
               </div>
-              <div className="bg-white/50 rounded-xl p-5 border border-[#C89A7A]/10 transition-luxury hover:shadow-md">
-                <p className="text-sm text-[#5A3E2B]/60 mb-2 font-medium uppercase tracking-wide">Email</p>
-                <p className="text-lg font-medium text-[#5A3E2B] break-all">{user.email}</p>
+              <div className="bg-white/50 rounded-xl p-3.5 md:p-4 lg:p-5 border border-[#C89A7A]/10 transition-all duration-200 hover:shadow-md active:shadow-lg">
+                <p className="text-xs md:text-sm text-[#5A3E2B]/60 mb-1.5 md:mb-2 font-medium uppercase tracking-wide">Email</p>
+                <p className="text-base md:text-lg font-medium text-[#5A3E2B] break-all">{user.email}</p>
               </div>
-              <div className="bg-white/50 rounded-xl p-5 border border-[#C89A7A]/10 transition-luxury hover:shadow-md">
-                <p className="text-sm text-[#5A3E2B]/60 mb-2 font-medium uppercase tracking-wide">Account Type</p>
-                <p className="text-lg font-medium text-[#5A3E2B] capitalize">{user.role}</p>
+              <div className="bg-white/50 rounded-xl p-3.5 md:p-4 lg:p-5 border border-[#C89A7A]/10 transition-all duration-200 hover:shadow-md active:shadow-lg">
+                <p className="text-xs md:text-sm text-[#5A3E2B]/60 mb-1.5 md:mb-2 font-medium uppercase tracking-wide">Account Type</p>
+                <p className="text-base md:text-lg font-medium text-[#5A3E2B] capitalize">{user.role}</p>
               </div>
             </div>
           </div>
 
           {/* Order History Section */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-3xl font-playfair font-bold text-[#5A3E2B] flex items-center">
-                <span className="w-1 h-8 bg-gradient-to-b from-[#C89A7A] to-[#E6C9A8] rounded-full mr-4"></span>
+            <div className="flex items-center justify-between mb-4 md:mb-6 lg:mb-8">
+              <h2 className="text-xl md:text-2xl lg:text-3xl font-playfair font-bold text-[#5A3E2B] flex items-center">
+                <span className="w-1 h-6 md:h-7 lg:h-8 bg-gradient-to-b from-[#C89A7A] to-[#E6C9A8] rounded-full mr-2 md:mr-3 lg:mr-4"></span>
                 Order History
               </h2>
               {orders.length > 0 && (
-                <div className="bg-white/60 px-4 py-2 rounded-full border border-[#C89A7A]/20">
-                  <span className="text-sm font-medium text-[#5A3E2B]">{orders.length} {orders.length === 1 ? 'Order' : 'Orders'}</span>
+                <div className="bg-white/60 px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-[#C89A7A]/20">
+                  <span className="text-xs md:text-sm font-medium text-[#5A3E2B]">{orders.length} {orders.length === 1 ? 'Order' : 'Orders'}</span>
                 </div>
               )}
             </div>
@@ -150,26 +150,26 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : orders.length > 0 ? (
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {orders.map((order: any) => {
                   const isExpanded = expandedOrders.has(order.id)
                   return (
-                    <div key={order.id} className="card-luxury overflow-hidden shadow-luxury hover:shadow-luxury-lg transition-all duration-500">
+                    <div key={order.id} className="card-luxury overflow-hidden shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
                       {/* Order Header */}
-                      <div className="p-6 md:p-8 bg-gradient-to-r from-white/40 to-white/20">
-                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                      <div className="p-4 md:p-6 lg:p-8 bg-gradient-to-r from-white/40 to-white/20">
+                        <div className="flex flex-col gap-3 md:gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <div className="bg-[#C89A7A]/10 p-2 rounded-lg">
-                                <FiShoppingBag className="w-5 h-5 text-[#C89A7A]" />
+                            <div className="flex items-start gap-2 md:gap-3 mb-2 md:mb-3">
+                              <div className="bg-[#C89A7A]/10 p-2 rounded-lg flex-shrink-0">
+                                <FiShoppingBag className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A]" />
                               </div>
-                              <div>
-                                <p className="font-playfair font-semibold text-xl text-[#5A3E2B]">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-playfair font-semibold text-base md:text-lg lg:text-xl text-[#5A3E2B] truncate">
                                   Order #{order.id.slice(0, 8).toUpperCase()}
                                 </p>
-                                <div className="flex items-center gap-2 text-sm text-[#5A3E2B]/60 mt-1">
-                                  <FiCalendar className="w-3.5 h-3.5" />
-                                  <span>
+                                <div className="flex items-center gap-1.5 md:gap-2 text-xs md:text-sm text-[#5A3E2B]/60 mt-1">
+                                  <FiCalendar className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
+                                  <span className="truncate">
                                     {new Date(order.createdAt).toLocaleDateString('en-US', {
                                       year: 'numeric',
                                       month: 'long',
@@ -180,9 +180,9 @@ export default function DashboardPage() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center">
                             <span
-                              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium capitalize border ${getStatusColor(
+                              className={`inline-flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-xs md:text-sm font-medium capitalize border ${getStatusColor(
                                 order.status
                               )}`}
                             >
@@ -194,12 +194,12 @@ export default function DashboardPage() {
                       </div>
 
                       {/* Order Items - Collapsible */}
-                      <div className="px-6 md:px-8 py-4 border-t border-[#C89A7A]/10">
+                      <div className="px-4 md:px-6 lg:px-8 py-3 md:py-4 border-t border-[#C89A7A]/10">
                         <button
                           onClick={() => toggleOrderExpansion(order.id)}
-                          className="w-full flex items-center justify-between text-left py-2 group"
+                          className="w-full flex items-center justify-between text-left py-2 group touch-target active:scale-[0.99]"
                         >
-                          <span className="font-medium text-[#5A3E2B] group-hover:text-[#C89A7A] transition-colors">
+                          <span className="font-medium text-[#5A3E2B] group-hover:text-[#C89A7A] transition-colors text-sm md:text-base">
                             Order Details ({order.orderItems.length} {order.orderItems.length === 1 ? 'item' : 'items'})
                           </span>
                           {isExpanded ? (
@@ -265,20 +265,20 @@ export default function DashboardPage() {
                 })}
               </div>
             ) : (
-              <div className="card-luxury p-16 text-center shadow-luxury">
+              <div className="card-luxury p-8 md:p-12 lg:p-16 text-center shadow-luxury">
                 <div className="max-w-md mx-auto">
-                  <div className="bg-[#C89A7A]/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <FiShoppingBag className="w-10 h-10 text-[#C89A7A]" />
+                  <div className="bg-[#C89A7A]/10 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                    <FiShoppingBag className="w-8 h-8 md:w-10 md:h-10 text-[#C89A7A]" />
                   </div>
-                  <h3 className="text-2xl font-playfair font-semibold text-[#5A3E2B] mb-3">
+                  <h3 className="text-xl md:text-2xl font-playfair font-semibold text-[#5A3E2B] mb-2 md:mb-3">
                     No orders yet
                   </h3>
-                  <p className="text-[#5A3E2B]/60 mb-8 leading-relaxed">
+                  <p className="text-[#5A3E2B]/60 mb-6 md:mb-8 leading-relaxed text-sm md:text-base">
                     Start exploring our exquisite collection of handcrafted jewelry
                   </p>
                   <button
                     onClick={() => router.push('/products')}
-                    className="btn-primary inline-flex items-center gap-2"
+                    className="btn-primary btn-mobile-full md:inline-flex items-center justify-center gap-2 touch-target"
                   >
                     <FiShoppingBag className="w-4 h-4" />
                     Explore Collection

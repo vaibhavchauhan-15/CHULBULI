@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -10,8 +10,10 @@ import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 import { FiMail, FiLock, FiArrowRight, FiUserCheck } from 'react-icons/fi'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || '/'
   const setAuth = useAuthStore((state) => state.setAuth)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -40,7 +42,7 @@ export default function LoginPage() {
       if (response.ok) {
         setAuth(data.user, null)
         toast.success('Login successful!')
-        router.push('/')
+        router.push(redirectTo)
       } else {
         toast.error(data.error || 'Login failed')
       }
@@ -54,23 +56,23 @@ export default function LoginPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 px-4 pb-12 flex items-center justify-center bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
+      <main className="min-h-screen pt-20 md:pt-24 px-4 pb-12 flex items-center justify-center bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-md w-full">
-          <div className="card-luxury p-10 shadow-luxury-lg">
+          <div className="card-luxury p-6 md:p-8 lg:p-10 shadow-luxury-lg">
             {/* Header */}
-            <div className="text-center mb-10">
-              <div className="bg-[#C89A7A]/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiUserCheck className="w-10 h-10 text-[#C89A7A]" />
+            <div className="text-center mb-6 md:mb-8 lg:mb-10">
+              <div className="bg-[#C89A7A]/10 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                <FiUserCheck className="w-8 h-8 md:w-10 md:h-10 text-[#C89A7A]" />
               </div>
-              <h1 className="text-4xl font-playfair font-bold text-[#5A3E2B] mb-2">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold text-[#5A3E2B] mb-1 md:mb-2">
                 Welcome Back
               </h1>
-              <p className="text-[#5A3E2B]/60">Sign in to your account</p>
+              <p className="text-[#5A3E2B]/60 text-sm md:text-base">Sign in to your account</p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5 lg:space-y-6">
               {/* Google Sign-In Button */}
-              <GoogleSignInButton redirectTo="/" />
+              <GoogleSignInButton redirectTo={redirectTo} />
 
               {/* Divider */}
               <div className="relative">
@@ -130,7 +132,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-primary w-full py-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
+                className="btn-primary btn-mobile-full py-3.5 md:py-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group touch-target"
               >
                 {loading ? (
                   <>
@@ -150,7 +152,7 @@ export default function LoginPage() {
             <div className="mt-8 space-y-4">
               <p className="text-center text-[#5A3E2B]/70">
                 Don&apos;t have an account?{' '}
-                <Link href="/signup" className="text-[#C89A7A] hover:text-[#E6C9A8] font-semibold transition-colors">
+                <Link href={`/signup${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`} className="text-[#C89A7A] hover:text-[#E6C9A8] font-semibold transition-colors">
                   Sign up
                 </Link>
               </p>
@@ -179,5 +181,17 @@ export default function LoginPage() {
       </main>
       <Footer />
     </>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rosegold"></div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }

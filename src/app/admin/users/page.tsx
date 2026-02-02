@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { useAuthStore } from '@/store/authStore'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminMobileNav from '@/components/AdminMobileNav'
@@ -192,12 +193,14 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-white to-rosegold/10">
-      <AdminSidebar />
+      <div className="hidden lg:block">
+        <AdminSidebar />
+      </div>
       <AdminMobileNav />
 
-      <main className="ml-0 lg:ml-72 p-4 lg:p-8">
+      <main className="lg:ml-72 px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-24 lg:pb-8 min-h-screen">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 md:mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-3 bg-gradient-to-br from-rosegold to-[#C89A7A] rounded-xl shadow-lg">
               <FiUsersIcon className="text-white text-2xl" />
@@ -312,9 +315,11 @@ export default function AdminUsersPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             {userData.photoUrl ? (
-                              <img
+                              <Image
                                 src={userData.photoUrl}
                                 alt={userData.name}
+                                width={40}
+                                height={40}
                                 className="w-10 h-10 rounded-full object-cover"
                               />
                             ) : (
@@ -421,9 +426,11 @@ export default function AdminUsersPage() {
             <div className="space-y-4 mb-6">
               <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
                 {selectedUser.photoUrl ? (
-                  <img
+                  <Image
                     src={selectedUser.photoUrl}
                     alt={selectedUser.name}
+                    width={64}
+                    height={64}
                     className="w-16 h-16 rounded-full object-cover"
                   />
                 ) : (

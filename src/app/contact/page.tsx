@@ -40,61 +40,61 @@ export default function ContactUs() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-champagne via-pearl to-champagne py-16">
+    <div className="min-h-screen bg-gradient-to-b from-champagne via-pearl to-champagne pt-20 md:pt-24 pb-12 md:pb-16">
       {/* Header */}
-      <div className="max-w-6xl mx-auto px-8 md:px-16">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-playfair text-warmbrown mb-4 tracking-wide">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 lg:px-16">
+        <div className="text-center mb-8 md:mb-12 lg:mb-16">
+          <h1 className="text-2xl md:text-4xl lg:text-5xl font-playfair text-warmbrown mb-3 md:mb-4 tracking-wide">
             Contact Us
           </h1>
-          <div className="h-px w-32 bg-gradient-to-r from-transparent via-rosegold to-transparent mx-auto mb-6" />
-          <p className="text-warmbrown/80 text-lg font-light">
+          <div className="h-px w-24 md:w-32 bg-gradient-to-r from-transparent via-rosegold to-transparent mx-auto mb-4 md:mb-6" />
+          <p className="text-warmbrown/80 text-sm md:text-lg font-light px-4">
             We&apos;d love to hear from you. Get in touch with us today!
           </p>
         </div>
 
         {/* Contact Methods */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-6 shadow-luxury border border-rosegold/20 text-center hover:transform hover:-translate-y-2 transition-all duration-500">
-            <div className="w-14 h-14 rounded-full bg-rosegold/10 flex items-center justify-center mx-auto mb-4">
-              <FiPhone className="w-7 h-7 text-rosegold" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-12 lg:mb-16">
+          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 md:p-5 lg:p-6 shadow-luxury border border-rosegold/20 text-center hover:transform hover:-translate-y-2 transition-all duration-300 active:shadow-luxury-lg touch-target">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-rosegold/10 flex items-center justify-center mx-auto mb-3 md:mb-4">
+              <FiPhone className="w-6 h-6 md:w-7 md:h-7 text-rosegold" />
             </div>
-            <h3 className="font-playfair text-lg text-warmbrown mb-2">Phone</h3>
-            <a href="tel:+919867732204" className="text-warmbrown/70 hover:text-rosegold transition-colors text-sm">
+            <h3 className="font-playfair text-base md:text-lg text-warmbrown mb-2">Phone</h3>
+            <a href="tel:+919867732204" className="text-warmbrown/70 hover:text-rosegold transition-colors text-sm touch-target">
               +91 9867732204
             </a>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-6 shadow-luxury border border-rosegold/20 text-center hover:transform hover:-translate-y-2 transition-all duration-500">
-            <div className="w-14 h-14 rounded-full bg-rosegold/10 flex items-center justify-center mx-auto mb-4">
-              <FiMail className="w-7 h-7 text-rosegold" />
+          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 md:p-5 lg:p-6 shadow-luxury border border-rosegold/20 text-center hover:transform hover:-translate-y-2 transition-all duration-300 active:shadow-luxury-lg touch-target">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-rosegold/10 flex items-center justify-center mx-auto mb-3 md:mb-4">
+              <FiMail className="w-6 h-6 md:w-7 md:h-7 text-rosegold" />
             </div>
-            <h3 className="font-playfair text-lg text-warmbrown mb-2">Email</h3>
-            <a href="mailto:chulbulijewels@gmail.com" className="text-warmbrown/70 hover:text-rosegold transition-colors text-sm break-all">
+            <h3 className="font-playfair text-base md:text-lg text-warmbrown mb-2">Email</h3>
+            <a href="mailto:chulbulijewels@gmail.com" className="text-warmbrown/70 hover:text-rosegold transition-colors text-xs md:text-sm break-all touch-target">
               chulbulijewels@gmail.com
             </a>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-6 shadow-luxury border border-rosegold/20 text-center hover:transform hover:-translate-y-2 transition-all duration-500">
-            <div className="w-14 h-14 rounded-full bg-rosegold/10 flex items-center justify-center mx-auto mb-4">
-              <FaWhatsapp className="w-7 h-7 text-rosegold" />
+          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 md:p-5 lg:p-6 shadow-luxury border border-rosegold/20 text-center hover:transform hover:-translate-y-2 transition-all duration-300 active:shadow-luxury-lg touch-target">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-rosegold/10 flex items-center justify-center mx-auto mb-3 md:mb-4">
+              <FaWhatsapp className="w-6 h-6 md:w-7 md:h-7 text-rosegold" />
             </div>
-            <h3 className="font-playfair text-lg text-warmbrown mb-2">WhatsApp</h3>
+            <h3 className="font-playfair text-base md:text-lg text-warmbrown mb-2">WhatsApp</h3>
             <a 
               href="https://whatsapp.com/channel/0029Vb7CuMe9MF8tE3LGor3R" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="text-warmbrown/70 hover:text-rosegold transition-colors text-sm"
+              className="text-warmbrown/70 hover:text-rosegold transition-colors text-sm touch-target"
             >
               Join Channel
             </a>
           </div>
 
-          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-6 shadow-luxury border border-rosegold/20 text-center hover:transform hover:-translate-y-2 transition-all duration-500">
-            <div className="w-14 h-14 rounded-full bg-rosegold/10 flex items-center justify-center mx-auto mb-4">
-              <FiClock className="w-7 h-7 text-rosegold" />
+          <div className="bg-white/70 backdrop-blur-sm rounded-lg p-4 md:p-5 lg:p-6 shadow-luxury border border-rosegold/20 text-center hover:transform hover:-translate-y-2 transition-all duration-300 active:shadow-luxury-lg">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-rosegold/10 flex items-center justify-center mx-auto mb-3 md:mb-4">
+              <FiClock className="w-6 h-6 md:w-7 md:h-7 text-rosegold" />
             </div>
-            <h3 className="font-playfair text-lg text-warmbrown mb-2">Hours</h3>
+            <h3 className="font-playfair text-base md:text-lg text-warmbrown mb-2">Hours</h3>
             <p className="text-warmbrown/70 text-sm">
               Mon-Sat: 10am-7pm
             </p>
@@ -102,26 +102,26 @@ export default function ContactUs() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid md:grid-cols-5 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 md:gap-8 mb-8 md:mb-12 lg:mb-16">
           {/* Contact Form */}
           <div className="md:col-span-3">
-            <div className="bg-white/70 backdrop-blur-sm rounded-lg p-8 md:p-10 shadow-luxury border border-rosegold/20">
-              <h2 className="font-playfair text-2xl text-warmbrown mb-6 flex items-center gap-3">
-                <FiMessageCircle className="w-6 h-6 text-rosegold" />
+            <div className="bg-white/70 backdrop-blur-sm rounded-lg p-5 md:p-8 lg:p-10 shadow-luxury border border-rosegold/20">
+              <h2 className="font-playfair text-xl md:text-2xl text-warmbrown mb-4 md:mb-6 flex items-center gap-2 md:gap-3">
+                <FiMessageCircle className="w-5 h-5 md:w-6 md:h-6 text-rosegold" />
                 Send us a Message
               </h2>
               
               {submitStatus === 'success' && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-800 text-sm">
+                <div className="mb-4 md:mb-6 p-3 md:p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-800 text-xs md:text-sm">
                     ✓ Thank you for your message! We&apos;ll get back to you within 24 hours.
                   </p>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5 lg:space-y-6">
                 <div>
-                  <label htmlFor="name" className="block text-warmbrown font-medium mb-2 text-sm">
+                  <label htmlFor="name" className="block text-warmbrown font-medium mb-2 text-xs md:text-sm">
                     Your Name *
                   </label>
                   <input
@@ -131,14 +131,14 @@ export default function ContactUs() {
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-rosegold/30 focus:border-rosegold focus:ring-2 focus:ring-rosegold/20 outline-none transition-all bg-white/50"
+                    className="input-luxury w-full"
                     placeholder="Enter your full name"
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="email" className="block text-warmbrown font-medium mb-2 text-sm">
+                    <label htmlFor="email" className="block text-warmbrown font-medium mb-2 text-xs md:text-sm">
                       Email Address *
                     </label>
                     <input
@@ -148,13 +148,13 @@ export default function ContactUs() {
                       value={formData.email}
                       onChange={handleChange}
                       required
-                      className="w-full px-4 py-3 rounded-lg border border-rosegold/30 focus:border-rosegold focus:ring-2 focus:ring-rosegold/20 outline-none transition-all bg-white/50"
+                      className="input-luxury w-full"
                       placeholder="your@email.com"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className="block text-warmbrown font-medium mb-2 text-sm">
+                    <label htmlFor="phone" className="block text-warmbrown font-medium mb-2 text-xs md:text-sm">
                       Phone Number
                     </label>
                     <input
@@ -163,14 +163,14 @@ export default function ContactUs() {
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border border-rosegold/30 focus:border-rosegold focus:ring-2 focus:ring-rosegold/20 outline-none transition-all bg-white/50"
+                      className="input-luxury w-full"
                       placeholder="+91 XXXXXXXXXX"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="subject" className="block text-warmbrown font-medium mb-2 text-sm">
+                  <label htmlFor="subject" className="block text-warmbrown font-medium mb-2 text-xs md:text-sm">
                     Subject *
                   </label>
                   <select
@@ -179,7 +179,7 @@ export default function ContactUs() {
                     value={formData.subject}
                     onChange={handleChange}
                     required
-                    className="w-full px-4 py-3 rounded-lg border border-rosegold/30 focus:border-rosegold focus:ring-2 focus:ring-rosegold/20 outline-none transition-all bg-white/50"
+                    className="input-luxury w-full"
                   >
                     <option value="">Select a subject</option>
                     <option value="product">Product Inquiry</option>
@@ -193,7 +193,7 @@ export default function ContactUs() {
                 </div>
 
                 <div>
-                  <label htmlFor="message" className="block text-warmbrown font-medium mb-2 text-sm">
+                  <label htmlFor="message" className="block text-warmbrown font-medium mb-2 text-xs md:text-sm">
                     Your Message *
                   </label>
                   <textarea
@@ -203,7 +203,7 @@ export default function ContactUs() {
                     onChange={handleChange}
                     required
                     rows={6}
-                    className="w-full px-4 py-3 rounded-lg border border-rosegold/30 focus:border-rosegold focus:ring-2 focus:ring-rosegold/20 outline-none transition-all resize-none bg-white/50"
+                    className="input-luxury w-full min-h-[120px] md:min-h-[140px] resize-none"
                     placeholder="Tell us how we can help you..."
                   />
                 </div>
@@ -211,7 +211,7 @@ export default function ContactUs() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full px-8 py-4 bg-rosegold text-white rounded-lg hover:bg-rosegold/90 transition-all duration-500 hover:shadow-lg hover:shadow-rosegold/30 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="btn-mobile-full px-6 md:px-8 py-3.5 md:py-4 bg-rosegold text-white rounded-lg hover:bg-rosegold/90 transition-all duration-300 hover:shadow-lg hover:shadow-rosegold/30 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-95"
                 >
                   {isSubmitting ? (
                     <>
@@ -220,7 +220,7 @@ export default function ContactUs() {
                     </>
                   ) : (
                     <>
-                      <FiSend className="w-5 h-5" />
+                      <FiSend className="w-4 h-4 md:w-5 md:h-5" />
                       Send Message
                     </>
                   )}

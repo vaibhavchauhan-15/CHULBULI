@@ -71,30 +71,30 @@ export default function AdminPage() {
       {/* Main Content Area */}
       <main className="lg:ml-72 xl:mr-[320px] px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen">
         {/* Top Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 md:mb-8 gap-4 md:gap-6">
           <div className="relative w-full lg:w-auto">
-            <FiSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-taupe/60" size={20} />
+            <FiSearch className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-taupe/60" size={18} />
             <input
               type="text"
-              placeholder="Search products, orders, customers..."
-              className="w-full lg:w-[420px] pl-14 pr-5 py-3.5 rounded-2xl bg-white/80 backdrop-blur-sm text-sm outline-none border-2 border-softgold/30 focus:border-rosegold/60 focus:bg-white transition-all text-warmbrown shadow-sm hover:shadow-md placeholder:text-taupe/50"
+              placeholder="Search products, orders..."
+              className="input-luxury w-full lg:w-[420px] pl-12 md:pl-14 pr-4 md:pr-5 rounded-2xl bg-white/80 backdrop-blur-sm text-sm outline-none border-2 border-softgold/30 focus:border-rosegold/60 focus:bg-white transition-all text-warmbrown shadow-sm hover:shadow-md placeholder:text-taupe/50"
             />
           </div>
 
-          <div className="flex items-center gap-4 md:gap-6 text-taupe">
-            <button className="relative p-2.5 hover:bg-pearl rounded-xl transition-all hover:text-rosegold group">
-              <FiBell size={22} className="transition-transform group-hover:scale-110" />
+          <div className="flex items-center gap-3 md:gap-4 lg:gap-6 text-taupe">
+            <button className="relative p-2.5 md:p-3 hover:bg-pearl rounded-xl transition-all hover:text-rosegold group touch-target active:scale-95">
+              <FiBell size={20} className="md:w-5 md:h-5 transition-transform group-hover:scale-110" />
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rosegold rounded-full animate-pulse shadow-lg"></span>
             </button>
-            <button className="p-2.5 hover:bg-pearl rounded-xl transition-all hover:text-rosegold group">
-              <FiSettings size={22} className="transition-transform group-hover:rotate-90 duration-500" />
+            <button className="p-2.5 md:p-3 hover:bg-pearl rounded-xl transition-all hover:text-rosegold group touch-target active:scale-95 hidden sm:flex">
+              <FiSettings size={20} className="md:w-5 md:h-5 transition-transform group-hover:rotate-90 duration-300" />
             </button>
-            <div className="flex items-center gap-3 pl-6 border-l-2 border-softgold/40">
+            <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-6 border-l-2 border-softgold/40">
               <div className="text-right hidden lg:block">
                 <p className="text-sm font-semibold text-warmbrown font-playfair">{user.name}</p>
                 <p className="text-xs text-taupe font-medium">Administrator</p>
               </div>
-              <div className="w-11 h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-pearl font-bold text-base shadow-lg ring-2 ring-pearl/50 hover:scale-105 transition-transform cursor-pointer">
+              <div className="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-pearl font-bold text-sm md:text-base shadow-lg ring-2 ring-pearl/50 hover:scale-105 transition-transform cursor-pointer touch-target active:scale-95">
                 {user.name?.charAt(0).toUpperCase()}
               </div>
             </div>
@@ -102,20 +102,20 @@ export default function AdminPage() {
         </div>
 
         {/* Time Filter Buttons */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-8 gap-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 md:mb-8 gap-4 md:gap-5">
           <div>
-            <h2 className="text-2xl lg:text-3xl font-playfair font-semibold text-warmbrown mb-1">Dashboard Overview</h2>
-            <p className="text-sm text-taupe font-medium">Monitor your business performance and analytics</p>
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-playfair font-semibold text-warmbrown mb-1">Dashboard Overview</h2>
+            <p className="text-xs md:text-sm text-taupe font-medium">Monitor your business performance</p>
           </div>
-          <div className="flex gap-2 bg-white/80 backdrop-blur-sm p-2 rounded-2xl shadow-md border-2 border-softgold/30 overflow-x-auto">
+          <div className="flex gap-1.5 md:gap-2 bg-white/80 backdrop-blur-sm p-1.5 md:p-2 rounded-2xl shadow-md border-2 border-softgold/30 overflow-x-auto scrollbar-hide">
             {(['1D', '7D', '1M', '3M', '1Y', 'ALL'] as TimeFilter[]).map((filter) => (
               <button
                 key={filter}
                 onClick={() => setTimeFilter(filter)}
-                className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`px-3.5 md:px-5 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 whitespace-nowrap touch-target active:scale-95 ${
                   timeFilter === filter
                     ? 'bg-gradient-to-br from-rosegold via-softgold to-rosegold text-white shadow-lg scale-105 ring-2 ring-rosegold/30'
-                    : 'text-taupe hover:text-warmbrown hover:bg-sand/40 hover:scale-105'
+                    : 'text-taupe hover:text-warmbrown hover:bg-sand/40'
                 }`}
               >
                 {filter}
@@ -128,23 +128,23 @@ export default function AdminPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-2xl bg-white p-5 shadow-sm animate-pulse">
-                <div className="h-12 bg-gray-200 rounded mb-2"></div>
-                <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+              <div key={i} className="rounded-2xl bg-white p-4 md:p-5 shadow-sm animate-pulse">
+                <div className="h-10 md:h-12 bg-gray-200 rounded mb-2"></div>
+                <div className="h-5 md:h-6 bg-gray-200 rounded w-1/2"></div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 md:gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 lg:gap-6 mb-6 md:mb-8">
             {/* Total Revenue */}
-            <div className="group rounded-3xl bg-gradient-to-br from-rosegold via-[#D4A574] to-softgold p-6 shadow-xl hover:shadow-2xl text-white border-2 border-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm text-white/90 font-medium">Total Revenue</p>
-                <div className="p-2.5 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-                  <FiDollarSign size={22} className="text-white" />
+            <div className="group rounded-2xl md:rounded-3xl bg-gradient-to-br from-rosegold via-[#D4A574] to-softgold p-4 md:p-5 lg:p-6 shadow-xl hover:shadow-2xl text-white border-2 border-white/20 active:scale-95 md:hover:scale-105 transition-all duration-300 cursor-pointer touch-target">
+              <div className="flex items-center justify-between mb-2 md:mb-3">
+                <p className="text-xs md:text-sm text-white/90 font-medium">Total Revenue</p>
+                <div className="p-2 md:p-2.5 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
+                  <FiDollarSign size={18} className="md:w-5 md:h-5 text-white" />
                 </div>
               </div>
-              <h2 className="text-3xl lg:text-4xl font-playfair font-bold mb-2">
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold mb-1.5 md:mb-2">
                 {formatCurrency(stats?.totalSales || 0)}
               </h2>
               <div className="flex items-center gap-1.5">
