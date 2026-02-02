@@ -20,6 +20,7 @@ export default function ProductDetailPage() {
   const [reviewText, setReviewText] = useState('')
   const [rating, setRating] = useState(5)
   const [imgError, setImgError] = useState<boolean[]>([])
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
   const addItem = useCartStore((state) => state.addItem)
   const user = useAuthStore((state) => state.user)
   
@@ -101,6 +102,38 @@ export default function ProductDetailPage() {
     }
   }
 
+  // Helper function to format description with bullet points
+  const formatDescription = (desc: string) => {
+    if (!desc) return { lines: [], hasFormatting: false }
+    
+    // Comprehensive emoji regex pattern that matches all emojis
+    const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA70}-\u{1FAFF}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23FA}]|[\u{25AA}-\u{25AB}]|[\u{25B6}]|[\u{25C0}]|[\u{25FB}-\u{25FE}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{3030}]|[\u{303D}]|[\u{3297}]|[\u{3299}]|[\u{FE0F}]/gu
+    const hasBullets = /^[•\-\*]\s+/gm.test(desc)
+    
+    // Check if description contains emojis
+    const hasEmojis = emojiRegex.test(desc)
+    
+    if (hasEmojis || hasBullets) {
+      // Split by line breaks first, then by emojis if no line breaks
+      let lines: string[]
+      
+      if (desc.includes('\n')) {
+        // Split by newlines
+        lines = desc.split('\n').map(line => line.trim()).filter(line => line.length > 0)
+      } else {
+        // Split before each emoji or bullet point
+        lines = desc
+          .split(/(?=[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{231A}-\u{231B}\u{23E9}-\u{23FA}\u{25AA}-\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}\u{2934}-\u{2935}\u{2B05}-\u{2B07}\u{2B1B}-\u{2B1C}\u{3030}\u{303D}\u{3297}\u{3299}])|(?=\s*[•]\s+)/gu)
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+      }
+      
+      return { lines, hasFormatting: true }
+    }
+    
+    return { lines: [desc], hasFormatting: false }
+  }
+
   if (loading) {
     return (
       <>
@@ -138,12 +171,12 @@ export default function ProductDetailPage() {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen pt-24 px-4 pb-12 bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
+      <main className="min-h-screen pt-20 md:pt-24 px-3 md:px-4 pb-24 md:pb-12 bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 mb-8 md:mb-12">
             {/* Images */}
             <div>
-              <div className="card-luxury overflow-hidden mb-4 shadow-luxury">
+              <div className="card-luxury overflow-hidden mb-3 md:mb-4 shadow-luxury rounded-2xl md:rounded-3xl">
                 <div className="relative aspect-square">
                   <Image
                     src={(
@@ -155,6 +188,7 @@ export default function ProductDetailPage() {
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
                     className="object-cover"
+                    priority
                     onError={() => {
                       const newErrors = [...imgError]
                       newErrors[selectedImage] = true
@@ -165,12 +199,12 @@ export default function ProductDetailPage() {
                 </div>
               </div>
               {product.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-4 md:grid-cols-4 gap-2 md:gap-3">
                   {product.images.map((image: string, index: number) => (
                     <button
                       key={index}
                       onClick={() => setSelectedImage(index)}
-                      className={`card-luxury overflow-hidden transition-all ${
+                      className={`card-luxury overflow-hidden transition-all rounded-lg md:rounded-xl ${
                         selectedImage === index ? 'ring-2 ring-[#C89A7A] shadow-md' : 'hover:shadow-md'
                       }`}
                     >
@@ -197,17 +231,17 @@ export default function ProductDetailPage() {
 
             {/* Product Info */}
             <div>
-              <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-4 text-[#5A3E2B] leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-playfair font-bold mb-3 md:mb-4 text-[#5A3E2B] leading-tight">
                 {product.name}
               </h1>
 
               {product.averageRating > 0 && (
-                <div className="flex items-center gap-3 mb-6 bg-white/50 rounded-lg p-3 w-fit border border-[#C89A7A]/10">
+                <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6 bg-white/50 rounded-lg p-2.5 md:p-3 w-fit border border-[#C89A7A]/10">
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
                       <FiStar
                         key={i}
-                        className={`w-5 h-5 ${
+                        className={`w-4 h-4 md:w-5 md:h-5 ${
                           i < Math.round(product.averageRating)
                             ? 'fill-amber-400 text-amber-400'
                             : 'text-gray-300'
@@ -215,43 +249,110 @@ export default function ProductDetailPage() {
                       />
                     ))}
                   </div>
-                  <span className="font-semibold text-[#5A3E2B]">{product.averageRating}</span>
-                  <span className="text-[#5A3E2B]/60 text-sm">
+                  <span className="font-semibold text-[#5A3E2B] text-sm md:text-base">{product.averageRating}</span>
+                  <span className="text-[#5A3E2B]/60 text-xs md:text-sm">
                     ({product.reviews.length} {product.reviews.length === 1 ? 'review' : 'reviews'})
                   </span>
                 </div>
               )}
 
-              <div className="flex items-center gap-4 mb-6 flex-wrap">
-                <span className="text-4xl md:text-5xl font-playfair font-bold text-[#C89A7A]">
+              <div className="flex items-center gap-2 md:gap-4 mb-4 md:mb-6 flex-wrap">
+                <span className="text-3xl sm:text-4xl md:text-5xl font-playfair font-bold text-[#C89A7A]">
                   ₹{finalPrice.toFixed(2)}
                 </span>
                 {discount > 0 && (
                   <>
-                    <span className="text-2xl text-[#5A3E2B]/40 line-through">
+                    <span className="text-lg sm:text-xl md:text-2xl text-[#5A3E2B]/40 line-through">
                       ₹{price.toFixed(2)}
                     </span>
-                    <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-semibold shadow-md">
+                    <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-semibold shadow-md">
                       {discount}% OFF
                     </span>
                   </>
                 )}
               </div>
 
-              <p className="text-[#5A3E2B]/80 mb-6 leading-relaxed text-lg">
-                {product.description}
-              </p>
+              {/* Product Description with Read More */}
+              <div className="mb-4 md:mb-6">
+                <div className="relative">
+                  <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                    isDescriptionExpanded ? 'max-h-[2000px]' : 'max-h-24 sm:max-h-28 md:max-h-32'
+                  }`}>
+                    {(() => {
+                      const formatted = formatDescription(product.description)
+                      return formatted.hasFormatting ? (
+                        <div className="space-y-2.5 md:space-y-3">
+                          {formatted.lines.map((line, index) => (
+                            <div key={index} className="flex items-start gap-2 md:gap-3">
+                              <span 
+                                className="text-[#5A3E2B]/80 leading-relaxed text-sm md:text-base"
+                                style={{ 
+                                  fontFamily: '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif',
+                                  WebkitFontSmoothing: 'antialiased',
+                                  MozOsxFontSmoothing: 'grayscale'
+                                }}
+                              >
+                                {line}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p 
+                          className="text-[#5A3E2B]/80 leading-relaxed text-sm md:text-base whitespace-pre-line"
+                          style={{ 
+                            fontFamily: '"Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif',
+                            WebkitFontSmoothing: 'antialiased',
+                            MozOsxFontSmoothing: 'grayscale'
+                          }}
+                        >
+                          {product.description}
+                        </p>
+                      )
+                    })()}
+                  </div>
+                  
+                  {/* Gradient Fade Overlay when collapsed */}
+                  {!isDescriptionExpanded && product.description && product.description.length > 150 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#F2E6D8] to-transparent pointer-events-none" />
+                  )}
+                </div>
+                
+                {/* Read More/Less Button */}
+                {product.description && product.description.length > 150 && (
+                  <button
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="mt-3 text-[#C89A7A] hover:text-[#A67C5C] font-semibold text-sm md:text-base flex items-center gap-1.5 transition-all duration-300 hover:gap-2 touch-manipulation active:scale-95"
+                  >
+                    {isDescriptionExpanded ? (
+                      <>
+                        <span>Read Less</span>
+                        <svg className="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 15l7-7 7 7" />
+                        </svg>
+                      </>
+                    ) : (
+                      <>
+                        <span>Read More</span>
+                        <svg className="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
 
               {/* Product Details Card */}
               {(product.material || product.category || product.stoneType || product.color || 
                 product.weight || product.dimensionLength || product.dimensionWidth || 
                 product.subCategory || product.brand) && (
-                <div className="mb-6 bg-white/60 rounded-xl p-5 border border-[#C89A7A]/10">
-                  <h3 className="font-semibold mb-3 text-[#5A3E2B] flex items-center gap-2">
+                <div className="mb-4 md:mb-6 bg-white/60 rounded-xl p-4 md:p-5 border border-[#C89A7A]/10">
+                  <h3 className="font-semibold mb-3 text-[#5A3E2B] flex items-center gap-2 text-sm md:text-base">
                     <FiPackage className="w-4 h-4 text-[#C89A7A]" />
                     Product Specifications
                   </h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2.5 md:gap-3">
                     {product.material && (
                       <div className="flex flex-col">
                         <span className="text-xs text-[#5A3E2B]/60 mb-1">Material</span>
@@ -326,12 +427,13 @@ export default function ProductDetailPage() {
               )}
 
               {/* Stock Status */}
-              <div className="mb-6 flex items-center gap-2">
+              <div className="mb-4 md:mb-6 flex items-center gap-2 text-sm md:text-base">
                 <span className="font-semibold text-[#5A3E2B]">Availability:</span>
                 {product.stock > 0 ? (
-                  <span className="flex items-center gap-2 text-emerald-600 font-medium">
+                  <span className="flex items-center gap-1.5 md:gap-2 text-emerald-600 font-medium">
                     <FiCheck className="w-4 h-4" />
-                    In Stock ({product.stock} available)
+                    <span className="hidden sm:inline">In Stock ({product.stock} available)</span>
+                    <span className="sm:hidden">In Stock</span>
                   </span>
                 ) : (
                   <span className="text-red-600 font-medium">Out of Stock</span>
@@ -341,49 +443,49 @@ export default function ProductDetailPage() {
               {product.stock > 0 && (
                 <>
                   {/* Quantity Selector */}
-                  <div className="flex items-center gap-4 mb-6">
+                  <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6 text-sm md:text-base">
                     <span className="font-semibold text-[#5A3E2B]">Quantity:</span>
                     <div className="flex items-center bg-white/60 border-2 border-[#C89A7A]/30 rounded-lg overflow-hidden">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="p-3 hover:bg-[#C89A7A]/10 transition-colors text-[#C89A7A]"
+                        className="p-2.5 md:p-3 hover:bg-[#C89A7A]/10 active:bg-[#C89A7A]/20 transition-colors text-[#C89A7A] touch-manipulation"
                       >
-                        <FiMinus className="w-4 h-4" />
+                        <FiMinus className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
-                      <span className="px-6 font-semibold text-[#5A3E2B] min-w-[3rem] text-center">{quantity}</span>
+                      <span className="px-4 md:px-6 font-semibold text-[#5A3E2B] min-w-[2.5rem] md:min-w-[3rem] text-center">{quantity}</span>
                       <button
                         onClick={() =>
                           setQuantity(Math.min(product.stock, quantity + 1))
                         }
-                        className="p-3 hover:bg-[#C89A7A]/10 transition-colors text-[#C89A7A]"
+                        className="p-2.5 md:p-3 hover:bg-[#C89A7A]/10 active:bg-[#C89A7A]/20 transition-colors text-[#C89A7A] touch-manipulation"
                       >
-                        <FiPlus className="w-4 h-4" />
+                        <FiPlus className="w-4 h-4 md:w-5 md:h-5" />
                       </button>
                     </div>
                   </div>
 
-                  {/* Add to Cart Button */}
+                  {/* Add to Cart Button - Desktop */}
                   <button
                     onClick={handleAddToCart}
-                    className="btn-primary w-full flex items-center justify-center gap-3 text-lg py-4 group"
+                    className="hidden md:flex btn-primary w-full items-center justify-center gap-3 text-lg py-4 group"
                   >
                     <FiShoppingCart className="w-5 h-5 group-hover:scale-110 transition-transform" />
                     Add to Cart
                   </button>
 
                   {/* Trust Badges */}
-                  <div className="mt-6 grid grid-cols-3 gap-3">
-                    <div className="text-center p-3 bg-white/50 rounded-lg border border-[#C89A7A]/10">
-                      <FiTruck className="w-5 h-5 text-[#C89A7A] mx-auto mb-1" />
-                      <p className="text-xs text-[#5A3E2B]/70 font-medium">Free Shipping</p>
+                  <div className="mt-4 md:mt-6 grid grid-cols-3 gap-2 md:gap-3">
+                    <div className="text-center p-2 md:p-3 bg-white/50 rounded-lg border border-[#C89A7A]/10">
+                      <FiTruck className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A] mx-auto mb-1" />
+                      <p className="text-[10px] md:text-xs text-[#5A3E2B]/70 font-medium">Free Shipping</p>
                     </div>
-                    <div className="text-center p-3 bg-white/50 rounded-lg border border-[#C89A7A]/10">
-                      <FiShield className="w-5 h-5 text-[#C89A7A] mx-auto mb-1" />
-                      <p className="text-xs text-[#5A3E2B]/70 font-medium">Secure Payment</p>
+                    <div className="text-center p-2 md:p-3 bg-white/50 rounded-lg border border-[#C89A7A]/10">
+                      <FiShield className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A] mx-auto mb-1" />
+                      <p className="text-[10px] md:text-xs text-[#5A3E2B]/70 font-medium">Secure Payment</p>
                     </div>
-                    <div className="text-center p-3 bg-white/50 rounded-lg border border-[#C89A7A]/10">
-                      <FiCheck className="w-5 h-5 text-[#C89A7A] mx-auto mb-1" />
-                      <p className="text-xs text-[#5A3E2B]/70 font-medium">Quality Assured</p>
+                    <div className="text-center p-2 md:p-3 bg-white/50 rounded-lg border border-[#C89A7A]/10">
+                      <FiCheck className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A] mx-auto mb-1" />
+                      <p className="text-[10px] md:text-xs text-[#5A3E2B]/70 font-medium">Quality Assured</p>
                     </div>
                   </div>
                 </>
@@ -392,20 +494,20 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Detailed Product Information Tabs */}
-          <div className="border-t border-[#C89A7A]/20 pt-12 mb-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="border-t border-[#C89A7A]/20 pt-8 md:pt-12 mb-8 md:mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
               {/* Product Details */}
               {(product.packageIncludes || product.weight || product.productWeight || product.shippingClass) && (
-                <div className="card-luxury p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md">
-                      <FiPackage className="w-5 h-5 text-white" />
+                <div className="card-luxury p-4 md:p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
+                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md">
+                      <FiPackage className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-playfair font-bold text-[#5A3E2B]">
+                    <h3 className="text-base md:text-lg font-playfair font-bold text-[#5A3E2B]">
                       Product Details
                     </h3>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 md:space-y-3">
                     {product.packageIncludes && (
                       <div>
                         <p className="text-sm font-semibold text-[#5A3E2B]/80">Package Includes</p>
@@ -430,16 +532,16 @@ export default function ProductDetailPage() {
 
               {/* Care & Compliance */}
               {(product.careInstructions || product.warranty || product.certification) && (
-                <div className="card-luxury p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md">
-                      <FiHeart className="w-5 h-5 text-white" />
+                <div className="card-luxury p-4 md:p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
+                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md">
+                      <FiHeart className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-playfair font-bold text-[#5A3E2B]">
+                    <h3 className="text-base md:text-lg font-playfair font-bold text-[#5A3E2B]">
                       Care & Quality
                     </h3>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 md:space-y-3">
                     {product.careInstructions && (
                       <div>
                         <p className="text-sm font-semibold text-[#5A3E2B]/80">Care Instructions</p>
@@ -464,16 +566,16 @@ export default function ProductDetailPage() {
 
               {/* Return Policy */}
               {product.returnPolicy && (
-                <div className="card-luxury p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md">
-                      <FiShield className="w-5 h-5 text-white" />
+                <div className="card-luxury p-4 md:p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
+                  <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md">
+                      <FiShield className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-playfair font-bold text-[#5A3E2B]">
+                    <h3 className="text-base md:text-lg font-playfair font-bold text-[#5A3E2B]">
                       Returns & Exchange
                     </h3>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2.5 md:space-y-3">
                     <div>
                       <p className="text-sm font-semibold text-[#5A3E2B]/80">Return Policy</p>
                       <p className="text-sm text-[#5A3E2B]/60 leading-relaxed">{product.returnPolicy}</p>
@@ -485,25 +587,25 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Reviews Section */}
-          <div className="border-t border-[#C89A7A]/20 pt-12">
-            <h2 className="text-3xl md:text-4xl font-playfair font-bold mb-8 text-[#5A3E2B]">
+          <div className="border-t border-[#C89A7A]/20 pt-8 md:pt-12">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-playfair font-bold mb-6 md:mb-8 text-[#5A3E2B]">
               Customer Reviews
             </h2>
 
             {user && (
-              <div className="card-luxury p-6 mb-8 shadow-luxury">
-                <h3 className="text-xl font-playfair font-semibold mb-6 text-[#5A3E2B]">Write a Review</h3>
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold mb-3 text-[#5A3E2B]">Rating</label>
-                  <div className="flex gap-2">
+              <div className="card-luxury p-4 md:p-6 mb-6 md:mb-8 shadow-luxury">
+                <h3 className="text-lg md:text-xl font-playfair font-semibold mb-4 md:mb-6 text-[#5A3E2B]">Write a Review</h3>
+                <div className="mb-4 md:mb-6">
+                  <label className="block text-xs md:text-sm font-semibold mb-2 md:mb-3 text-[#5A3E2B]">Rating</label>
+                  <div className="flex gap-1.5 md:gap-2">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         onClick={() => setRating(star)}
-                        className="transition-transform hover:scale-110"
+                        className="transition-transform hover:scale-110 active:scale-95 touch-manipulation"
                       >
                         <FiStar
-                          className={`w-8 h-8 transition-colors ${
+                          className={`w-7 h-7 md:w-8 md:h-8 transition-colors ${
                             star <= rating
                               ? 'fill-amber-400 text-amber-400'
                               : 'text-gray-300 hover:text-amber-300'
@@ -513,38 +615,38 @@ export default function ProductDetailPage() {
                     ))}
                   </div>
                 </div>
-                <div className="mb-6">
-                  <label className="block text-sm font-semibold mb-3 text-[#5A3E2B]">Your Review</label>
+                <div className="mb-4 md:mb-6">
+                  <label className="block text-xs md:text-sm font-semibold mb-2 md:mb-3 text-[#5A3E2B]">Your Review</label>
                   <textarea
                     value={reviewText}
                     onChange={(e) => setReviewText(e.target.value)}
                     placeholder="Share your experience with this product..."
-                    className="input-luxury min-h-[150px] resize-none"
+                    className="input-luxury min-h-[120px] md:min-h-[150px] resize-none text-sm md:text-base"
                   />
                 </div>
-                <button onClick={handleSubmitReview} className="btn-primary flex items-center gap-2">
+                <button onClick={handleSubmitReview} className="btn-primary flex items-center gap-2 w-full md:w-auto touch-manipulation">
                   <FiCheck className="w-4 h-4" />
                   Submit Review
                 </button>
               </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {product.reviews.length > 0 ? (
                 product.reviews.map((review: any) => (
-                  <div key={review.id} className="card-luxury p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md">
-                          <FiUser className="w-6 h-6 text-white" />
+                  <div key={review.id} className="card-luxury p-4 md:p-6 shadow-luxury hover:shadow-luxury-lg transition-all duration-300">
+                    <div className="flex items-start justify-between mb-3 md:mb-4 gap-2">
+                      <div className="flex items-center gap-3 md:gap-4">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#C89A7A] to-[#E6C9A8] rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                          <FiUser className="w-5 h-5 md:w-6 md:h-6 text-white" />
                         </div>
                         <div>
-                          <p className="font-semibold text-[#5A3E2B] text-lg">{review.user.name}</p>
-                          <div className="flex gap-1 mt-1">
+                          <p className="font-semibold text-[#5A3E2B] text-base md:text-lg">{review.user.name}</p>
+                          <div className="flex gap-0.5 md:gap-1 mt-1">
                             {[...Array(5)].map((_, i) => (
                               <FiStar
                                 key={i}
-                                className={`w-5 h-5 ${
+                                className={`w-4 h-4 md:w-5 md:h-5 ${
                                   i < review.rating
                                     ? 'fill-amber-400 text-amber-400'
                                     : 'text-gray-300'
@@ -554,7 +656,7 @@ export default function ProductDetailPage() {
                           </div>
                         </div>
                       </div>
-                      <span className="text-sm text-[#5A3E2B]/50 font-medium">
+                      <span className="text-xs md:text-sm text-[#5A3E2B]/50 font-medium whitespace-nowrap">
                         {new Date(review.createdAt).toLocaleDateString('en-IN', {
                           day: 'numeric',
                           month: 'short',
@@ -562,13 +664,13 @@ export default function ProductDetailPage() {
                         })}
                       </span>
                     </div>
-                    <p className="text-[#5A3E2B]/70 leading-relaxed text-base">{review.comment}</p>
+                    <p className="text-[#5A3E2B]/70 leading-relaxed text-sm md:text-base">{review.comment}</p>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-12 card-luxury shadow-luxury">
-                  <FiStar className="w-16 h-16 text-[#C89A7A]/30 mx-auto mb-4" />
-                  <p className="text-[#5A3E2B]/60 text-lg font-medium">
+                <div className="text-center py-10 md:py-12 card-luxury shadow-luxury">
+                  <FiStar className="w-12 h-12 md:w-16 md:h-16 text-[#C89A7A]/30 mx-auto mb-3 md:mb-4" />
+                  <p className="text-[#5A3E2B]/60 text-base md:text-lg font-medium">
                     No reviews yet. Be the first to review!
                   </p>
                 </div>
@@ -576,6 +678,27 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Sticky Mobile Add to Cart Button */}
+        {product.stock > 0 && (
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[#C89A7A]/20 p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-40">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+              <div className="flex flex-col">
+                <span className="text-xs text-[#5A3E2B]/60">Total Price</span>
+                <span className="text-2xl font-playfair font-bold text-[#C89A7A]">
+                  ₹{(finalPrice * quantity).toFixed(2)}
+                </span>
+              </div>
+              <button
+                onClick={handleAddToCart}
+                className="btn-primary flex items-center justify-center gap-2 py-3 px-6 flex-1 max-w-xs touch-manipulation active:scale-95"
+              >
+                <FiShoppingCart className="w-5 h-5" />
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        )}
       </main>
       <Footer />
     </>
