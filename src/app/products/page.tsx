@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductCard from '@/components/ProductCard'
+import SearchBar from '@/components/SearchBar'
 
 function ProductsContent() {
   const searchParams = useSearchParams()
@@ -14,6 +15,7 @@ function ProductsContent() {
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [sort, setSort] = useState('latest')
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -38,6 +40,28 @@ function ProductsContent() {
     fetchProducts()
   }, [fetchProducts])
 
+  // Handle smooth scroll to search bar if hash is present
+  useEffect(() => {
+    if (window.location.hash === '#search') {
+      const searchSection = document.getElementById('search')
+      if (searchSection) {
+        setTimeout(() => {
+          searchSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          // Focus the search input after scrolling
+          setTimeout(() => {
+            const searchInput = searchSection.querySelector('input')
+            searchInput?.focus()
+          }, 500)
+        }, 100)
+      }
+    }
+  }, [])
+
+  // Filter products based on search query (client-side filtering)
+  const filteredProducts = products.filter((product: any) =>
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
   const categories = [
     { value: 'all', label: 'All Products' },
     { value: 'earrings', label: 'Earrings' },
@@ -51,11 +75,24 @@ function ProductsContent() {
     <>
       <main className="min-h-screen bg-pearl">
         {/* Page Title Section - Left Aligned */}
-        <div className="pt-32 pb-12 px-6 lg:px-12">
+        <div className="pt-32 pb-12 px-6 lg:px-12 bg-gradient-to-b from-champagne/30 to-pearl">
           <div className="max-w-[1600px] mx-auto">
-            <h1 className="text-5xl lg:text-6xl font-playfair font-medium text-rosegold tracking-luxury">
+            <h1 className="text-5xl lg:text-6xl font-playfair font-medium text-rosegold tracking-luxury mb-3">
               {categories.find(c => c.value === category)?.label || 'All Products'}
             </h1>
+            <p className="text-taupe/70 text-sm mb-8 tracking-wide">
+              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'} {searchQuery && `matching "${searchQuery}"`}
+            </p>
+            
+            {/* Search Bar - Prominent */}
+            <div id="search" className="max-w-3xl scroll-mt-24">
+              <SearchBar 
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Search by product name (e.g., earrings, necklace, pearl...)"
+                autoFocus={false}
+              />
+            </div>
           </div>
         </div>
 
@@ -138,7 +175,7 @@ function ProductsContent() {
               {/* MAIN PRODUCT GRID */}
               <div className="flex-1">
                 {loading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 lg:gap-10">
+                  <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 lg:gap-10">
                     {[...Array(9)].map((_, i) => (
                       <div key={i} className="animate-pulse">
                         <div className="aspect-[4/5] bg-champagne rounded-[20px]"></div>
@@ -150,11 +187,21 @@ function ProductsContent() {
                       </div>
                     ))}
                   </div>
-                ) : products.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 lg:gap-10">
-                    {products.map((product: any) => (
+                ) : filteredProducts.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8 lg:gap-10">
+                    {filteredProducts.map((product: any) => (
                       <ProductCard key={product.id} product={product} />
                     ))}
+                  </div>
+                ) : searchQuery ? (
+                  <div className="text-center py-24">
+                    <p className="text-taupe text-lg tracking-wide mb-2">No products found matching &quot;{searchQuery}&quot;</p>
+                    <button 
+                      onClick={() => setSearchQuery('')}
+                      className="text-rosegold hover:text-softgold font-medium text-sm tracking-wider transition-colors duration-300"
+                    >
+                      Clear search
+                    </button>
                   </div>
                 ) : (
                   <div className="text-center py-24">

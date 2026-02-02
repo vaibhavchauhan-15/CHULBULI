@@ -75,6 +75,30 @@ export default function Navbar() {
 
           {/* Right Section - Minimal Icons */}
           <div className="flex items-center space-x-6">
+            {/* Search Icon - Redirects to Products Page */}
+            <Link
+              href="/products#search"
+              className="p-2 hover:text-rosegold transition-all duration-500"
+              aria-label="Search"
+              onClick={(e) => {
+                // If already on products page, scroll smoothly
+                if (window.location.pathname === '/products') {
+                  e.preventDefault()
+                  const searchSection = document.getElementById('search')
+                  if (searchSection) {
+                    searchSection.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                    // Focus the search input after scrolling
+                    setTimeout(() => {
+                      const searchInput = searchSection.querySelector('input')
+                      searchInput?.focus()
+                    }, 500)
+                  }
+                }
+              }}
+            >
+              <FiSearch className="w-5 h-5 text-warmbrown hover:text-rosegold" />
+            </Link>
+
             <Link
               href="/cart"
               className="relative p-2 hover:text-rosegold transition-all duration-500"
@@ -127,50 +151,13 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="hidden md:block btn-primary text-sm"
+                className="btn-primary text-xs md:text-sm px-4 py-2"
               >
                 Login
               </Link>
             )}
-
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 hover:text-rosegold transition-all duration-500"
-            >
-              {isMenuOpen ? (
-                <FiX className="w-5 h-5 text-warmbrown hover:text-rosegold" />
-              ) : (
-                <FiMenu className="w-5 h-5 text-warmbrown hover:text-rosegold" />
-              )}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Menu - Luxury Style */}
-        {isMenuOpen && (
-          <div className="lg:hidden py-6 border-t border-softgold/20 bg-champagne/50 backdrop-blur-md">
-            {categories.map((category) => (
-              <Link
-                key={category.name}
-                href={category.href}
-                className="block py-4 text-warmbrown hover:text-rosegold hover:pl-2 transition-all duration-500 font-light tracking-wide text-sm"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                {category.name}
-              </Link>
-            ))}
-            {!user && (
-              <Link
-                href="/login"
-                className="block mt-6 btn-primary text-center text-sm"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Login
-              </Link>
-            )}
-          </div>
-        )}
       </div>
     </nav>
   )
