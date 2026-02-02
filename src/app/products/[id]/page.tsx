@@ -106,12 +106,12 @@ export default function ProductDetailPage() {
   const formatDescription = (desc: string) => {
     if (!desc) return { lines: [], hasFormatting: false }
     
-    // Comprehensive emoji regex pattern that matches all emojis
-    const emojiRegex = /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA70}-\u{1FAFF}]|[\u{231A}-\u{231B}]|[\u{23E9}-\u{23FA}]|[\u{25AA}-\u{25AB}]|[\u{25B6}]|[\u{25C0}]|[\u{25FB}-\u{25FE}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{3030}]|[\u{303D}]|[\u{3297}]|[\u{3299}]|[\u{FE0F}]/gu
+    // Simple emoji detection using common emoji ranges (ES5 compatible)
+    const emojiPattern = /[\uD83C-\uDBFF][\uDC00-\uDFFF]|[\u2600-\u27BF]|[\u231A-\u23FA]|[\u25AA-\u27BF]/g
     const hasBullets = /^[•\-\*]\s+/gm.test(desc)
     
     // Check if description contains emojis
-    const hasEmojis = emojiRegex.test(desc)
+    const hasEmojis = emojiPattern.test(desc)
     
     if (hasEmojis || hasBullets) {
       // Split by line breaks first, then by emojis if no line breaks
@@ -123,7 +123,7 @@ export default function ProductDetailPage() {
       } else {
         // Split before each emoji or bullet point
         lines = desc
-          .split(/(?=[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}\u{231A}-\u{231B}\u{23E9}-\u{23FA}\u{25AA}-\u{25AB}\u{25B6}\u{25C0}\u{25FB}-\u{25FE}\u{2934}-\u{2935}\u{2B05}-\u{2B07}\u{2B1B}-\u{2B1C}\u{3030}\u{303D}\u{3297}\u{3299}])|(?=\s*[•]\s+)/gu)
+          .split(/(?=[\uD83C-\uDBFF][\uDC00-\uDFFF])|(?=[\u2600-\u27BF])|(?=\s*[•]\s+)/g)
           .map(line => line.trim())
           .filter(line => line.length > 0)
       }

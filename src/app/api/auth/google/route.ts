@@ -9,9 +9,18 @@ import { logAuthEvent, AuditAction } from '@/lib/auditLog'
 import { nanoid } from 'nanoid'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 interface GoogleAuthRequest {
   idToken: string
+}
+
+// Add GET handler for Next.js build compatibility
+export async function GET() {
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST.' },
+    { status: 405 }
+  )
 }
 
 export async function POST(request: NextRequest) {
