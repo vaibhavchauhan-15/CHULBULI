@@ -60,23 +60,14 @@ export default function Navbar() {
 
           {/* Logo - Center on Mobile, Left on Desktop */}
           <Link href="/" className="flex items-center group md:static md:translate-x-0">
-            {/* Mobile Logo - Centered */}
-            <Image
-              src="/logo_mobile.png"
-              alt="Chulbuli Jewels"
-              width={100}
-              height={70}
-              priority
-              className="h-10 w-auto md:hidden object-contain transition-all duration-300 group-hover:opacity-90"
-            />
-            {/* Desktop Logo */}
+            {/* Logo - Using desktop logo for all devices */}
             <Image
               src="/logo_desktop.png"
               alt="Chulbuli Jewels"
               width={400}
               height={80}
               priority
-              className="hidden md:block h-8 md:h-10 lg:h-12 w-auto object-contain transition-all duration-300 group-hover:opacity-90 group-hover:scale-105"
+              className="h-8 md:h-10 lg:h-12 w-auto object-contain transition-all duration-300 group-hover:opacity-90 group-hover:scale-105"
             />
           </Link>
 
