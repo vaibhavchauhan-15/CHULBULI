@@ -144,27 +144,29 @@ export default function Navbar() {
                     <FiUser className="w-5 h-5 md:w-5 md:h-5 text-warmbrown" />
                   )}
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-pearl/98 backdrop-blur-lg border border-softgold/40 shadow-2xl rounded-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                  <Link
-                    href="/dashboard"
-                    className="block px-6 py-3 hover:bg-softgold/20 transition-all duration-200 text-sm font-medium text-warmbrown rounded-xl mx-2 touch-target"
-                  >
-                    My Orders
-                  </Link>
-                  {user.role === 'admin' && (
+                <div className="absolute right-0 mt-2 w-48 bg-pearl/95 backdrop-blur-xl border border-softgold/50 shadow-2xl rounded-2xl py-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                  <div className="flex flex-col space-y-1 px-2">
                     <Link
-                      href="/admin"
-                      className="block px-6 py-3 hover:bg-softgold/20 transition-all duration-200 text-sm font-medium text-warmbrown rounded-xl mx-2 touch-target"
+                      href="/dashboard"
+                      className="block px-4 py-3 hover:bg-softgold/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl touch-target text-left"
                     >
-                      Admin Panel
+                      My Orders
                     </Link>
-                  )}
-                  <button
-                    onClick={logout}
-                    className="block w-full text-left px-6 py-3 hover:bg-softgold/20 transition-all duration-200 text-sm font-medium text-warmbrown rounded-xl mx-2 touch-target"
-                  >
-                    Logout
-                  </button>
+                    {user.role === 'admin' && (
+                      <Link
+                        href="/admin"
+                        className="block px-4 py-3 hover:bg-softgold/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl touch-target text-left"
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
+                    <button
+                      onClick={logout}
+                      className="block w-full px-4 py-3 hover:bg-rosegold/20 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl touch-target text-left"
+                    >
+                      Logout
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (

@@ -4,8 +4,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/useAuth'
-import AdminSidebar from '@/components/AdminSidebar'
-import AdminMobileNav from '@/components/AdminMobileNav'
+import AdminNavbar from '@/components/AdminNavbar'
+import AdminPageContainer from '@/components/admin/AdminPageContainer'
+import AdminStatsCard from '@/components/admin/AdminStatsCard'
+import AdminCard from '@/components/admin/AdminCard'
+import AdminFilterChips from '@/components/admin/AdminFilterChips'
+import AdminLoadingSkeleton from '@/components/admin/AdminLoadingSkeleton'
 import { 
   FiTrendingUp, FiAlertCircle, FiBell, FiSettings, FiSearch,
   FiArrowUp, FiDollarSign, FiShoppingBag, FiPackage, FiArrowDown, 
@@ -60,203 +64,87 @@ export default function AdminPage() {
     return ((current - previous) / previous * 100).toFixed(1)
   }
 
+  const timeFilters: Array<{ id: TimeFilter; label: string }> = [
+    { id: '1D' as TimeFilter, label: '1D' },
+    { id: '7D' as TimeFilter, label: '7D' },
+    { id: '1M' as TimeFilter, label: '1M' },
+    { id: '3M' as TimeFilter, label: '3M' },
+    { id: '1Y' as TimeFilter, label: '1Y' },
+    { id: 'ALL' as TimeFilter, label: 'ALL' },
+  ]
+
   if (!user || user.role !== 'admin') return null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-champagne via-pearl to-sand">
-      <div className="hidden lg:block">
-        <AdminSidebar />
-      </div>
+      <AdminNavbar />
 
       {/* Main Content Area */}
-      <main className="lg:ml-72 xl:mr-[320px] px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen">
-        {/* Top Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 md:mb-8 gap-4 md:gap-6">
-          <div className="relative w-full lg:w-auto">
-            <FiSearch className="absolute left-4 md:left-5 top-1/2 -translate-y-1/2 text-taupe/60" size={18} />
-            <input
-              type="text"
-              placeholder="Search products, orders..."
-              className="input-luxury w-full lg:w-[420px] pl-12 md:pl-14 pr-4 md:pr-5 rounded-2xl bg-white/80 backdrop-blur-sm text-sm outline-none border-2 border-softgold/30 focus:border-rosegold/60 focus:bg-white transition-all text-warmbrown shadow-sm hover:shadow-md placeholder:text-taupe/50"
-            />
-          </div>
-
-          <div className="flex items-center gap-3 md:gap-4 lg:gap-6 text-taupe">
-            <button className="relative p-2.5 md:p-3 hover:bg-pearl rounded-xl transition-all hover:text-rosegold group touch-target active:scale-95">
-              <FiBell size={20} className="md:w-5 md:h-5 transition-transform group-hover:scale-110" />
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rosegold rounded-full animate-pulse shadow-lg"></span>
-            </button>
-            <button className="p-2.5 md:p-3 hover:bg-pearl rounded-xl transition-all hover:text-rosegold group touch-target active:scale-95 hidden sm:flex">
-              <FiSettings size={20} className="md:w-5 md:h-5 transition-transform group-hover:rotate-90 duration-300" />
-            </button>
-            <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-6 border-l-2 border-softgold/40">
-              <div className="text-right hidden lg:block">
-                <p className="text-sm font-semibold text-warmbrown font-playfair">{user.name}</p>
-                <p className="text-xs text-taupe font-medium">Administrator</p>
-              </div>
-              <div className="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-pearl font-bold text-sm md:text-base shadow-lg ring-2 ring-pearl/50 hover:scale-105 transition-transform cursor-pointer touch-target active:scale-95">
-                {user.name?.charAt(0).toUpperCase()}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Time Filter Buttons */}
+      <AdminPageContainer maxWidth="wide" className="lg:pr-[340px]">
+        {/* Dashboard Header with Time Filter */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 md:mb-8 gap-4 md:gap-5">
           <div>
             <h2 className="text-xl md:text-2xl lg:text-3xl font-playfair font-semibold text-warmbrown mb-1">Dashboard Overview</h2>
             <p className="text-xs md:text-sm text-taupe font-medium">Monitor your business performance</p>
           </div>
-          <div className="flex gap-1.5 md:gap-2 bg-white/80 backdrop-blur-sm p-1.5 md:p-2 rounded-2xl shadow-md border-2 border-softgold/30 overflow-x-auto scrollbar-hide">
-            {(['1D', '7D', '1M', '3M', '1Y', 'ALL'] as TimeFilter[]).map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setTimeFilter(filter)}
-                className={`px-3.5 md:px-5 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 whitespace-nowrap touch-target active:scale-95 ${
-                  timeFilter === filter
-                    ? 'bg-gradient-to-br from-rosegold via-softgold to-rosegold text-white shadow-lg scale-105 ring-2 ring-rosegold/30'
-                    : 'text-taupe hover:text-warmbrown hover:bg-sand/40'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
+          <AdminFilterChips
+            filters={timeFilters}
+            activeFilter={timeFilter}
+            onFilterChange={(id) => setTimeFilter(id as TimeFilter)}
+          />
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards Grid - Now using AdminStatsCard */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="rounded-2xl bg-white p-4 md:p-5 shadow-sm animate-pulse">
-                <div className="h-10 md:h-12 bg-gray-200 rounded mb-2"></div>
-                <div className="h-5 md:h-6 bg-gray-200 rounded w-1/2"></div>
-              </div>
-            ))}
-          </div>
+          <AdminLoadingSkeleton type="stats" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 lg:gap-6 mb-6 md:mb-8">
-            {/* Total Revenue */}
-            <div className="group rounded-2xl md:rounded-3xl bg-gradient-to-br from-rosegold via-[#D4A574] to-softgold p-4 md:p-5 lg:p-6 shadow-xl hover:shadow-2xl text-white border-2 border-white/20 active:scale-95 md:hover:scale-105 transition-all duration-300 cursor-pointer touch-target">
-              <div className="flex items-center justify-between mb-2 md:mb-3">
-                <p className="text-xs md:text-sm text-white/90 font-medium">Total Revenue</p>
-                <div className="p-2 md:p-2.5 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-                  <FiDollarSign size={18} className="md:w-5 md:h-5 text-white" />
-                </div>
-              </div>
-              <h2 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold mb-1.5 md:mb-2">
-                {formatCurrency(stats?.totalSales || 0)}
-              </h2>
-              <div className="flex items-center gap-1.5">
-                {stats?.salesGrowth >= 0 ? (
-                  <FiArrowUp size={14} className="text-white" />
-                ) : (
-                  <FiArrowDown size={14} className="text-white" />
-                )}
-                <span className="text-sm text-white/95 font-medium">
-                  {Math.abs(stats?.salesGrowth || 0)}% vs previous period
-                </span>
-              </div>
-            </div>
-
-            {/* Total Orders */}
-            <div className="group rounded-3xl bg-white/90 backdrop-blur-sm p-6 shadow-xl hover:shadow-2xl border-2 border-rosegold/30 hover:border-rosegold/60 hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm text-taupe font-medium">Total Orders</p>
-                <div className="p-2.5 bg-rosegold/10 rounded-xl group-hover:bg-rosegold/20 transition-colors">
-                  <FiShoppingBag size={22} className="text-rosegold" />
-                </div>
-              </div>
-              <h2 className="text-3xl lg:text-4xl font-playfair font-bold mb-2 text-warmbrown">
-                {stats?.totalOrders || 0}
-              </h2>
-              <div className="flex items-center gap-1.5">
-                {stats?.ordersGrowth >= 0 ? (
-                  <FiArrowUp size={14} className="text-rosegold" />
-                ) : (
-                  <FiArrowDown size={14} className="text-rosegold" />
-                )}
-                <span className="text-sm text-taupe font-medium">
-                  {Math.abs(stats?.ordersGrowth || 0)}% vs previous period
-                </span>
-              </div>
-            </div>
-
-            {/* Average Order Value */}
-            <div className="group rounded-3xl bg-gradient-to-br from-sand/80 to-softgold/40 backdrop-blur-sm p-6 shadow-xl hover:shadow-2xl border-2 border-softgold/50 hover:border-softgold/80 hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm text-warmbrown/80 font-medium">Avg Order Value</p>
-                <div className="p-2.5 bg-white/40 rounded-xl group-hover:bg-white/60 transition-colors">
-                  <FiBarChart2 size={22} className="text-rosegold" />
-                </div>
-              </div>
-              <h2 className="text-3xl lg:text-4xl font-playfair font-bold mb-2 text-warmbrown">
-                {formatCurrency(stats?.avgOrderValue || 0)}
-              </h2>
-              <div className="flex items-center gap-1.5">
-                {stats?.aovGrowth >= 0 ? (
-                  <FiArrowUp size={14} className="text-rosegold" />
-                ) : (
-                  <FiArrowDown size={14} className="text-rosegold" />
-                )}
-                <span className="text-sm text-warmbrown/80 font-medium">
-                  {Math.abs(stats?.aovGrowth || 0)}% vs previous period
-                </span>
-              </div>
-            </div>
-
-            {/* Total Products */}
-            <div className="group rounded-3xl bg-gradient-to-br from-[#B8916B] via-[#A0825E] to-[#8B6F5A] p-6 shadow-xl hover:shadow-2xl text-white border-2 border-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm text-white/90 font-medium">Total Products</p>
-                <div className="p-2.5 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-                  <FiPackage size={22} className="text-white" />
-                </div>
-              </div>
-              <h2 className="text-3xl lg:text-4xl font-playfair font-bold mb-2">
-                {stats?.totalProducts || 0}
-              </h2>
-              <div className="flex items-center gap-1.5">
-                <FiActivity size={14} className="text-white" />
-                <span className="text-sm text-white/95 font-medium">
-                  {stats?.activeProducts || 0} active
-                </span>
-              </div>
-            </div>
-
-            {/* Total Users */}
-            <div className="group rounded-3xl bg-gradient-to-br from-rosegold via-[#C89A7A] to-[#B8916B] p-6 shadow-xl hover:shadow-2xl text-white border-2 border-white/20 hover:scale-105 transition-all duration-300 cursor-pointer">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm text-white/90 font-medium">Total Users</p>
-                <div className="p-2.5 bg-white/20 rounded-xl group-hover:bg-white/30 transition-colors">
-                  <FiUsers size={22} className="text-white" />
-                </div>
-              </div>
-              <h2 className="text-3xl lg:text-4xl font-playfair font-bold mb-2">
-                {stats?.totalUsers || 0}
-              </h2>
-              <div className="flex items-center gap-1.5">
-                {stats?.usersGrowth >= 0 ? (
-                  <FiArrowUp size={14} className="text-white" />
-                ) : (
-                  <FiArrowDown size={14} className="text-white" />
-                )}
-                <span className="text-sm text-white/95 font-medium">
-                  {Math.abs(stats?.usersGrowth || 0)}% • {stats?.newUsers || 0} new
-                </span>
-              </div>
-            </div>
+            <AdminStatsCard
+              title="Total Revenue"
+              value={formatCurrency(stats?.totalSales || 0)}
+              icon={FiDollarSign}
+              trend={{
+                value: stats?.salesGrowth || 0,
+                label: 'vs previous period',
+              }}
+              variant="primary"
+            />
+            <AdminStatsCard
+              title="Total Orders"
+              value={stats?.totalOrders || 0}
+              icon={FiShoppingBag}
+              trend={{
+                value: stats?.ordersGrowth || 0,
+                label: 'vs previous period',
+              }}
+              variant="secondary"
+            />
+            <AdminStatsCard
+              title="Avg Order Value"
+              value={formatCurrency(stats?.avgOrderValue || 0)}
+              icon={FiBarChart2}
+              trend={{
+                value: stats?.aovGrowth || 0,
+                label: 'vs previous period',
+              }}
+              variant="tertiary"
+            />
+            <AdminStatsCard
+              title="Total Products"
+              value={stats?.totalProducts || 0}
+              icon={FiPackage}
+              variant="default"
+            />
           </div>
         )}
 
         {/* Product Analytics Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 mb-8">
-          {/* Product Performance by Category */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-7 shadow-xl border-2 border-softgold/20 hover:shadow-2xl transition-all">
-            <h3 className="text-lg font-playfair font-semibold text-warmbrown mb-6 flex items-center gap-2">
-              <FiBarChart2 className="text-rosegold" size={20} />
-              Performance by Category
-            </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6 lg:gap-8 mb-6 md:mb-8">
+          {/* Performance by Category */}
+          <AdminCard
+            title="Performance by Category"
+            subtitle="Revenue breakdown by product categories"
+          >
             {loading ? (
               <div className="space-y-4">
                 {[...Array(4)].map((_, i) => (
@@ -264,16 +152,18 @@ export default function AdminPage() {
                 ))}
               </div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-4 md:space-y-5">
                 {stats?.categoryPerformance?.map((cat: any, index: number) => (
                   <div key={index} className="space-y-2.5">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-warmbrown font-semibold capitalize">{cat.category}</span>
-                      <span className="text-xs text-taupe font-medium bg-sand/40 px-3 py-1 rounded-full">{formatCurrency(cat.revenue)} • {cat.count} sold</span>
+                      <span className="text-sm md:text-base text-warmbrown font-semibold capitalize">{cat.category}</span>
+                      <span className="text-xs md:text-sm text-taupe font-medium bg-sand/40 px-3 py-1.5 rounded-full">
+                        {formatCurrency(cat.revenue)} • {cat.count} sold
+                      </span>
                     </div>
-                    <div className="w-full bg-sand/40 rounded-full h-3 overflow-hidden shadow-inner">
+                    <div className="w-full bg-sand/40 rounded-full h-3 md:h-4 overflow-hidden shadow-inner">
                       <div
-                        className="bg-gradient-to-r from-rosegold via-softgold to-rosegold h-3 rounded-full transition-all duration-700 shadow-lg"
+                        className="bg-gradient-to-r from-rosegold via-softgold to-rosegold h-full rounded-full transition-all duration-700 shadow-lg"
                         style={{ width: `${(cat.revenue / (stats?.totalSales || 1)) * 100}%` }}
                       ></div>
                     </div>
@@ -281,14 +171,13 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
-          </div>
+          </AdminCard>
 
           {/* Top Products by Revenue */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-7 shadow-xl border-2 border-softgold/20 hover:shadow-2xl transition-all">
-            <h3 className="text-lg font-playfair font-semibold text-warmbrown mb-6 flex items-center gap-2">
-              <FiTrendingUp className="text-rosegold" size={20} />
-              Top Revenue Products
-            </h3>
+          <AdminCard
+            title="Top Revenue Products"
+            subtitle="Best performing products this period"
+          >
             {loading ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
@@ -296,54 +185,52 @@ export default function AdminPage() {
                 ))}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 {stats?.topRevenueProducts?.map((product: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-sand/30 transition-all border-b border-softgold/20 last:border-0 group">
-                    <div className="flex items-center gap-4">
-                      <span className="w-8 h-8 bg-gradient-to-br from-rosegold to-softgold rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md group-hover:scale-110 transition-transform">
+                  <div key={index} className="flex items-center justify-between py-3 px-3 md:px-4 rounded-xl hover:bg-sand/30 transition-all border-b border-softgold/20 last:border-0 group">
+                    <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0">
+                      <span className="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-br from-rosegold to-softgold rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-md group-hover:scale-110 transition-transform flex-shrink-0">
                         {index + 1}
                       </span>
-                      <div>
+                      <div className="min-w-0 flex-1">
                         <Link 
                           href={`/products/${product.id}`}
-                          className="text-sm font-semibold text-warmbrown hover:text-rosegold transition-colors cursor-pointer truncate max-w-[220px] block"
+                          className="text-sm md:text-base font-semibold text-warmbrown hover:text-rosegold transition-colors cursor-pointer truncate block"
                         >
                           {product.name}
                         </Link>
                         <p className="text-xs text-taupe font-medium mt-0.5">{product.soldCount} units sold</p>
                       </div>
                     </div>
-                    <span className="text-base font-bold text-rosegold">{formatCurrency(product.revenue)}</span>
+                    <span className="text-sm md:text-base font-bold text-rosegold whitespace-nowrap ml-2">
+                      {formatCurrency(product.revenue)}
+                    </span>
                   </div>
                 ))}
               </div>
             )}
-          </div>
+          </AdminCard>
         </div>
 
-        {/* Stock & Inventory Insights */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 mb-8">
+        {/* Stock & Inventory Insights - Mobile optimized grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5 lg:gap-6 mb-6 md:mb-8">
           {/* Stock Status Overview */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-7 shadow-xl border-2 border-softgold/20 hover:shadow-2xl transition-all">
-            <h3 className="text-lg font-playfair font-semibold text-warmbrown mb-5 flex items-center gap-2">
-              <FiPackage className="text-rosegold" size={20} />
-              Stock Status
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-sand/50 to-softgold/30 rounded-2xl border-2 border-softgold/40 hover:border-softgold/60 transition-all">
-                <span className="text-sm text-warmbrown font-semibold">In Stock</span>
-                <span className="text-2xl font-bold text-rosegold">{stats?.stockStatus?.inStock || 0}</span>
+          <AdminCard title="Stock Status">
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex justify-between items-center p-3 md:p-4 bg-gradient-to-r from-sand/50 to-softgold/30 rounded-xl md:rounded-2xl border-2 border-softgold/40 hover:border-softgold/60 transition-all">
+                <span className="text-xs md:text-sm text-warmbrown font-semibold">In Stock</span>
+                <span className="text-xl md:text-2xl font-bold text-rosegold">{stats?.stockStatus?.inStock || 0}</span>
               </div>
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-amber-50 to-amber-100/50 rounded-2xl border-2 border-amber-200 hover:border-amber-300 transition-all">
-                <span className="text-sm text-warmbrown font-semibold">Low Stock</span>
-                <span className="text-2xl font-bold text-amber-600">{stats?.stockStatus?.lowStock || 0}</span>
+              <div className="flex justify-between items-center p-3 md:p-4 bg-gradient-to-r from-amber-50 to-amber-100/50 rounded-xl md:rounded-2xl border-2 border-amber-200 hover:border-amber-300 transition-all">
+                <span className="text-xs md:text-sm text-warmbrown font-semibold">Low Stock</span>
+                <span className="text-xl md:text-2xl font-bold text-amber-600">{stats?.stockStatus?.lowStock || 0}</span>
               </div>
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-100 to-gray-200/50 rounded-2xl border-2 border-gray-300 hover:border-gray-400 transition-all">
-                <span className="text-sm text-warmbrown font-semibold">Out of Stock</span>
-                <span className="text-2xl font-bold text-gray-600">{stats?.stockStatus?.outOfStock || 0}</span>
+              <div className="flex justify-between items-center p-3 md:p-4 bg-gradient-to-r from-gray-100 to-gray-200/50 rounded-xl md:rounded-2xl border-2 border-gray-300 hover:border-gray-400 transition-all">
+                <span className="text-xs md:text-sm text-warmbrown font-semibold">Out of Stock</span>
+                <span className="text-xl md:text-2xl font-bold text-gray-600">{stats?.stockStatus?.outOfStock || 0}</span>
               </div>
             </div>
-          </div>
+          </AdminCard>
 
           {/* Product Activity */}
           <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-7 shadow-xl border-2 border-softgold/20 hover:shadow-2xl transition-all">
@@ -509,10 +396,10 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-      </main>
+      </AdminPageContainer>
 
-      {/* Right Panel */}
-      <aside className="fixed right-0 top-0 w-[320px] px-5 py-8 hidden xl:block bg-white/40 backdrop-blur-sm border-l-2 border-softgold/30 h-screen overflow-y-auto">
+      {/* Right Sidebar */}
+      <aside className="fixed right-0 top-20 w-[320px] px-5 py-8 hidden lg:block bg-white/40 backdrop-blur-sm border-l-2 border-softgold/30 overflow-y-auto z-10" style={{ height: 'calc(100vh - 5rem)' }}>
         <div className="space-y-6">
           {/* Low Stock Alert */}
           {stats?.lowStockProducts && stats.lowStockProducts.length > 0 && (
@@ -539,7 +426,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Quick Stats */}
+          {/* Quick Overview */}
           <div className="bg-gradient-to-br from-rosegold via-softgold to-[#D4A574] rounded-3xl p-6 text-white shadow-xl border-2 border-white/20">
             <p className="text-sm text-white/90 mb-1 font-semibold">Quick Overview</p>
             <p className="text-xs text-white/70 mb-5">Key metrics at a glance</p>
@@ -568,7 +455,7 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Quick Actions Card */}
+          {/* Quick Actions */}
           <div className="bg-white/90 backdrop-blur-sm rounded-3xl p-6 border-2 border-softgold/30 shadow-xl">
             <h3 className="text-base font-bold text-warmbrown mb-5 font-playfair">Quick Actions</h3>
             <div className="space-y-3">
@@ -597,9 +484,6 @@ export default function AdminPage() {
           </div>
         </div>
       </aside>
-
-      {/* Mobile Navigation */}
-      <AdminMobileNav />
     </div>
   )
 }

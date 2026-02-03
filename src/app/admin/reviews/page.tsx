@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuthStore } from '@/store/authStore'
-import AdminSidebar from '@/components/AdminSidebar'
-import AdminMobileNav from '@/components/AdminMobileNav'
+import { useAuth } from '@/hooks/useAuth'
+import AdminNavbar from '@/components/AdminNavbar'
 import { 
   FiBell, FiSettings, FiCheck, FiX, FiTrash2, FiUser, FiStar, FiPackage
 } from 'react-icons/fi'
@@ -13,18 +12,16 @@ import toast from 'react-hot-toast'
 
 export default function AdminReviewsPage() {
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
+  const { user, isLoading } = useAuth({ requireAdmin: true })
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('pending')
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/')
-      return
+    if (user && !isLoading) {
+      fetchReviews()
     }
-    fetchReviews()
-  }, [user, router])
+  }, [user, isLoading])
 
   const fetchReviews = async () => {
     try {
@@ -116,39 +113,15 @@ export default function AdminReviewsPage() {
 
   return (
     <div className="min-h-screen bg-champagne">
-      <div className="hidden lg:block">
-        <AdminSidebar />
-      </div>
-      <AdminMobileNav />
+      <AdminNavbar />
 
       {/* Main Content */}
-      <main className="lg:ml-72 px-4 md:px-6 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen">
+      <main className="px-4 md:px-6 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen max-w-[1800px] xl:mr-[30%]">
         {/* Top Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-playfair font-semibold text-warmbrown mb-1">Review Moderation</h1>
             <p className="text-xs md:text-sm text-taupe">Approve or moderate customer reviews</p>
-          </div>
-
-          <div className="flex items-center gap-3 md:gap-5 text-taupe">
-            <button className="hover:text-rosegold transition-colors relative touch-target p-2 active:scale-95">
-              <FiBell size={20} />
-              {reviews.filter((r: any) => !r.approved).length > 0 && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-rosegold rounded-full"></span>
-              )}
-            </button>
-            <button className="hover:text-rosegold transition-colors touch-target p-2 active:scale-95 hidden sm:block">
-              <FiSettings size={20} />
-            </button>
-            <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-4 border-l border-softgold/30">
-              <div className="text-right hidden md:block">
-                <p className="text-sm font-medium text-warmbrown font-playfair">{user.name}</p>
-                <p className="text-xs text-taupe">Administrator</p>
-              </div>
-              <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-rosegold to-softgold rounded-xl flex items-center justify-center text-pearl font-semibold text-sm touch-target active:scale-95">
-                {user.name?.charAt(0).toUpperCase()}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -308,7 +281,7 @@ export default function AdminReviewsPage() {
       </main>
 
       {/* Right Panel - Review Stats */}
-      <aside className="hidden xl:block fixed right-0 top-0 w-[28%] h-screen px-4 py-6 bg-champagne overflow-y-auto">
+      <aside className="hidden xl:block fixed right-0 top-16 w-[28%] h-[calc(100vh-4rem)] px-4 py-6 bg-champagne overflow-y-auto">
         <div className="space-y-6">
           {/* Review Summary */}
           <div className="bg-pearl rounded-2xl p-5 shadow-sm border border-softgold/20">
@@ -370,9 +343,6 @@ export default function AdminReviewsPage() {
           </div>
         </div>
       </aside>
-
-      {/* Mobile Navigation */}
-      <AdminMobileNav />
     </div>
   )
 }

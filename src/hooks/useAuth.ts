@@ -24,6 +24,7 @@ export function useAuth(options: UseAuthOptions = {}) {
   const isInitialized = useAuthStore((state) => state.isInitialized)
   const isVerifying = useAuthStore((state) => state.isVerifying)
   const verifyAuth = useAuthStore((state) => state.verifyAuth)
+  const logout = useAuthStore((state) => state.logout)
   const isAdmin = useAuthStore((state) => state.isAdmin)
 
   // Auto-verify on mount if needed
@@ -55,5 +56,6 @@ export function useAuth(options: UseAuthOptions = {}) {
     isLoading: !isInitialized || isVerifying,
     isInitialized,
     refresh,
+    logout,
   }
 }

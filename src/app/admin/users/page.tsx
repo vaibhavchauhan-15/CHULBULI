@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { useAuthStore } from '@/store/authStore'
-import AdminSidebar from '@/components/AdminSidebar'
-import AdminMobileNav from '@/components/AdminMobileNav'
+import { useAuth } from '@/hooks/useAuth'
+import AdminNavbar from '@/components/AdminNavbar'
 import { 
   FiUser, FiMail, FiCalendar, FiEdit2, FiTrash2, FiSearch,
   FiChevronLeft, FiChevronRight, FiShield, FiUsers as FiUsersIcon
@@ -31,7 +30,7 @@ interface UserStats {
 
 export default function AdminUsersPage() {
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
+  const { user, isLoading } = useAuth({ requireAdmin: true })
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -47,13 +46,11 @@ export default function AdminUsersPage() {
   const [editingRole, setEditingRole] = useState('')
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/')
-      return
+    if (user && !isLoading) {
+      fetchUsers()
     }
-    fetchUsers()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, router, page, roleFilter, providerFilter])
+  }, [user, isLoading, page, roleFilter, providerFilter])
 
   // Debounced search
   useEffect(() => {
@@ -193,12 +190,9 @@ export default function AdminUsersPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-cream via-white to-rosegold/10">
-      <div className="hidden lg:block">
-        <AdminSidebar />
-      </div>
-      <AdminMobileNav />
+      <AdminNavbar />
 
-      <main className="lg:ml-72 px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-24 lg:pb-8 min-h-screen">
+      <main className="px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-24 lg:pb-8 min-h-screen max-w-[1800px]">
         {/* Header */}
         <div className="mb-6 md:mb-8">
           <div className="flex items-center gap-3 mb-2">

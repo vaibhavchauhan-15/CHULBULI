@@ -77,7 +77,7 @@ export default function HomePage() {
       <Navbar />
       <main className="min-h-screen">
         {/* Hero Section - Mobile-optimized */}
-         <section className="relative min-h-screen flex items-center overflow-hidden">
+         <section className="relative h-[90vh] md:min-h-screen flex items-end md:items-center overflow-hidden">
           {/* Background Image */}
           <div className="absolute inset-0">
             {/* Mobile Hero Image */}
@@ -85,7 +85,7 @@ export default function HomePage() {
               src="/hero_mobile.png"
               alt="Luxury Pearl Heart Earrings"
               fill
-              className="object-contain object-center md:hidden"
+              className="object-contain object-top md:hidden"
               priority
               quality={100}
             />
@@ -104,9 +104,8 @@ export default function HomePage() {
           </div>
 
           {/* Content Container */}
-          <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-16 lg:px-20 w-full
-                        flex items-end md:items-center min-h-[60vh] md:min-h-screen pb-8 md:pb-0">
-            <div className="max-w-2xl w-full text-center md:text-left">
+          <div className="relative z-10 max-w-7xl mx-auto px-4 md:px-16 lg:px-20 w-full">
+            <div className="max-w-2xl w-full text-center md:text-left pb-16 md:pb-0">
               {/* Tagline - Mobile optimized */}
               <h1 className="font-playfair font-semibold text-warmbrown leading-tight tracking-wide mb-4 md:mb-6 lg:mb-7
                             text-3xl sm:text-4xl md:text-5xl lg:text-6xl">

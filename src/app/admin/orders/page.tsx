@@ -3,9 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuthStore } from '@/store/authStore'
-import AdminSidebar from '@/components/AdminSidebar'
-import AdminMobileNav from '@/components/AdminMobileNav'
+import { useAuth } from '@/hooks/useAuth'
+import AdminNavbar from '@/components/AdminNavbar'
 import { 
   FiBell, FiSettings, FiSearch, FiMapPin, FiPhone, 
   FiMail, FiUser, FiPackage, FiShoppingBag
@@ -14,17 +13,15 @@ import toast from 'react-hot-toast'
 
 export default function AdminOrdersPage() {
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
+  const { user, isLoading } = useAuth({ requireAdmin: true })
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/')
-      return
+    if (user && !isLoading) {
+      fetchOrders()
     }
-    fetchOrders()
-  }, [user, router])
+  }, [user, isLoading])
 
   const fetchOrders = async () => {
     try {
@@ -87,12 +84,10 @@ export default function AdminOrdersPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-champagne via-pearl to-sand">
-      <div className="hidden lg:block">
-        <AdminSidebar />
-      </div>
+      <AdminNavbar />
 
       {/* Main Content */}
-      <main className="lg:ml-72 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen">
+      <main className="px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen max-w-[1800px]">
         {/* Top Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 md:mb-8 gap-4 md:gap-6">
           <div>
@@ -100,24 +95,7 @@ export default function AdminOrdersPage() {
             <p className="text-xs md:text-sm text-taupe font-medium">Manage and track customer orders</p>
           </div>
 
-          <div className="flex items-center gap-3 md:gap-4 text-taupe">
-            <button className="relative p-2.5 md:p-3 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group touch-target active:scale-95">
-              <FiBell size={20} className="md:w-5 md:h-5 transition-transform group-hover:scale-110" />
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rosegold rounded-full animate-pulse shadow-lg"></span>
-            </button>
-            <button className="p-2.5 md:p-3 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group hidden md:block touch-target active:scale-95">
-              <FiSettings size={20} className="md:w-5 md:h-5 transition-transform group-hover:rotate-90 duration-300" />
-            </button>
-            <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-5 border-l-2 border-softgold/40">
-              <div className="text-right hidden lg:block">
-                <p className="text-sm font-semibold text-warmbrown font-playfair">{user.name}</p>
-                <p className="text-xs text-taupe font-medium">Administrator</p>
-              </div>
-              <div className="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-white font-bold text-sm md:text-base shadow-lg ring-2 ring-white/50 hover:scale-105 transition-transform cursor-pointer touch-target active:scale-95">
-                {user.name?.charAt(0).toUpperCase()}
-              </div>
-            </div>
-          </div>
+
         </div>
 
         {/* Orders List */}
@@ -332,9 +310,6 @@ export default function AdminOrdersPage() {
           </div>
         </div>
       </aside>
-
-      {/* Mobile Navigation */}
-      <AdminMobileNav />
     </div>
   )
 }

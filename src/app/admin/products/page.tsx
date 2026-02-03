@@ -4,9 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useAuthStore } from '@/store/authStore'
-import AdminSidebar from '@/components/AdminSidebar'
-import AdminMobileNav from '@/components/AdminMobileNav'
+import { useAuth } from '@/hooks/useAuth'
+import AdminNavbar from '@/components/AdminNavbar'
 import ProductFormModal from '@/components/ProductFormModal'
 import { 
   FiBell, FiSettings, FiSearch, FiEdit, FiTrash2, 
@@ -16,7 +15,7 @@ import toast from 'react-hot-toast'
 
 export default function AdminProductsPage() {
   const router = useRouter()
-  const user = useAuthStore((state) => state.user)
+  const { user, isLoading } = useAuth({ requireAdmin: true })
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
@@ -91,12 +90,10 @@ export default function AdminProductsPage() {
   })
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/')
-      return
+    if (user && !isLoading) {
+      fetchProducts()
     }
-    fetchProducts()
-  }, [user, router])
+  }, [user, isLoading])
 
   const fetchProducts = async () => {
     try {
@@ -399,13 +396,10 @@ export default function AdminProductsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-champagne via-pearl to-sand">
-      <div className="hidden lg:block">
-        <AdminSidebar />
-      </div>
-      <AdminMobileNav />
+      <AdminNavbar />
 
       {/* Main Content */}
-      <main className="lg:ml-72 px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen">
+      <main className="px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen max-w-[1800px]">
         {/* Top Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 md:mb-8 gap-4 md:gap-6">
           <div>
@@ -413,25 +407,12 @@ export default function AdminProductsPage() {
             <p className="text-xs md:text-sm text-taupe font-medium">Manage your product catalog</p>
           </div>
 
-          <div className="flex items-center gap-3 md:gap-4 w-full lg:w-auto">
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="btn-mobile-full flex items-center justify-center gap-2 md:gap-2.5 px-5 md:px-6 py-3 md:py-3.5 bg-gradient-to-r from-rosegold to-softgold text-white rounded-xl md:rounded-2xl hover:shadow-xl transition-all duration-300 font-semibold text-sm shadow-lg active:scale-95 md:hover:scale-105 touch-target"
-            >
-              <FiPlus size={18} className="md:w-5 md:h-5 font-bold" /> <span>Add Product</span>
-            </button>
-            <div className="hidden md:flex items-center gap-3 md:gap-4 pl-4 md:pl-5 border-l-2 border-softgold/40">
-              <button className="relative p-2.5 md:p-3 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group touch-target active:scale-95">
-                <FiBell size={20} className="md:w-5 md:h-5 transition-transform group-hover:scale-110" />
-              </button>
-              <button className="p-2.5 md:p-3 hover:bg-white/80 rounded-xl transition-all hover:text-rosegold group hidden md:block touch-target active:scale-95">
-                <FiSettings size={20} className="md:w-5 md:h-5 transition-transform group-hover:rotate-90 duration-300" />
-              </button>
-              <div className="w-10 h-10 md:w-11 md:h-11 bg-gradient-to-br from-rosegold via-softgold to-[#B8916B] rounded-2xl flex items-center justify-center text-white font-bold text-sm md:text-base shadow-lg ring-2 ring-white/50 hover:scale-105 transition-transform cursor-pointer touch-target active:scale-95">
-                {user.name?.charAt(0).toUpperCase()}
-              </div>
-            </div>
-          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center justify-center gap-2 md:gap-2.5 px-5 md:px-6 py-3 md:py-3.5 bg-gradient-to-r from-rosegold to-softgold text-white rounded-xl md:rounded-2xl hover:shadow-xl transition-all duration-300 font-semibold text-sm shadow-lg active:scale-95 md:hover:scale-105 touch-target"
+          >
+            <FiPlus size={18} className="md:w-5 md:h-5 font-bold" /> <span>Add Product</span>
+          </button>
         </div>
 
         {/* Products Grid (Card-based instead of table) */}
@@ -607,9 +588,6 @@ export default function AdminProductsPage() {
           </div>
         </div>
       </aside>
-
-      {/* Mobile Navigation */}
-      <AdminMobileNav />
 
       {/* Add/Edit Product Modal */}
       <ProductFormModal
