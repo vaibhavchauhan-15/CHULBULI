@@ -906,7 +906,12 @@ export default function CheckoutPage() {
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-semibold text-[#5A3E2B] text-lg">Pay Online</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-[#5A3E2B] text-lg">Pay Online</p>
+                            <span className="px-2 py-0.5 text-xs font-medium text-[#C89A7A] bg-[#C89A7A]/10 border border-[#C89A7A]/30 rounded-full">
+                              Coming Soon
+                            </span>
+                          </div>
                           <p className="text-sm text-[#5A3E2B]/60 mt-1">UPI, Card, Netbanking & More via Razorpay</p>
                         </div>
                         <FiCreditCard className="w-6 h-6 text-[#C89A7A]" />
