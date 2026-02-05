@@ -11,6 +11,10 @@ interface User {
   provider?: string // 'email' or 'google'
   googleId?: string
   photoUrl?: string // Profile picture URL from Google
+  // Additional profile fields
+  mobile?: string // Phone number
+  dateOfBirth?: string // Date of birth
+  accountStatus?: string // Account status: active, deactivated, deleted
 }
 
 interface AuthStore {

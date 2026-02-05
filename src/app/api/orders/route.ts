@@ -22,6 +22,11 @@ export async function POST(request: NextRequest) {
       state,
       pincode,
       userId,
+      paymentMethod = 'cod',
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+      paymentStatus = 'pending',
     } = body
 
     // Validate required fields
@@ -128,11 +133,18 @@ export async function POST(request: NextRequest) {
       // Round to 2 decimal places
       totalPrice = Math.round(totalPrice * 100) / 100
 
+      // Get the next order number (atomically)
+      const lastOrderResult = await pool.query(
+        'SELECT COALESCE(MAX("orderNumber"), 0) + 1 as next_order_number FROM "Order"'
+      )
+      const orderNumber = lastOrderResult.rows[0].next_order_number
+
       // Create order
       const orderId = generateId('order')
       const now = new Date()
       const [newOrder] = await tx.insert(orders).values({
         id: orderId,
+        orderNumber: orderNumber,
         userId: sanitizedData.userId || null,
         totalPrice: totalPrice.toFixed(2),
         customerName: sanitizedData.customerName,
@@ -144,7 +156,11 @@ export async function POST(request: NextRequest) {
         state: sanitizedData.state,
         pincode: sanitizedData.pincode,
         status: 'placed',
-        paymentMethod: 'cod',
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentStatus,
+        razorpayOrderId: razorpayOrderId || null,
+        razorpayPaymentId: razorpayPaymentId || null,
+        razorpaySignature: razorpaySignature || null,
         createdAt: now,
         updatedAt: now,
       }).returning()

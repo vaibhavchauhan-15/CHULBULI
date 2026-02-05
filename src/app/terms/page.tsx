@@ -19,7 +19,7 @@ export default function TermsAndConditions() {
           <p className="text-warmbrown/80 text-lg font-light">
             Please read these terms carefully before using our services
           </p>
-          <p className="text-warmbrown/60 text-sm mt-2">Last Updated: February 1, 2026</p>
+          <p className="text-warmbrown/60 text-sm mt-2">Last Updated: February 5, 2026</p>
         </div>
 
         {/* Key Points */}
@@ -369,6 +369,35 @@ export default function TermsAndConditions() {
               <strong className="text-warmbrown">By using Chulbuli Jewels services, you acknowledge that you have read, understood, and agree to be bound by these Terms and Conditions.</strong>
             </p>
           </section>
+        </div>
+
+        {/* Related Links */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Link
+            href="/privacy"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Privacy Policy
+          </Link>
+          <Link
+            href="/returns"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Return Policy
+          </Link>
+          <Link
+            href="/shipping"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Shipping Policy
+          </Link>
+          <a
+            href="/Policies.pdf"
+            download
+            className="text-center px-6 py-3 bg-rosegold/10 text-warmbrown rounded-full hover:bg-rosegold/20 transition-all duration-300 border border-rosegold/30"
+          >
+            Download PDF
+          </a>
         </div>
 
         {/* Back Button */}

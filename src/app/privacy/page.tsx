@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
           <p className="text-warmbrown/80 text-lg font-light">
             Your privacy is important to us
           </p>
-          <p className="text-warmbrown/60 text-sm mt-2">Last Updated: February 1, 2026</p>
+          <p className="text-warmbrown/60 text-sm mt-2">Last Updated: February 5, 2026</p>
         </div>
 
         {/* Key Points */}
@@ -65,9 +65,9 @@ export default function PrivacyPolicy() {
               Introduction
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-3 text-warmbrown/80">
-              <p>Welcome to Chulbuli Jewels. We respect your privacy and are committed to protecting your personal data. This privacy policy explains how we collect, use, store, and share your information when you visit our website or make a purchase from us.</p>
-              <p>By using our website, you agree to the collection and use of information in accordance with this policy.</p>
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
+              <p>This Privacy Policy describes how CHULBULI JEWELS and its affiliates (collectively "CHULBULI JEWELS, we, our, us") collect, use, share, protect or otherwise process your information/ personal data through our website https://www.chulbulijewels.in (hereinafter referred to as Platform). Please note that you may be able to browse certain sections of the Platform without registering with us.</p>
+              <p>We do not offer any product/service under this Platform outside India and your personal data will primarily be stored and processed in India. By visiting this Platform, providing your information or availing any product/service offered on the Platform, you expressly agree to be bound by the terms and conditions of this Privacy Policy, the Terms of Use and the applicable service/product terms and conditions, and agree to be governed by the laws of India including but not limited to the laws applicable to data protection and privacy. If you do not agree please do not use or access our Platform.</p>
             </div>
           </section>
 
@@ -76,64 +76,24 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Information We Collect
+              Collection
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-4 text-warmbrown/80">
-              <div>
-                <h3 className="font-semibold text-warmbrown mb-2">Personal Information</h3>
-                <p className="mb-2">When you create an account or make a purchase, we collect:</p>
-                <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                  <li>Full name</li>
-                  <li>Email address</li>
-                  <li>Phone number</li>
-                  <li>Shipping and billing addresses</li>
-                  <li>Payment information (processed securely by payment gateway)</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-warmbrown mb-2">Automatically Collected Information</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                  <li>IP address and device information</li>
-                  <li>Browser type and version</li>
-                  <li>Pages visited and time spent on site</li>
-                  <li>Referring website addresses</li>
-                  <li>Cookies and tracking technologies</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="font-semibold text-warmbrown mb-2">Communication Data</h3>
-                <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
-                  <li>Customer support inquiries and correspondence</li>
-                  <li>Product reviews and feedback</li>
-                  <li>Survey responses and preferences</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          <div className="h-px bg-gradient-to-r from-transparent via-rosegold/30 to-transparent" />
-
-          <section>
-            <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
-              <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              How We Use Your Information
-              <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
-            </h2>
-            <div className="space-y-3 text-warmbrown/80">
-              <p>We use your personal information to:</p>
+            <div className="space-y-4 text-warmbrown/80 leading-relaxed">
+              <p>We collect your personal data when you use our Platform, services or otherwise interact with us during the course of our relationship and related information provided from time to time. Some of the information that we may collect includes but is not limited to:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong className="text-warmbrown">Process Orders:</strong> Fulfill your purchases, process payments, and arrange shipping</li>
-                <li><strong className="text-warmbrown">Customer Service:</strong> Respond to inquiries, handle returns, and provide support</li>
-                <li><strong className="text-warmbrown">Account Management:</strong> Create and manage your account, order history, and preferences</li>
-                <li><strong className="text-warmbrown">Marketing:</strong> Send promotional emails about new products, offers, and updates (with your consent)</li>
-                <li><strong className="text-warmbrown">Personalization:</strong> Recommend products based on your browsing and purchase history</li>
-                <li><strong className="text-warmbrown">Security:</strong> Detect and prevent fraud, unauthorized access, and illegal activities</li>
-                <li><strong className="text-warmbrown">Analytics:</strong> Improve our website, products, and services based on usage data</li>
-                <li><strong className="text-warmbrown">Legal Compliance:</strong> Comply with applicable laws, regulations, and legal processes</li>
+                <li>Personal data / information provided to us during sign-up/registering or using our Platform such as name, date of birth, address, telephone/mobile number, email ID</li>
+                <li>Any such information shared as proof of identity or address</li>
+                <li>Bank account or credit or debit card or other payment instrument information (with your consent)</li>
+                <li>Biometric information such as your facial features or physiological information (in order to enable use of certain features when opted for, available on the Platform)</li>
+                <li>Your behaviour, preferences, and other information that you choose to provide on our Platform</li>
+                <li>Information related to your transactions on Platform and such third-party business partner platforms</li>
               </ul>
+              <p className="mt-4 text-sm italic">All of the above being in accordance with applicable law(s). You always have the option to not provide information, by choosing not to use a particular service or feature on the Platform.</p>
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg mt-4">
+                <p className="font-semibold text-warmbrown">Important Security Notice</p>
+                <p className="mt-2 text-sm">If you receive an email, a call from a person/association claiming to be CHULBULI JEWELS seeking any personal data like debit/credit card PIN, net-banking or mobile banking password, we request you to never provide such information. If you have already revealed such information, report it immediately to an appropriate law enforcement agency.</p>
+              </div>
             </div>
           </section>
 
@@ -142,18 +102,53 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Information Sharing
+              Usage
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-3 text-warmbrown/80">
-              <p>We do not sell or rent your personal information. We may share your data with:</p>
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
+              <p>We use personal data to provide the services you request. To the extent we use your personal data to market to you, we will provide you the ability to opt-out of such uses. We use your personal data to:</p>
               <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong className="text-warmbrown">Service Providers:</strong> Shipping carriers, payment processors, email service providers, and hosting services</li>
-                <li><strong className="text-warmbrown">Legal Authorities:</strong> When required by law or to protect our rights and safety</li>
-                <li><strong className="text-warmbrown">Business Transfers:</strong> In case of merger, acquisition, or sale of assets</li>
+                <li>Assist sellers and business partners in handling and fulfilling orders</li>
+                <li>Enhance customer experience</li>
+                <li>Resolve disputes and troubleshoot problems</li>
+                <li>Inform you about online and offline offers, products, services, and updates</li>
+                <li>Customise your experience</li>
+                <li>Detect and protect us against error, fraud and other criminal activity</li>
+                <li>Enforce our terms and conditions</li>
+                <li>Conduct marketing research, analysis and surveys</li>
               </ul>
-              <p className="mt-4 bg-amber-50 border border-amber-200 p-4 rounded text-sm">
-                <strong className="text-warmbrown">Important:</strong> All third-party service providers are required to maintain the confidentiality and security of your information.
+              <p className="mt-4 text-sm">You understand that your access to these products/services may be affected in the event permission is not provided to us.</p>
+            </div>
+          </section>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-rosegold/30 to-transparent" />
+
+          <section>
+            <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
+              Sharing
+              <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
+            </h2>
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
+              <p>We may share your personal data internally within our group entities, our other corporate entities, and affiliates to provide you access to the services and products offered by them. These entities and affiliates may market to you as a result of such sharing unless you explicitly opt-out.</p>
+              <p>We may disclose personal data to third parties such as:</p>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li>Sellers and business partners</li>
+                <li>Third party service providers including logistics partners</li>
+                <li>Prepaid payment instrument issuers</li>
+                <li>Third-party reward programs and other payment methods opted by you</li>
+              </ul>
+              <p className="mt-3">These disclosure may be required for us to:</p>
+              <ul className="list-disc list-inside space-y-2 ml-4">
+                <li>Provide you access to our services and products offered to you</li>
+                <li>Comply with our legal obligations</li>
+                <li>Enforce our user agreement</li>
+                <li>Facilitate our marketing and advertising activities</li>
+                <li>Prevent, detect, mitigate, and investigate fraudulent or illegal activities related to our services</li>
+              </ul>
+              <p className="mt-4">We may disclose personal and sensitive personal data to government agencies or other authorised law enforcement agencies if required to do so by law or in the good faith belief that such disclosure is reasonably necessary to respond to subpoenas, court orders, or other legal process.</p>
+              <p className="bg-amber-50 border border-amber-200 p-4 rounded text-sm mt-4">
+                <strong className="text-warmbrown">Note:</strong> We may disclose personal data to law enforcement offices, third party rights owners, or others in the good faith belief that such disclosure is reasonably necessary to: enforce our Terms of Use or Privacy Policy; respond to claims that an advertisement, posting or other content violates the rights of a third party; or protect the rights, property or personal safety of our users or the general public.
               </p>
             </div>
           </section>
@@ -163,19 +158,16 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Cookies & Tracking
+              Consent
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-3 text-warmbrown/80">
-              <p>We use cookies and similar tracking technologies to:</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Remember your preferences and settings</li>
-                <li>Keep you logged in to your account</li>
-                <li>Analyze website traffic and user behavior</li>
-                <li>Serve personalized content and advertisements</li>
-                <li>Track shopping cart contents</li>
-              </ul>
-              <p className="mt-4">You can control cookies through your browser settings. However, disabling cookies may affect website functionality.</p>
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
+              <p>By visiting our Platform or by providing your information, you consent to the collection, use, storage, disclosure and otherwise processing of your information on the Platform in accordance with this Privacy Policy. If you disclose to us any personal data relating to other people, you represent that you have the authority to do so and permit us to use the information in accordance with this Privacy Policy.</p>
+              <p>You, while providing your personal data over the Platform or any partner platforms or establishments, consent to us (including our other corporate entities, affiliates, lending partners, technology partners, marketing channels, business partners and other third parties) to contact you through SMS, instant messaging apps, call and/or e-mail for the purposes specified in this Privacy Policy.</p>
+              <p>You have an option to withdraw your consent that you have already provided by writing to the Grievance Officer at the contact information provided below. Please mention "Withdrawal of consent for processing personal data" in your subject line of your communication. We may verify such requests before acting on our request.</p>
+              <p className="bg-amber-50 border border-amber-200 p-4 rounded text-sm mt-4">
+                <strong className="text-warmbrown">Please Note:</strong> Your withdrawal of consent will not be retrospective and will be in accordance with the Terms of Use, this Privacy Policy, and applicable laws. In the event you withdraw consent given to us under this Privacy Policy, we reserve the right to restrict or deny the provision of our services for which we consider such information to be necessary.
+              </p>
             </div>
           </section>
 
@@ -184,19 +176,15 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Data Security
+              Security Precautions
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-3 text-warmbrown/80">
-              <p>We implement industry-standard security measures to protect your data:</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>SSL/TLS encryption for all data transmission</li>
-                <li>Secure payment processing through trusted gateways</li>
-                <li>Regular security audits and vulnerability assessments</li>
-                <li>Restricted access to personal data on a need-to-know basis</li>
-                <li>Secure servers with firewall protection</li>
-              </ul>
-              <p className="mt-4 italic text-sm">While we strive to protect your information, no method of transmission over the internet is 100% secure. We cannot guarantee absolute security.</p>
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
+              <p>To protect your personal data from unauthorised access or disclosure, loss or misuse we adopt reasonable security practices and procedures. Once your information is in our possession or whenever you access your account information, we adhere to our security guidelines to protect it against unauthorised access and offer the use of a secure server.</p>
+              <p>However, the transmission of information is not completely secure for reasons beyond our control. By using the Platform, the users accept the security implications of data transmission over the internet and the World Wide Web which cannot always be guaranteed as completely secure, and therefore, there would always remain certain inherent risks regarding use of the Platform.</p>
+              <p className="bg-amber-50 border border-amber-200 p-4 rounded text-sm mt-4">
+                <strong className="text-warmbrown">Your Responsibility:</strong> Users are responsible for ensuring the protection of login and password records for their account.
+              </p>
             </div>
           </section>
 
@@ -208,17 +196,8 @@ export default function PrivacyPolicy() {
               Your Rights
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-3 text-warmbrown/80">
-              <p>You have the right to:</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li><strong className="text-warmbrown">Access:</strong> Request a copy of your personal data we hold</li>
-                <li><strong className="text-warmbrown">Correction:</strong> Update or correct inaccurate information</li>
-                <li><strong className="text-warmbrown">Deletion:</strong> Request deletion of your personal data (subject to legal obligations)</li>
-                <li><strong className="text-warmbrown">Opt-Out:</strong> Unsubscribe from marketing emails at any time</li>
-                <li><strong className="text-warmbrown">Data Portability:</strong> Receive your data in a structured, machine-readable format</li>
-                <li><strong className="text-warmbrown">Object:</strong> Object to processing of your data for certain purposes</li>
-              </ul>
-              <p className="mt-4">To exercise these rights, contact us at chulbulijewels@gmail.com</p>
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
+              <p>You may access, rectify, and update your personal data directly through the functionalities provided on the Platform.</p>
             </div>
           </section>
 
@@ -227,18 +206,14 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Data Retention
+              Data Deletion and Retention
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-3 text-warmbrown/80">
-              <p>We retain your personal information for as long as necessary to:</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Fulfill the purposes outlined in this policy</li>
-                <li>Comply with legal, tax, and accounting requirements</li>
-                <li>Resolve disputes and enforce agreements</li>
-                <li>Maintain business records for warranty and support purposes</li>
-              </ul>
-              <p className="mt-4">Inactive accounts may be deleted after 3 years of inactivity, with prior notice.</p>
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
+              <p>You have an option to delete your account by visiting your profile and settings on our Platform, this action would result in you losing all information related to your account. You may also write to us at the contact information provided below to assist you with these requests.</p>
+              <p>We may in event of any pending grievance, claims, pending shipments or any other services we may refuse or delay deletion of the account. Once the account is deleted, you will lose access to the account.</p>
+              <p>We retain your personal data information for a period no longer than is required for the purpose for which it was collected or as required under any applicable law. However, we may retain data related to you if we believe it may be necessary to prevent fraud or future abuse or for other legitimate purposes.</p>
+              <p>We may continue to retain your data in anonymised form for analytical and research purposes.</p>
             </div>
           </section>
 
@@ -273,11 +248,11 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Changes to Privacy Policy
+              Changes to this Privacy Policy
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-3 text-warmbrown/80">
-              <p>We may update this privacy policy from time to time. Changes will be posted on this page with an updated &ldquo;Last Updated&rdquo; date. We encourage you to review this policy periodically. Continued use of our services after changes constitutes acceptance of the updated policy.</p>
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
+              <p>Please check our Privacy Policy periodically for changes. We may update this Privacy Policy to reflect changes to our information practices. We may alert / notify you about the significant changes to the Privacy Policy, in the manner as may be required under applicable laws.</p>
             </div>
           </section>
 
@@ -286,20 +261,52 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Contact Us
+              Grievance Officer
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
-            <div className="space-y-3 text-warmbrown/80">
+            <div className="space-y-3 text-warmbrown/80 leading-relaxed">
               <p>If you have questions or concerns about this privacy policy or our data practices, please contact us:</p>
               <div className="bg-rosegold/5 border border-rosegold/30 rounded-lg p-6 mt-4">
-                <p><strong className="text-warmbrown">Chulbuli Jewels</strong></p>
-                <p className="mt-2"><strong>Email:</strong> chulbulijewels@gmail.com</p>
-                <p><strong>Phone:</strong> +91 9867732204</p>
+                <p><strong className="text-warmbrown">CHULBULI JEWELS</strong></p>
+                <p className="mt-2"><strong>Address:</strong> C 1004 Block C Sahitya Green Madhavpura Bapod Vadodara Gujarat 390019 India</p>
+                <p className="mt-3"><strong>Contact Information:</strong></p>
+                <p className="mt-2"><strong>Email:</strong> <a href="mailto:chulbulijewels@gmail.com" className="text-rosegold hover:underline">chulbulijewels@gmail.com</a></p>
+                <p><strong>Phone:</strong> <a href="tel:+919867732204" className="text-rosegold hover:underline">+91 9867732204</a></p>
                 <p><strong>WhatsApp:</strong> <a href="https://whatsapp.com/channel/0029Vb7CuMe9MF8tE3LGor3R" className="text-rosegold hover:underline" target="_blank" rel="noopener noreferrer">Join our channel</a></p>
                 <p><strong>Facebook:</strong> <a href="https://www.facebook.com/profile.php?id=61587171489601" className="text-rosegold hover:underline" target="_blank" rel="noopener noreferrer">Visit our page</a></p>
+                <p className="mt-3 text-sm italic">Time: Monday - Friday (9:00 - 18:00)</p>
               </div>
             </div>
           </section>
+        </div>
+
+        {/* Related Links */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Link
+            href="/terms"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Terms & Conditions
+          </Link>
+          <Link
+            href="/returns"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Return Policy
+          </Link>
+          <Link
+            href="/shipping"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Shipping Policy
+          </Link>
+          <a
+            href="/Policies.pdf"
+            download
+            className="text-center px-6 py-3 bg-rosegold/10 text-warmbrown rounded-full hover:bg-rosegold/20 transition-all duration-300 border border-rosegold/30"
+          >
+            Download PDF
+          </a>
         </div>
 
         {/* Back Button */}

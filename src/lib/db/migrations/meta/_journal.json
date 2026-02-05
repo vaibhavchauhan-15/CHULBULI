@@ -15,6 +15,13 @@
       "when": 1769865466951,
       "tag": "0001_old_quentin_quire",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770220677684,
+      "tag": "0002_purple_wolverine",
+      "breakpoints": true
     }
   ]
 }

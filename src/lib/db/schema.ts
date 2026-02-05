@@ -16,6 +16,14 @@ export const users = pgTable(
     googleId: text('googleId').unique(), // Google user ID for OAuth
     photoUrl: text('photoUrl'), // Profile picture URL from Google
     
+    // Additional profile fields
+    mobile: varchar('mobile', { length: 20 }), // Phone number
+    dateOfBirth: timestamp('dateOfBirth', { mode: 'date' }), // Date of birth
+    
+    // Account status
+    accountStatus: varchar('accountStatus', { length: 20 }).notNull().default('active'), // active, deactivated, deleted
+    deactivatedAt: timestamp('deactivatedAt', { mode: 'date' }), // When account was deactivated
+    
     createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
   },
@@ -23,6 +31,31 @@ export const users = pgTable(
     emailIdx: index('User_email_idx').on(table.email),
     googleIdIdx: index('User_googleId_idx').on(table.googleId),
     providerIdx: index('User_provider_idx').on(table.provider),
+    accountStatusIdx: index('User_accountStatus_idx').on(table.accountStatus),
+  })
+)
+
+// User Addresses table
+export const addresses = pgTable(
+  'Address',
+  {
+    id: text('id').primaryKey(),
+    userId: text('userId').notNull(),
+    label: varchar('label', { length: 50 }).notNull(), // Home, Work, Other
+    fullName: text('fullName').notNull(),
+    mobile: varchar('mobile', { length: 20 }).notNull(),
+    addressLine1: text('addressLine1').notNull(),
+    addressLine2: text('addressLine2'),
+    city: text('city').notNull(),
+    state: text('state').notNull(),
+    pincode: text('pincode').notNull(),
+    isDefault: boolean('isDefault').notNull().default(false),
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('Address_userId_idx').on(table.userId),
+    isDefaultIdx: index('Address_isDefault_idx').on(table.isDefault),
   })
 )
 
@@ -112,6 +145,7 @@ export const orders = pgTable(
   'Order',
   {
     id: text('id').primaryKey(),
+    orderNumber: integer('orderNumber').notNull(), // Sequential order number for display
     userId: text('userId'),
     totalPrice: numeric('totalPrice', { precision: 12, scale: 2 }).notNull(),
     status: varchar('status', { length: 50 }).notNull().default('placed'), // placed, packed, shipped, delivered
@@ -124,6 +158,13 @@ export const orders = pgTable(
     state: text('state').notNull(),
     pincode: text('pincode').notNull(),
     paymentMethod: varchar('paymentMethod', { length: 50 }).notNull().default('cod'), // cod, online
+    
+    // Payment tracking fields
+    paymentStatus: varchar('paymentStatus', { length: 50 }).notNull().default('pending'), // pending, completed, failed
+    razorpayOrderId: text('razorpayOrderId'), // Razorpay order ID
+    razorpayPaymentId: text('razorpayPaymentId'), // Razorpay payment ID
+    razorpaySignature: text('razorpaySignature'), // Payment verification signature
+    
     createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
   },
@@ -131,6 +172,8 @@ export const orders = pgTable(
     userIdIdx: index('Order_userId_idx').on(table.userId),
     statusIdx: index('Order_status_idx').on(table.status),
     createdAtIdx: index('Order_createdAt_idx').on(table.createdAt),
+    paymentStatusIdx: index('Order_paymentStatus_idx').on(table.paymentStatus),
+    orderNumberIdx: index('Order_orderNumber_idx').on(table.orderNumber),
   })
 )
 
@@ -216,6 +259,14 @@ export const productImages = pgTable(
 export const usersRelations = relations(users, ({ many }) => ({
   orders: many(orders),
   reviews: many(reviews),
+  addresses: many(addresses),
+}))
+
+export const addressesRelations = relations(addresses, ({ one }) => ({
+  user: one(users, {
+    fields: [addresses.userId],
+    references: [users.id],
+  }),
 }))
 
 export const productsRelations = relations(products, ({ many }) => ({

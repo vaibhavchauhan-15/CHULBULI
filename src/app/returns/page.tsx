@@ -220,6 +220,35 @@ export default function ReturnsPolicy() {
           </section>
         </div>
 
+        {/* Related Links */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Link
+            href="/terms"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Terms & Conditions
+          </Link>
+          <Link
+            href="/privacy"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Privacy Policy
+          </Link>
+          <Link
+            href="/shipping"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Shipping Policy
+          </Link>
+          <a
+            href="/Policies.pdf"
+            download
+            className="text-center px-6 py-3 bg-rosegold/10 text-warmbrown rounded-full hover:bg-rosegold/20 transition-all duration-300 border border-rosegold/30"
+          >
+            Download PDF
+          </a>
+        </div>
+
         {/* Back Button */}
         <div className="mt-12 text-center">
           <Link

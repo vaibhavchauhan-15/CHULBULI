@@ -279,7 +279,9 @@ export const reviewQueries = {
   },
 }
 
-// Helper to generate CUID-like IDs
+// Helper to generate unique IDs using nanoid
+import { nanoid } from 'nanoid'
+
 export const generateId = (prefix: string) => {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  return `${prefix}_${nanoid(12)}`
 }

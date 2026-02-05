@@ -74,6 +74,21 @@ export async function POST(request: NextRequest) {
     const now = new Date()
 
     if (user) {
+      // Check if account is deleted
+      if (user.accountStatus === 'deleted') {
+        return NextResponse.json(
+          { error: 'This account has been deleted and cannot be restored.' },
+          { status: 403 }
+        )
+      }
+
+      // Reactivate account if it was deactivated
+      const updateData: any = {}
+      if (user.accountStatus === 'deactivated') {
+        updateData.accountStatus = 'active'
+        updateData.deactivatedAt = null
+      }
+
       // User exists - check if we need to update Google OAuth fields
       if (!user.googleId || user.googleId !== googleId) {
         // User exists with email/password auth, now linking Google account
@@ -85,6 +100,7 @@ export async function POST(request: NextRequest) {
             photoUrl: photoUrl || user.photoUrl,
             name: name || user.name,
             updatedAt: now,
+            ...updateData,
           })
           .where(eq(users.id, user.id))
           .returning()
@@ -99,15 +115,23 @@ export async function POST(request: NextRequest) {
           user.id
         )
       } else {
-        // Update photo and name if changed
-        if (user.photoUrl !== photoUrl || user.name !== name) {
+        // Update photo and name if changed, and handle reactivation
+        const updates: any = {
+          updatedAt: now,
+          ...updateData,
+        }
+
+        if (user.photoUrl !== photoUrl) {
+          updates.photoUrl = photoUrl || user.photoUrl
+        }
+        if (user.name !== name) {
+          updates.name = name || user.name
+        }
+
+        if (Object.keys(updates).length > 1) { // More than just updatedAt
           const [updatedUser] = await db
             .update(users)
-            .set({
-              photoUrl: photoUrl || user.photoUrl,
-              name: name || user.name,
-              updatedAt: now,
-            })
+            .set(updates)
             .where(eq(users.id, user.id))
             .returning()
 

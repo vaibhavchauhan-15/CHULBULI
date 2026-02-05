@@ -71,6 +71,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if account is deleted
+    if (user.accountStatus === 'deleted') {
+      return NextResponse.json(
+        { error: 'This account has been deleted and cannot be restored.' },
+        { status: 403 }
+      )
+    }
+
+    // Reactivate account if it was deactivated
+    if (user.accountStatus === 'deactivated') {
+      await db
+        .update(users)
+        .set({
+          accountStatus: 'active',
+          deactivatedAt: null,
+        })
+        .where(eq(users.id, user.id))
+    }
+
     // Generate secure JWT token
     const token = generateToken({
       userId: user.id,

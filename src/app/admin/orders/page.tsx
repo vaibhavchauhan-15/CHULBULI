@@ -117,7 +117,7 @@ export default function AdminOrdersPage() {
                   <div className="w-full lg:w-auto">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 md:gap-3 mb-2">
                       <h3 className="font-playfair font-bold text-warmbrown text-base md:text-lg lg:text-xl">
-                        Order #{order.id.slice(0, 8)}
+                        Order #{order.orderNumber || order.id.slice(0, 8)}
                       </h3>
                       <select
                         value={order.status}
@@ -189,9 +189,33 @@ export default function AdminOrdersPage() {
                 <div className="bg-gradient-to-br from-sand/40 to-softgold/20 rounded-2xl p-6 border-2 border-softgold/30">
                   <h4 className="text-sm font-bold text-warmbrown mb-5 flex items-center gap-2">
                     <FiMapPin className="text-rosegold" size={18} />
-                    SHIPPING DETAILS
+                    SHIPPING & PAYMENT DETAILS
                   </h4>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                    {/* Payment Information */}
+                    <div className="flex items-start gap-3 p-3 bg-white/60 rounded-xl">
+                      <div className="p-2 bg-rosegold/10 rounded-lg">
+                        <FiPackage size={16} className="text-rosegold" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-taupe font-semibold mb-1">Payment Method</p>
+                        <p className="text-sm font-bold text-warmbrown capitalize">{order.paymentMethod || 'COD'}</p>
+                        {order.paymentStatus && (
+                          <p className={`text-xs font-semibold mt-1 ${
+                            order.paymentStatus === 'completed' ? 'text-emerald-600' : 
+                            order.paymentStatus === 'failed' ? 'text-red-600' : 
+                            'text-amber-600'
+                          }`}>
+                            Status: {order.paymentStatus.toUpperCase()}
+                          </p>
+                        )}
+                        {order.razorpayPaymentId && (
+                          <p className="text-xs text-taupe mt-1 font-mono">
+                            ID: {order.razorpayPaymentId.slice(0, 20)}...
+                          </p>
+                        )}
+                      </div>
+                    </div>
                     <div className="flex items-start gap-3 p-3 bg-white/60 rounded-xl">
                       <div className="p-2 bg-rosegold/10 rounded-lg">
                         <FiUser size={16} className="text-rosegold" />

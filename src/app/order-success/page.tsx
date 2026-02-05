@@ -11,6 +11,7 @@ function OrderSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
+  const paymentId = searchParams.get('paymentId')
 
   useEffect(() => {
     if (!orderId) {
@@ -38,13 +39,20 @@ function OrderSuccessContent() {
             </p>
 
             {orderId && (
-              <p className="text-xs md:text-sm text-[#5A3E2B]/50 mb-6 md:mb-8">
-                Order ID: <span className="font-mono font-semibold">{orderId.slice(0, 12)}</span>
-              </p>
+              <div className="mb-6 md:mb-8 space-y-2">
+                <p className="text-xs md:text-sm text-[#5A3E2B]/50">
+                  Order ID: <span className="font-mono font-semibold">{orderId.slice(0, 12)}</span>
+                </p>
+                {paymentId && (
+                  <p className="text-xs md:text-sm text-emerald-600/80">
+                    Payment ID: <span className="font-mono font-semibold">{paymentId}</span>
+                  </p>
+                )}
+              </div>
             )}
 
             <div className="space-y-3 md:space-y-4">
-              <Link href="/dashboard" className="btn-primary btn-mobile-full md:w-full inline-block touch-target">
+              <Link href="/account?tab=orders" className="btn-primary btn-mobile-full md:w-full inline-block touch-target">
                 View Order Details
               </Link>
               <Link
@@ -64,15 +72,15 @@ function OrderSuccessContent() {
                 </div>
                 <div className="flex gap-2 md:gap-3">
                   <span className="font-semibold text-[#C89A7A] flex-shrink-0">2.</span>
-                  <p>We&apos;ll pack your order with care</p>
+                  <p>{paymentId ? 'Your payment is confirmed and secure' : 'Pay cash on delivery when you receive your order'}</p>
                 </div>
                 <div className="flex gap-2 md:gap-3">
                   <span className="font-semibold text-[#C89A7A] flex-shrink-0">3.</span>
-                  <p>Your order will be shipped to your address</p>
+                  <p>We&apos;ll pack your order with care</p>
                 </div>
                 <div className="flex gap-2 md:gap-3">
                   <span className="font-semibold text-[#C89A7A] flex-shrink-0">4.</span>
-                  <p>Pay cash on delivery when you receive your order</p>
+                  <p>Your order will be shipped to your address</p>
                 </div>
               </div>
             </div>
