@@ -240,6 +240,64 @@ export default function CheckoutPage() {
     setShowAddressForm(false)
   }
 
+  // Helper function to save address to user account
+  const saveAddressToAccount = async () => {
+    if (!user) return // Only save if user is logged in
+
+    // Check if this address already exists
+    const isExistingAddress = savedAddresses.some(addr => 
+      addr.addressLine1 === formData.addressLine1 &&
+      addr.city === formData.city &&
+      addr.state === formData.state &&
+      addr.pincode === formData.pincode
+    )
+
+    if (isExistingAddress) return // Don't save duplicate address
+
+    try {
+      // Update mobile number in profile if it's new
+      if (formData.customerPhone && formData.customerPhone !== userProfile?.mobile) {
+        await fetch('/api/user/profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            mobile: formData.customerPhone,
+          }),
+        })
+      }
+
+      // Save the new address
+      const response = await fetch('/api/user/addresses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          label: 'Checkout Address',
+          fullName: formData.customerName,
+          mobile: formData.customerPhone,
+          addressLine1: formData.addressLine1,
+          addressLine2: formData.addressLine2,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          isDefault: savedAddresses.length === 0, // Set as default if it's the first address
+        }),
+      })
+
+      if (response.ok) {
+        console.log('Address saved to account successfully')
+      }
+    } catch (error) {
+      console.error('Error saving address to account:', error)
+      // Don't show error to user as this is a background operation
+    }
+  }
+
   const validateCartItems = async () => {
     const productIds = selectedItems.map(item => item.id)
     
@@ -320,6 +378,10 @@ export default function CheckoutPage() {
 
         if (response.ok) {
           const order = await response.json()
+          
+          // Save address to user account after successful order
+          await saveAddressToAccount()
+          
           selectedItems.forEach(item => removeItem(item.id))
           deselectAllItems()
           toast.success('Order placed successfully!')
@@ -413,6 +475,10 @@ export default function CheckoutPage() {
 
                 if (orderResponse.ok) {
                   const order = await orderResponse.json()
+                  
+                  // Save address to user account after successful order
+                  await saveAddressToAccount()
+                  
                   selectedItems.forEach(item => removeItem(item.id))
                   deselectAllItems()
                   toast.success('Payment successful! Order placed.')
