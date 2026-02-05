@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -150,13 +150,7 @@ export default function AccountPage() {
     }
   }, [searchParams])
 
-  useEffect(() => {
-    if (!isLoading && user) {
-      fetchData()
-    }
-  }, [isLoading, user, activeTab])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true)
     setError('')
 
@@ -193,7 +187,13 @@ export default function AccountPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [activeTab])
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      fetchData()
+    }
+  }, [isLoading, user, fetchData])
 
   const handleProfileUpdate = async () => {
     try {

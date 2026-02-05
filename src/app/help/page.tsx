@@ -18,7 +18,7 @@ export default function HelpPage() {
             Help & Support
           </h1>
           <p className="text-lg text-warmbrown/70">
-            We're here to help! Get answers to your questions or reach out to our support team.
+            We&apos;re here to help! Get answers to your questions or reach out to our support team.
           </p>
         </div>
 
@@ -53,7 +53,7 @@ export default function HelpPage() {
                       +91 98677 32204
                     </a>
                     <p className="text-sm text-warmbrown/60 mt-2">
-                      💬 Message us and we'll reply within 24 hours
+                      💬 Message us and we&apos;ll reply within 24 hours
                     </p>
                   </div>
                 </div>
@@ -99,7 +99,7 @@ export default function HelpPage() {
                       chulbulijewels@gmail.com
                     </a>
                     <p className="text-sm text-warmbrown/60 mt-2">
-                      📧 We'll respond within 48 hours
+                      📧 We&apos;ll respond within 48 hours
                     </p>
                   </div>
                 </div>
@@ -148,7 +148,7 @@ export default function HelpPage() {
                   How do I track my order?
                 </h3>
                 <p className="text-warmbrown/70 leading-relaxed">
-                  Once your order is shipped, you'll receive a tracking number via email and SMS. You can also track your order by logging into your account and visiting the "My Orders" section.
+                  Once your order is shipped, you&apos;ll receive a tracking number via email and SMS. You can also track your order by logging into your account and visiting the &quot;My Orders&quot; section.
                 </p>
               </div>
 
@@ -159,7 +159,7 @@ export default function HelpPage() {
                   Can I cancel my order?
                 </h3>
                 <p className="text-warmbrown/70 leading-relaxed">
-                  Yes! You can cancel your order within 24 hours of placing it. Go to "My Orders" in your account and click "Cancel Order". If it's already shipped, you'll need to follow our return process once you receive it.
+                  Yes! You can cancel your order within 24 hours of placing it. Go to &quot;My Orders&quot; in your account and click &quot;Cancel Order&quot;. If it&apos;s already shipped, you&apos;ll need to follow our return process once you receive it.
                 </p>
               </div>
 
@@ -194,7 +194,7 @@ export default function HelpPage() {
                   📦 What if I receive a damaged item?
                 </h3>
                 <p className="text-warmbrown/70 leading-relaxed">
-                  We're sorry to hear that! Please don't worry - contact us immediately via WhatsApp with photos of the damaged item and packaging. We'll arrange a replacement or full refund right away. Quality is our priority!
+                  We&apos;re sorry to hear that! Please don&apos;t worry - contact us immediately via WhatsApp with photos of the damaged item and packaging. We&apos;ll arrange a replacement or full refund right away. Quality is our priority!
                 </p>
               </div>
 
@@ -253,7 +253,7 @@ export default function HelpPage() {
 
             <div className="mt-6 bg-white/60 rounded-lg p-4 border-l-4 border-rosegold">
               <p className="text-warmbrown/80 text-sm">
-                <strong>📦 Track Your Order:</strong> All orders are shipped with tracking. You'll receive updates via SMS and email.
+                <strong>📦 Track Your Order:</strong> All orders are shipped with tracking. You&apos;ll receive updates via SMS and email.
               </p>
             </div>
           </div>
