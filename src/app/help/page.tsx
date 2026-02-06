@@ -93,10 +93,10 @@ export default function HelpPage() {
                   <div className="ml-4">
                     <h3 className="text-lg font-semibold text-warmbrown mb-2">Support Email</h3>
                     <a 
-                      href="mailto:chulbulijewels@gmail.com"
+                      href="mailto:support@chulbulijewels.in"
                       className="text-rosegold hover:text-rosegold/80 font-medium"
                     >
-                      chulbulijewels@gmail.com
+                      support@chulbulijewels.in
                     </a>
                     <p className="text-sm text-warmbrown/60 mt-2">
                       📧 We&apos;ll respond within 48 hours

@@ -107,7 +107,7 @@ export default function Footer() {
                 <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-rosegold/10 border border-rosegold/30 flex items-center justify-center flex-shrink-0 group-hover:bg-rosegold group-hover:border-rosegold transition-all duration-500">
                   <FiMail className="w-3.5 h-3.5 md:w-4 md:h-4 text-softgold group-hover:text-white transition-colors" />
                 </div>
-                <span className="mt-0.5 md:mt-1 break-all md:break-normal">chulbulijewels@gmail.com</span>
+                <span className="mt-0.5 md:mt-1 break-all md:break-normal">support@chulbulijewels.in</span>
               </li>
               <li className="flex items-start gap-2 md:gap-3 text-pearl/90 text-xs md:text-sm font-light group hover:text-white transition-colors duration-500 justify-center md:justify-start">
                 <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-rosegold/10 border border-rosegold/30 flex items-center justify-center flex-shrink-0 group-hover:bg-rosegold group-hover:border-rosegold transition-all duration-500">

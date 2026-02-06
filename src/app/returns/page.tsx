@@ -107,7 +107,7 @@ export default function ReturnsPolicy() {
             <div className="space-y-4 text-warmbrown/80">
               <div className="bg-rosegold/5 border-l-4 border-rosegold p-4 rounded">
                 <p className="font-semibold text-warmbrown mb-2">Step 1: Contact Us</p>
-                <p className="text-sm">Email us at chulbulijewels@gmail.com or call +91 9867732204 with your order number and reason for return.</p>
+                <p className="text-sm">Email us at support@chulbulijewels.in or call +91 9867732204 with your order number and reason for return.</p>
               </div>
               <div className="bg-rosegold/5 border-l-4 border-rosegold p-4 rounded">
                 <p className="font-semibold text-warmbrown mb-2">Step 2: Get Approval</p>
@@ -212,7 +212,7 @@ export default function ReturnsPolicy() {
             </h2>
             <div className="space-y-3 text-warmbrown/80">
               <p>For return or exchange assistance, reach out to our dedicated customer support:</p>
-              <p><strong className="text-warmbrown">Email:</strong> chulbulijewels@gmail.com</p>
+              <p><strong className="text-warmbrown">Email:</strong> support@chulbulijewels.in</p>
               <p><strong className="text-warmbrown">Phone:</strong> +91 9867732204</p>
               <p><strong className="text-warmbrown">WhatsApp:</strong> <a href="https://whatsapp.com/channel/0029Vb7CuMe9MF8tE3LGor3R" className="text-rosegold hover:underline" target="_blank" rel="noopener noreferrer">Join our channel</a></p>
               <p><strong className="text-warmbrown">Business Hours:</strong> Monday - Saturday, 10:00 AM - 7:00 PM IST</p>

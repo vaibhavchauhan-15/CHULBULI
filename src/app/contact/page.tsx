@@ -70,8 +70,8 @@ export default function ContactUs() {
               <FiMail className="w-6 h-6 md:w-7 md:h-7 text-rosegold" />
             </div>
             <h3 className="font-playfair text-base md:text-lg text-warmbrown mb-2">Email</h3>
-            <a href="mailto:chulbulijewels@gmail.com" className="text-warmbrown/70 hover:text-rosegold transition-colors text-xs md:text-sm break-all touch-target">
-              chulbulijewels@gmail.com
+            <a href="mailto:support@chulbulijewels.in" className="text-warmbrown/70 hover:text-rosegold transition-colors text-xs md:text-sm break-all touch-target">
+              support@chulbulijewels.in
             </a>
           </div>
 

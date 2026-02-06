@@ -150,7 +150,7 @@ export default function ShippingPolicy() {
             <div className="space-y-3 text-warmbrown/80">
               <p><strong className="text-warmbrown">Incorrect Address:</strong> Please ensure your shipping address is accurate. We are not responsible for orders shipped to incorrect addresses provided by the customer.</p>
               <p><strong className="text-warmbrown">Failed Delivery Attempts:</strong> If delivery fails due to unavailability, the courier will make 2-3 attempts. Please ensure someone is available to receive the package.</p>
-              <p><strong className="text-warmbrown">Damaged Package:</strong> If you receive a damaged package, please refuse delivery and contact us immediately at chulbulijewels@gmail.com or +91 9867732204.</p>
+              <p><strong className="text-warmbrown">Damaged Package:</strong> If you receive a damaged package, please refuse delivery and contact us immediately at support@chulbulijewels.in or +91 9867732204.</p>
             </div>
           </section>
 
@@ -164,7 +164,7 @@ export default function ShippingPolicy() {
             </h2>
             <div className="space-y-3 text-warmbrown/80">
               <p>For any shipping-related queries, please reach out to us:</p>
-              <p><strong className="text-warmbrown">Email:</strong> chulbulijewels@gmail.com</p>
+              <p><strong className="text-warmbrown">Email:</strong> support@chulbulijewels.in</p>
               <p><strong className="text-warmbrown">Phone:</strong> +91 9867732204</p>
               <p><strong className="text-warmbrown">WhatsApp:</strong> <a href="https://whatsapp.com/channel/0029Vb7CuMe9MF8tE3LGor3R" className="text-rosegold hover:underline" target="_blank" rel="noopener noreferrer">Join our channel</a></p>
             </div>

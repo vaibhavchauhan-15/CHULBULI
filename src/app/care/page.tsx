@@ -240,7 +240,7 @@ export default function CareInstructions() {
                 <li><strong className="text-warmbrown">Polishing:</strong> Professional polishing to restore original luster</li>
                 <li><strong className="text-warmbrown">Stone Setting:</strong> Loose stone re-setting and prong tightening</li>
               </ul>
-              <p className="mt-4">Contact us at chulbulijewels@gmail.com or +91 9867732204 to schedule a service appointment.</p>
+              <p className="mt-4">Contact us at support@chulbulijewels.in or +91 9867732204 to schedule a service appointment.</p>
             </div>
           </section>
 
