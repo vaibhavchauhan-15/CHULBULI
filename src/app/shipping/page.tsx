@@ -27,16 +27,16 @@ export default function ShippingPolicy() {
             <div className="w-12 h-12 rounded-full bg-rosegold/10 flex items-center justify-center mb-4">
               <FiTruck className="w-6 h-6 text-rosegold" />
             </div>
-            <h3 className="font-playfair text-xl text-warmbrown mb-2">Domestic Shipping</h3>
-            <p className="text-warmbrown/70 text-sm">3-7 business days across India</p>
+            <h3 className="font-playfair text-xl text-warmbrown mb-2">Courier Partners</h3>
+            <p className="text-warmbrown/70 text-sm">Registered domestic courier companies & speed post</p>
           </div>
 
           <div className="bg-white/70 backdrop-blur-sm rounded-lg p-6 shadow-luxury border border-rosegold/20">
             <div className="w-12 h-12 rounded-full bg-rosegold/10 flex items-center justify-center mb-4">
               <FiClock className="w-6 h-6 text-rosegold" />
             </div>
-            <h3 className="font-playfair text-xl text-warmbrown mb-2">Processing Time</h3>
-            <p className="text-warmbrown/70 text-sm">Orders processed within 1-2 business days</p>
+            <h3 className="font-playfair text-xl text-warmbrown mb-2">Shipping Time</h3>
+            <p className="text-warmbrown/70 text-sm">Orders shipped within 5 days from order date</p>
           </div>
 
           <div className="bg-white/70 backdrop-blur-sm rounded-lg p-6 shadow-luxury border border-rosegold/20">
@@ -44,15 +44,15 @@ export default function ShippingPolicy() {
               <FiPackage className="w-6 h-6 text-rosegold" />
             </div>
             <h3 className="font-playfair text-xl text-warmbrown mb-2">Secure Packaging</h3>
-            <p className="text-warmbrown/70 text-sm">Premium packaging with insurance</p>
+            <p className="text-warmbrown/70 text-sm">Safe and secure packaging for your orders</p>
           </div>
 
           <div className="bg-white/70 backdrop-blur-sm rounded-lg p-6 shadow-luxury border border-rosegold/20">
             <div className="w-12 h-12 rounded-full bg-rosegold/10 flex items-center justify-center mb-4">
               <FiMapPin className="w-6 h-6 text-rosegold" />
             </div>
-            <h3 className="font-playfair text-xl text-warmbrown mb-2">Order Tracking</h3>
-            <p className="text-warmbrown/70 text-sm">Real-time tracking for all orders</p>
+            <h3 className="font-playfair text-xl text-warmbrown mb-2">Email Confirmation</h3>
+            <p className="text-warmbrown/70 text-sm">Delivery confirmation sent to your registered email</p>
           </div>
         </div>
 
@@ -67,8 +67,8 @@ export default function ShippingPolicy() {
             <div className="space-y-3 text-warmbrown/80">
               <p><strong className="text-warmbrown">FREE Shipping:</strong> On all orders above ₹500</p>
               <p><strong className="text-warmbrown">Standard Shipping:</strong> ₹59 for orders below ₹500</p>
-              <p><strong className="text-warmbrown">Express Shipping:</strong> ₹149 (Delivery within 2-3 business days in metro cities)</p>
               <p className="text-sm italic">* Shipping charges are calculated at checkout based on your location and order value.</p>
+              <p className="text-sm font-semibold text-warmbrown mt-4"><strong>Important:</strong> Shipping costs are non-refundable.</p>
             </div>
           </section>
 
@@ -81,10 +81,8 @@ export default function ShippingPolicy() {
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
             <div className="space-y-3 text-warmbrown/80">
-              <p><strong className="text-warmbrown">Metro Cities:</strong> 3-5 business days</p>
-              <p><strong className="text-warmbrown">Other Cities:</strong> 5-7 business days</p>
-              <p><strong className="text-warmbrown">Remote Areas:</strong> 7-10 business days</p>
-              <p className="text-sm italic">* Delivery times are estimates and may vary due to courier delays or unforeseen circumstances.</p>
+              <p>Delivery times are subject to courier company and post office norms. While we strive for timely delivery, the platform owner shall not be liable for any delay in delivery by the courier company or postal authority.</p>
+              <p className="text-sm italic mt-4">* Actual delivery times may vary based on your location and courier service.</p>
             </div>
           </section>
 
@@ -93,12 +91,14 @@ export default function ShippingPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Order Processing
+              Shipping & Order Processing
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
             <div className="space-y-3 text-warmbrown/80">
-              <p>All orders are processed within <strong className="text-warmbrown">1-2 business days</strong>. Orders placed on weekends or public holidays will be processed the next business day.</p>
-              <p>You will receive an order confirmation email immediately after placing your order, followed by a shipping confirmation email with tracking details once your order has been dispatched.</p>
+              <p><strong className="text-warmbrown">Courier Partners:</strong> Orders are shipped through registered domestic courier companies and/or speed post only.</p>
+              <p><strong className="text-warmbrown">Shipping Timeline:</strong> Orders are shipped within <strong className="text-warmbrown">5 days</strong> from the date of order and/or payment, or as per the delivery date agreed at the time of order confirmation.</p>
+              <p><strong className="text-warmbrown">Delivery Address:</strong> All orders will be delivered to the address provided by you at the time of purchase. Please ensure the address is accurate.</p>
+              <p><strong className="text-warmbrown">Confirmation:</strong> You will receive delivery confirmation and updates on your registered email ID as specified at the time of registration.</p>
             </div>
           </section>
 
@@ -111,13 +111,7 @@ export default function ShippingPolicy() {
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
             <div className="space-y-3 text-warmbrown/80">
-              <p>At Chulbuli Jewels, we understand the value of your purchase. All jewelry items are:</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Packed in premium, secure packaging to prevent damage during transit</li>
-                <li>Wrapped in elegant gift boxes suitable for gifting</li>
-                <li>Insured against loss or damage during shipping</li>
-                <li>Shipped via trusted courier partners with tamper-proof sealing</li>
-              </ul>
+              <p>All jewelry items are securely packaged to prevent damage during transit and shipped via trusted courier partners.</p>
             </div>
           </section>
 
@@ -130,12 +124,7 @@ export default function ShippingPolicy() {
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
             <div className="space-y-3 text-warmbrown/80">
-              <p>Once your order is shipped, you will receive a tracking number via email and SMS. You can track your order through:</p>
-              <ul className="list-disc list-inside space-y-2 ml-4">
-                <li>Your Chulbuli Jewels account dashboard</li>
-                <li>The courier partner&apos;s website using your tracking number</li>
-                <li>Our customer support team at hello@chulbulijewels.com</li>
-              </ul>
+              <p>Once your order is shipped, you will receive tracking information via email. You can track your order through the courier partner&apos;s website using your tracking number or contact our customer support team.</p>
             </div>
           </section>
 
@@ -144,13 +133,14 @@ export default function ShippingPolicy() {
           <section>
             <h2 className="font-playfair text-2xl text-warmbrown mb-4 flex items-center gap-3">
               <div className="h-px flex-1 bg-gradient-to-r from-rosegold/50 to-transparent" />
-              Delivery Issues
+              Important Notes
               <div className="h-px flex-1 bg-gradient-to-l from-rosegold/50 to-transparent" />
             </h2>
             <div className="space-y-3 text-warmbrown/80">
-              <p><strong className="text-warmbrown">Incorrect Address:</strong> Please ensure your shipping address is accurate. We are not responsible for orders shipped to incorrect addresses provided by the customer.</p>
-              <p><strong className="text-warmbrown">Failed Delivery Attempts:</strong> If delivery fails due to unavailability, the courier will make 2-3 attempts. Please ensure someone is available to receive the package.</p>
-              <p><strong className="text-warmbrown">Damaged Package:</strong> If you receive a damaged package, please refuse delivery and contact us immediately at support@chulbulijewels.in or +91 9867732204.</p>
+              <p><strong className="text-warmbrown">Delivery Address:</strong> Please ensure your shipping address is accurate. We are not responsible for orders shipped to incorrect addresses provided by the customer.</p>
+              <p><strong className="text-warmbrown">Courier Delays:</strong> The platform owner shall not be liable for any delay in delivery by the courier company or postal authority.</p>
+              <p><strong className="text-warmbrown">Shipping Costs:</strong> If there are any shipping costs levied by the seller or the platform owner, the same are not refundable.</p>
+              <p><strong className="text-warmbrown">Damaged Package:</strong> If you receive a damaged package, please contact us immediately at support@chulbulijewels.in or +91 9867732204.</p>
             </div>
           </section>
 
@@ -172,7 +162,7 @@ export default function ShippingPolicy() {
         </div>
 
         {/* Related Links */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-5 gap-4">
           <Link
             href="/terms"
             className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
@@ -191,6 +181,12 @@ export default function ShippingPolicy() {
           >
             Return Policy
           </Link>
+          <Link
+            href="/refund"
+            className="text-center px-6 py-3 bg-white/70 text-warmbrown rounded-full hover:bg-rosegold/10 transition-all duration-300 border border-rosegold/20"
+          >
+            Refund Policy
+          </Link>
           <a
             href="/Policies.pdf"
             download
@@ -198,16 +194,6 @@ export default function ShippingPolicy() {
           >
             Download PDF
           </a>
-        </div>
-
-        {/* Back Button */}
-        <div className="mt-12 text-center">
-          <Link
-            href="/"
-            className="inline-block px-8 py-3 bg-rosegold text-pearl rounded-full hover:bg-rosegold/90 transition-all duration-500 hover:shadow-lg hover:shadow-rosegold/30"
-          >
-            Back to Home
-          </Link>
         </div>
       </div>
     </div>

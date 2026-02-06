@@ -84,7 +84,13 @@ export default function Footer() {
               <li>
                 <Link href="/returns" className="text-pearl/90 hover:text-white hover:pl-2 transition-all duration-500 text-xs md:text-sm font-light flex items-center gap-2 group justify-center md:justify-start">
                   <span className="w-1 h-1 bg-rosegold rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                  Returns & Refund
+                  Return Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/refund" className="text-pearl/90 hover:text-white hover:pl-2 transition-all duration-500 text-xs md:text-sm font-light flex items-center gap-2 group justify-center md:justify-start">
+                  <span className="w-1 h-1 bg-rosegold rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                  Refund Policy
                 </Link>
               </li>
               <li>
