@@ -49,7 +49,7 @@ export default function HomePage() {
     {
       name: 'Necklaces',
       image: '/categories/necklaces.jpg',
-      href: '/products?category=necklaces',
+      href: '/products/necklaces',
       icon: GiNecklace,
       color: 'from-rose-50 to-rose-100',
       iconColor: 'text-rose-700',
@@ -57,7 +57,7 @@ export default function HomePage() {
     {
       name: 'Rings',
       image: '/categories/rings.jpg',
-      href: '/products?category=rings',
+      href: '/products/rings',
       icon: GiDiamondRing,
       color: 'from-purple-50 to-purple-100',
       iconColor: 'text-purple-700',
@@ -65,7 +65,7 @@ export default function HomePage() {
     {
       name: 'Bangles',
       image: '/categories/bangles.jpg',
-      href: '/products?category=bangles',
+      href: '/products/bangles',
       icon: TbCirclesRelation,
       color: 'from-emerald-50 to-emerald-100',
       iconColor: 'text-emerald-700',
@@ -140,6 +140,7 @@ export default function HomePage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 lg:gap-8">
               {categories.map((category) => {
                 const IconComponent = category.icon
+                const isComingSoon = ['Necklaces', 'Rings', 'Bangles'].includes(category.name)
                 return (
                   <Link
                     key={category.name}
@@ -148,6 +149,15 @@ export default function HomePage() {
                   >
                     {/* Card with mobile-optimized design */}
                     <div className="relative bg-pearl/80 rounded-2xl md:rounded-3xl border border-softgold/40 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-all duration-300 md:duration-500 overflow-hidden hover:border-rosegold/60 active:scale-95 md:hover:-translate-y-3">
+                      {/* Coming Soon Badge */}
+                      {isComingSoon && (
+                        <div className="absolute top-2 right-2 md:top-3 md:right-3 z-20">
+                          <span className="inline-block bg-gradient-to-r from-amber-500 to-amber-600 text-white text-[10px] md:text-xs font-semibold px-2 md:px-3 py-1 md:py-1.5 rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                            Coming Soon
+                          </span>
+                        </div>
+                      )}
+                      
                       {/* Gradient background */}
                       <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-40 transition-opacity duration-300 md:duration-500`} />
                       
