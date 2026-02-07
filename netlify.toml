@@ -3,12 +3,11 @@
   package = "@netlify/plugin-nextjs"
 
 [build]
-  command = "npm install && npm run build"
+  command = "npm run build"
   # publish directory is automatically handled by @netlify/plugin-nextjs
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--legacy-peer-deps"
 
 # Cache static assets for better performance
 [[headers]]
@@ -20,14 +19,3 @@
   for = "/public/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
-
-# Environment-specific configurations
-# Note: NODE_ENV should not be set during install phase to allow devDependencies
-[context.production]
-  command = "npm install && NODE_ENV=production npm run build"
-
-[context.deploy-preview]
-  command = "npm install && NODE_ENV=production npm run build"
-
-[context.branch-deploy]
-  command = "npm install && NODE_ENV=production npm run build"
