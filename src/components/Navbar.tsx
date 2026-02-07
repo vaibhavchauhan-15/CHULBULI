@@ -35,7 +35,7 @@ export default function Navbar() {
     { name: 'Rings', href: '/products?category=rings' },
     { name: 'Bangles', href: '/products?category=bangles' },
     { name: 'Sets', href: '/products?category=sets' },
-  ]
+  ].filter(cat => cat.name === 'Earrings') // Hide Necklaces, Rings, Bangles, Sets - to unhide, remove this filter
 
   return (
     <nav

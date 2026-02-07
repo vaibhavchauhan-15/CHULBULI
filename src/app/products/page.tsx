@@ -69,7 +69,7 @@ function ProductsContent() {
     { value: 'rings', label: 'Rings' },
     { value: 'bangles', label: 'Bangles' },
     { value: 'sets', label: 'Sets' },
-  ]
+  ].filter(cat => cat.value === 'all' || cat.value === 'earrings') // Hide Necklaces, Rings, Bangles, Sets - to unhide, remove this filter
 
   return (
     <>
