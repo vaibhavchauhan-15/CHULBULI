@@ -31,7 +31,7 @@ export default function NecklacesPage() {
 
           {/* Description */}
           <p className="text-lg md:text-xl text-rose-900 mb-12 max-w-2xl mx-auto leading-relaxed">
-            We're crafting an exquisite collection of necklaces that will adorn your elegance. 
+            We&apos;re crafting an exquisite collection of necklaces that will adorn your elegance. 
             Our artisans are working tirelessly to bring you timeless pieces that speak to your soul.
           </p>
 

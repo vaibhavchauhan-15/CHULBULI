@@ -31,7 +31,7 @@ export default function RingsPage() {
 
           {/* Description */}
           <p className="text-lg md:text-xl text-purple-900 mb-12 max-w-2xl mx-auto leading-relaxed">
-            We're designing an exquisite collection of rings that will symbolize your precious moments. 
+            We&apos;re designing an exquisite collection of rings that will symbolize your precious moments. 
             From elegant bands to stunning statement pieces, each ring is being crafted with love and precision.
           </p>
 

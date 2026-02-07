@@ -31,7 +31,7 @@ export default function BanglesPage() {
 
           {/* Description */}
           <p className="text-lg md:text-xl text-emerald-900 mb-12 max-w-2xl mx-auto leading-relaxed">
-            We're curating an enchanting collection of bangles that will grace your wrists with timeless beauty. 
+            We&apos;re curating an enchanting collection of bangles that will grace your wrists with timeless beauty. 
             Each piece is being handcrafted to perfection, bringing together tradition and contemporary elegance.
           </p>
 
