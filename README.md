@@ -1735,6 +1735,83 @@ npm run db:seed
 
 ---
 
+<div style="background: linear-gradient(135deg, #E8D5C2 0%, #F7F6F3 100%); padding: 30px; border-radius: 16px; border: 2px solid #C89A7A; margin: 20px 0;">
+
+## 🚀 Deployment
+
+<div style="color: #5A3E2B;">
+
+### Netlify Deployment
+
+This project is configured for easy deployment on **Netlify** with automatic CI/CD from your Git repository.
+
+#### Quick Deploy
+
+1. **Push to GitHub/GitLab/Bitbucket**
+   ```bash
+   git add .
+   git commit -m "Ready for Netlify deployment"
+   git push origin main
+   ```
+
+2. **Connect to Netlify**
+   - Log in to [Netlify](https://netlify.com)
+   - Click "Add new site" → "Import an existing project"
+   - Select your repository
+   - Netlify will auto-detect the `netlify.toml` configuration
+
+3. **Set Environment Variables**
+   
+   In Netlify Dashboard → Site settings → Environment variables, add all variables from `.env.example`:
+   
+   - `DATABASE_URL` - PostgreSQL connection (use Supabase/Neon for production)
+   - `JWT_SECRET` - Generate a new secure secret for production
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, etc.
+   - `FIREBASE_SERVICE_ACCOUNT_KEY` - Base64 encoded service account
+   - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`
+   - `NODE_ENV=production`
+
+4. **Update External Service Configurations**
+   
+   - **Firebase**: Add your Netlify domain (e.g., `yoursite.netlify.app`) to authorized domains
+   - **Razorpay**: Add your Netlify domain to authorized domains
+   - **Database**: Ensure your database allows connections from Netlify
+
+5. **Deploy**
+   
+   Click "Deploy site" - Your site will be live in 2-5 minutes at `https://[site-name].netlify.app`
+
+#### Configuration Files
+
+The project includes these Netlify-ready files:
+
+- **`netlify.toml`** - Build configuration, redirects, headers
+- **`next.config.js`** - Updated with Netlify CSP domains
+- **`package.json`** - Includes `@netlify/plugin-nextjs`
+
+#### Continuous Deployment
+
+Once connected, Netlify automatically:
+- Deploys on every push to main/master branch
+- Creates deploy previews for pull requests
+- Provides unique URLs for each deployment
+
+#### Custom Domain (Optional)
+
+1. In Netlify Dashboard → Domain management
+2. Add custom domain
+3. Update DNS records as instructed
+4. SSL certificates are provisioned automatically
+
+📖 **Detailed Guide:** See [NETLIFY_DEPLOYMENT.md](NETLIFY_DEPLOYMENT.md) for complete deployment instructions, troubleshooting, and best practices.
+
+</div>
+
+</div>
+
+---
+
 <div style="background: #F7F6F3; padding: 20px; border-radius: 12px; border: 1px solid #E6C9A8;">
 
 ## 🎨 Design System

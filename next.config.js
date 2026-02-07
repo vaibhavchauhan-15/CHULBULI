@@ -61,11 +61,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://www.gstatic.com https://chulbuli-jewels-store.firebaseapp.com https://checkout.razorpay.com https://vercel.live https://*.vercel.app https://*.vercel-scripts.com",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://apis.google.com https://accounts.google.com https://www.gstatic.com https://chulbuli-jewels-store.firebaseapp.com https://checkout.razorpay.com https://vercel.live https://*.vercel.app https://*.vercel-scripts.com https://*.netlify.app https://*.netlify.com",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com https://vercel.live",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://res.cloudinary.com https://accounts.google.com https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://chulbuli-jewels-store.firebaseapp.com https://*.firebaseio.com wss://*.firebaseio.com https://api.razorpay.com https://lumberjack.razorpay.com https://vercel.live wss://vercel.live",
+              "connect-src 'self' https://res.cloudinary.com https://accounts.google.com https://www.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseinstallations.googleapis.com https://chulbuli-jewels-store.firebaseapp.com https://*.firebaseio.com wss://*.firebaseio.com https://api.razorpay.com https://lumberjack.razorpay.com https://vercel.live wss://vercel.live https://*.netlify.app https://*.netlify.com",
               "frame-src 'self' https://accounts.google.com https://www.google.com https://chulbuli-jewels-store.firebaseapp.com https://api.razorpay.com https://vercel.live",
               "frame-ancestors 'self'",
               "base-uri 'self'",
