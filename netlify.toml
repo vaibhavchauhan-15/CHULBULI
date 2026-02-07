@@ -3,11 +3,12 @@
   package = "@netlify/plugin-nextjs"
 
 [build]
-  command = "npm run build"
+  command = "npm ci && npm run build"
   # publish directory is automatically handled by @netlify/plugin-nextjs
 
 [build.environment]
   NODE_VERSION = "20"
+  NPM_FLAGS = "--legacy-peer-deps"
 
 # Cache static assets for better performance
 [[headers]]
