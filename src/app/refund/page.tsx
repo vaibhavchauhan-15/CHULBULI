@@ -31,9 +31,11 @@ export default function RefundPolicy() {
 
               <div className="bg-white/80 border-l-4 border-rosegold p-5 rounded-r-lg">
                 <h3 className="font-semibold text-warmbrown mb-3 text-lg">Non-Cancellable Items</h3>
-                <p>CHULBULI JEWELS does not accept cancellation requests for perishable items like flowers, eatables, etc. However, the refund/replacement can be made if the user establishes that the quality of the product delivered is not good.</p>
+                  <p>
+                    CHULBULI JEWELS does not accept cancellation or return requests for earrings, rings, and other jewellery items due to hygiene and safety reasons. However, if you receive a product that is damaged, defective, or does not meet our quality standards, you may request a replacement or refund by contacting us within 48 hours of delivery with valid proof. Approved replacement products will be delivered within 7–10 business days.
+                  </p>
               </div>
-
+              
               <div className="bg-white/80 border-l-4 border-rosegold p-5 rounded-r-lg">
                 <h3 className="font-semibold text-warmbrown mb-3 text-lg">Damaged or Defective Items</h3>
                 <p>In case of receipt of damaged or defective items, please report to our customer service team. The request would be entertained once the seller/merchant listed on the Platform has checked and determined the same at its own end. This should be reported <strong className="text-warmbrown">within 7 days of receipt of products</strong>.</p>

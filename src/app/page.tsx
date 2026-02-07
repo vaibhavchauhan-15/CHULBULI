@@ -138,7 +138,9 @@ export default function HomePage() {
               Discover our curated collection of timeless jewelry
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 lg:gap-8">
-              {categories.map((category) => {
+              {categories
+                .filter((category) => category.name === 'Earrings') // Hide Necklaces, Rings, and Bangles - to unhide, remove this filter line
+                .map((category) => {
                 const IconComponent = category.icon
                 return (
                   <Link

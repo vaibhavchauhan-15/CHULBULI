@@ -96,9 +96,9 @@ export default function ShippingPolicy() {
             </h2>
             <div className="space-y-3 text-warmbrown/80">
               <p><strong className="text-warmbrown">Courier Partners:</strong> Orders are shipped through registered domestic courier companies and/or speed post only.</p>
-              <p><strong className="text-warmbrown">Shipping Timeline:</strong> Orders are shipped within <strong className="text-warmbrown">5 days</strong> from the date of order and/or payment, or as per the delivery date agreed at the time of order confirmation.</p>
+              <p><strong className="text-warmbrown">Shipping Timeline:</strong> Orders are shipped within <strong className="text-warmbrown">7 days</strong> from the date of order and/or payment, or as per the delivery date agreed at the time of order confirmation.</p>
               <p><strong className="text-warmbrown">Delivery Address:</strong> All orders will be delivered to the address provided by you at the time of purchase. Please ensure the address is accurate.</p>
-              <p><strong className="text-warmbrown">Confirmation:</strong> You will receive delivery confirmation and updates on your registered email ID as specified at the time of registration.</p>
+              <p><strong className="text-warmbrown">Confirmation:</strong> You will receive delivery confirmation and deliver product withing 7 working days.</p>
             </div>
           </section>
 
