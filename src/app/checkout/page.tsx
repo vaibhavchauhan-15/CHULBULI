@@ -36,6 +36,7 @@ export default function CheckoutPage() {
   const user = useAuthStore((state) => state.user)
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('online')
+  const [paymentGateway, setPaymentGateway] = useState<'razorpay' | 'phonepe'>('phonepe')
   const [razorpayLoaded, setRazorpayLoaded] = useState(false)
   const [scriptLoadAttempts, setScriptLoadAttempts] = useState(0)
   const [mounted, setMounted] = useState(false)
@@ -391,8 +392,51 @@ export default function CheckoutPage() {
           toast.error(error.error || 'Failed to place order')
         }
       } 
-      // Handle Online Payment via Razorpay
+      // Handle Online Payment (Razorpay or PhonePe)
       else if (paymentMethod === 'online') {
+        // Handle PhonePe Payment
+        if (paymentGateway === 'phonepe') {
+          const orderData = {
+            ...formData,
+            userId: user?.id || null,
+            items: selectedItems.map((item) => ({
+              productId: item.id,
+              quantity: item.quantity,
+            })),
+            shippingMethod: selectedShipping,
+            shippingCost: getShippingCost(),
+            gstAmount: gstAmount,
+            totalAmount: totalAmount,
+          }
+
+          // Call PhonePe create payment API
+          const phonePeResponse = await fetch('/api/payment/phonepe/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData),
+          })
+
+          if (!phonePeResponse.ok) {
+            const error = await phonePeResponse.json()
+            toast.error(error.error || 'Failed to create payment')
+            setLoading(false)
+            return
+          }
+
+          const phonePeData = await phonePeResponse.json()
+
+          // Save address to user account before redirecting
+          await saveAddressToAccount()
+
+          // Redirect to PhonePe payment page
+          toast.success('Redirecting to PhonePe payment...')
+          window.location.href = phonePeData.paymentUrl
+          return
+        }
+
+        // Handle Razorpay Payment
         // Wait for Razorpay to load if not already loaded
         if (!razorpayLoaded && !(window as any).Razorpay) {
           toast.error('Loading payment gateway. Please wait a moment and try again.')
@@ -1022,12 +1066,87 @@ export default function CheckoutPage() {
                 
                 {/* Payment security notice */}
                 {paymentMethod === 'online' && (
-                  <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-xs text-blue-800 flex items-center gap-2">
-                      <FiCheck className="w-4 h-4 flex-shrink-0" />
-                      <span>Secure payment powered by Razorpay</span>
-                    </p>
-                  </div>
+                  <>
+                    {/* Payment Gateway Selection */}
+                    <div className="mt-4 bg-white/60 rounded-lg p-4 border border-[#C89A7A]/20">
+                      <p className="text-sm font-medium text-[#5A3E2B]/80 mb-3">Select Payment Gateway:</p>
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* PhonePe */}
+                        <label className="relative block cursor-pointer">
+                          <input
+                            type="radio"
+                            name="paymentGateway"
+                            value="phonepe"
+                            checked={paymentGateway === 'phonepe'}
+                            onChange={(e) => setPaymentGateway('phonepe')}
+                            className="sr-only"
+                          />
+                          <div className={`bg-white border-2 rounded-lg p-3 transition-all ${
+                            paymentGateway === 'phonepe'
+                              ? 'border-[#5F259F] bg-[#5F259F]/5 shadow-md'
+                              : 'border-gray-200 hover:border-[#5F259F]/40'
+                          }`}>
+                            <div className="flex items-center gap-2">
+                              <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
+                                paymentGateway === 'phonepe'
+                                  ? 'border-[#5F259F] bg-[#5F259F]'
+                                  : 'border-gray-300 bg-white'
+                              }`}>
+                                {paymentGateway === 'phonepe' && (
+                                  <FiCheck className="w-3 h-3 text-white" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-semibold text-[#5A3E2B] text-sm">PhonePe</p>
+                                <p className="text-xs text-[#5A3E2B]/60">UPI, Cards & More</p>
+                              </div>
+                            </div>
+                          </div>
+                        </label>
+
+                        {/* Razorpay */}
+                        <label className="relative block cursor-pointer">
+                          <input
+                            type="radio"
+                            name="paymentGateway"
+                            value="razorpay"
+                            checked={paymentGateway === 'razorpay'}
+                            onChange={(e) => setPaymentGateway('razorpay')}
+                            className="sr-only"
+                          />
+                          <div className={`bg-white border-2 rounded-lg p-3 transition-all ${
+                            paymentGateway === 'razorpay'
+                              ? 'border-[#3395FF] bg-[#3395FF]/5 shadow-md'
+                              : 'border-gray-200 hover:border-[#3395FF]/40'
+                          }`}>
+                            <div className="flex items-center gap-2">
+                              <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
+                                paymentGateway === 'razorpay'
+                                  ? 'border-[#3395FF] bg-[#3395FF]'
+                                  : 'border-gray-300 bg-white'
+                              }`}>
+                                {paymentGateway === 'razorpay' && (
+                                  <FiCheck className="w-3 h-3 text-white" />
+                                )}
+                              </div>
+                              <div className="flex-1">
+                                <p className="font-semibold text-[#5A3E2B] text-sm">Razorpay</p>
+                                <p className="text-xs text-[#5A3E2B]/60">Cards & Netbanking</p>
+                              </div>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Security notice */}
+                    <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-xs text-blue-800 flex items-center gap-2">
+                        <FiCheck className="w-4 h-4 flex-shrink-0" />
+                        <span>Secure payment powered by {paymentGateway === 'phonepe' ? 'PhonePe' : 'Razorpay'}</span>
+                      </p>
+                    </div>
+                  </>
                 )}
               </div>
 
