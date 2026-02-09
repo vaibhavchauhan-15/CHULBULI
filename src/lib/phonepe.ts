@@ -13,8 +13,51 @@ import crypto from 'crypto';
 const PHONEPE_CLIENT_ID = process.env.PHONEPE_CLIENT_ID!;
 const PHONEPE_CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET!;
 const PHONEPE_CLIENT_VERSION = process.env.PHONEPE_CLIENT_VERSION || '1';
-const PHONEPE_BASE_URL = process.env.PHONEPE_BASE_URL || 'https://api-preprod.phonepe.com/apis/pg-sandbox';
+
+// Standard Checkout v2 uses different base URLs for different environments
+// Sandbox: https://api-preprod.phonepe.com/apis/pg-sandbox
+// Production: https://api.phonepe.com/apis/pg
+const PHONEPE_BASE_URL = process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg';
+
+// Authorization URL (separate endpoint in production)
+// Sandbox: https://api-preprod.phonepe.com/apis/pg-sandbox
+// Production: https://api.phonepe.com/apis/identity-manager
+const PHONEPE_AUTH_URL = process.env.PHONEPE_AUTH_URL || 'https://api.phonepe.com/apis/identity-manager';
+
+// Application base URL (no trailing slash)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+// Detect environment from payment URL
+// Test/Sandbox environments use: mercury-t2, mercury-uat, or mercury-stg
+// Production uses: mercury.phonepe.com
+export function getPhonePeEnvironment(paymentUrl?: string): 'sandbox' | 'production' {
+  // If we have a payment URL, detect from it
+  if (paymentUrl) {
+    if (paymentUrl.includes('mercury-t2') || 
+        paymentUrl.includes('mercury-uat') || 
+        paymentUrl.includes('mercury-stg')) {
+      return 'sandbox';
+    }
+    return 'production';
+  }
+  
+  // Otherwise detect from base URL configuration
+  if (PHONEPE_BASE_URL.includes('preprod') || PHONEPE_BASE_URL.includes('sandbox')) {
+    return 'sandbox';
+  }
+  return 'production';
+}
+
+// Get the correct checkout script URL based on environment
+export function getPhonePeCheckoutScriptUrl(paymentUrl?: string): string {
+  const env = getPhonePeEnvironment(paymentUrl);
+  
+  // Sandbox/Test environments use mercury-stg.phonepe.com
+  // Production uses mercury.phonepe.com
+  return env === 'sandbox'
+    ? 'https://mercury-stg.phonepe.com/web/bundle/checkout.js'
+    : 'https://mercury.phonepe.com/web/bundle/checkout.js';
+}
 
 /**
  * Environment validation
@@ -47,7 +90,8 @@ export async function getPhonePeToken() {
       client_version: PHONEPE_CLIENT_VERSION,
     });
 
-    const response = await fetch(`${PHONEPE_BASE_URL}/v1/oauth/token`, {
+    // Standard Checkout: Use dedicated auth endpoint for token
+    const response = await fetch(`${PHONEPE_AUTH_URL}/v1/oauth/token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -110,42 +154,37 @@ export async function createPhonePeOrder(orderDetails: {
     // Convert amount to paise (PhonePe requires amount in paise)
     const amountInPaise = Math.round(orderDetails.amount * 100);
 
-    // Clean phone number (remove +91 if present and ensure 10 digits)
-    const cleanPhone = orderDetails.customerPhone.replace(/^\+91/, '').replace(/\D/g, '').slice(-10);
-
-    // Extract merchant ID from CLIENT_ID (format: M23BHBY0J6I85_2602091507)
-    const merchantId = PHONEPE_CLIENT_ID.split('_')[0];
-    
-    // Generate merchant user ID from phone
-    const merchantUserId = `MU${cleanPhone}`;
-
-    // Prepare payment request payload for PhonePe OAuth v2 Standard Checkout
+    // Prepare payment request payload according to Standard Checkout v2 documentation
     const payload = {
-      merchantId: merchantId,
-      merchantOrderId: orderDetails.merchantOrderId,  // OAuth v2 uses merchantOrderId
-      merchantUserId: merchantUserId,
+      merchantOrderId: orderDetails.merchantOrderId,
       amount: amountInPaise,
-      redirectUrl: `${APP_URL}/order-success?orderId=${orderDetails.orderId}`,
-      redirectMode: 'REDIRECT',
-      callbackUrl: `${APP_URL}/api/payment/phonepe/webhook`,
-      mobileNumber: cleanPhone,
-      paymentInstrument: {
-        type: 'PAY_PAGE'
+      expireAfter: 1200, // 20 minutes expiry
+      paymentFlow: {
+        type: 'PG_CHECKOUT',
+        message: `Payment for Order #${orderDetails.merchantOrderId}`,
+        merchantUrls: {
+          redirectUrl: `${APP_URL}/order-success?orderId=${orderDetails.orderId}`
+        }
+      },
+      metaInfo: {
+        udf1: orderDetails.orderId,
+        udf2: orderDetails.customerEmail,
+        udf3: orderDetails.customerName,
+        udf4: orderDetails.customerPhone
       }
     };
 
-    console.log('PhonePe OAuth v2: Creating payment order...', {
-      merchantId,
+    console.log('PhonePe Standard Checkout v2: Creating payment order...', {
       merchantOrderId: orderDetails.merchantOrderId,
       amount: amountInPaise,
-      endpoint: `${PHONEPE_BASE_URL}/pg/v1/pay`,
+      endpoint: `${PHONEPE_BASE_URL}/checkout/v2/pay`,
       hasToken: !!tokenData.access_token,
       payloadPreview: payload,
     });
 
-    // Create payment order using OAuth v2
-    // OAuth v2 uses plain JSON with O-Bearer token (NO Base64, NO checksum)
-    const response = await fetch(`${PHONEPE_BASE_URL}/pg/v1/pay`, {
+    // Create payment using Standard Checkout v2 API
+    // Uses plain JSON with O-Bearer token (NO Base64, NO checksum)
+    const response = await fetch(`${PHONEPE_BASE_URL}/checkout/v2/pay`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -175,6 +214,13 @@ export async function createPhonePeOrder(orderDetails: {
         'Authorization': `O-Bearer ${tokenData.access_token.substring(0, 20)}...`,
       });
       
+      // Check for minimum amount error (PhonePe requires minimum ₹1)
+      if (paymentData.message?.includes('amount must be greater than or equal to 100')) {
+        throw new Error(
+          `PhonePe requires a minimum payment of ₹1 (100 paisa). Your order amount is ₹${(amountInPaise / 100).toFixed(2)}. Please ensure the order total is at least ₹1.`
+        );
+      }
+      
       // Provide helpful error messages for common issues
       if (paymentData.code === 'KEY_NOT_CONFIGURED' || paymentData.errorCode === 'KEY_NOT_CONFIGURED') {
         throw new Error(
@@ -187,7 +233,6 @@ Possible causes:
 4. Sandbox not configured - For testing, ensure your merchant is enabled for sandbox environment
 
 Current credentials:
-- Merchant ID: ${merchantId}
 - Client ID: ${PHONEPE_CLIENT_ID}
 
 Action required: Contact PhonePe support or check your merchant dashboard settings.`
@@ -205,41 +250,23 @@ Action required: Contact PhonePe support or check your merchant dashboard settin
       );
     }
 
-    // OAuth v2 successful response - validate and extract data
-    // Response can have different structures:
-    // 1. Standard: { success: true, data: { instrumentResponse: { redirectInfo: { url: "..." } } } }
-    // 2. Alternative: { orderId, state, expireAt, redirectUrl }
+    // Standard Checkout v2 response structure:
+    // { orderId, state, expireAt, redirectUrl }
     
     let paymentUrl;
     let transactionId;
 
-    // Check for standard OAuth v2 response with instrumentResponse
-    if (paymentData.success && paymentData.data?.instrumentResponse?.redirectInfo?.url) {
-      paymentUrl = paymentData.data.instrumentResponse.redirectInfo.url;
-      transactionId = paymentData.data.merchantTransactionId || paymentData.data.transactionId || orderDetails.merchantOrderId;
-      console.log('✅ PhonePe payment order created successfully (standard response)');
-    }
-    // Check for alternative response with orderId
-    else if (paymentData.orderId && paymentData.state) {
-      // For this response type, construct payment URL from orderId
-      const isProduction = PHONEPE_BASE_URL.includes('api.phonepe.com');
-      const mercuryBaseUrl = isProduction 
-        ? 'https://mercury.phonepe.com' 
-        : 'https://mercury-uat.phonepe.com';
-      paymentUrl = `${mercuryBaseUrl}/transact/simulator?token=${paymentData.orderId}`;
+    // Extract data from Standard Checkout v2 response
+    if (paymentData.redirectUrl && paymentData.orderId) {
+      paymentUrl = paymentData.redirectUrl;
       transactionId = paymentData.orderId;
-      console.log('✅ PhonePe payment order created successfully (alternative response)');
-      console.log('Constructed payment URL from orderId:', paymentData.orderId);
-    }
-    // Check for direct paymentUrl in response
-    else if (paymentData.paymentUrl) {
-      paymentUrl = paymentData.paymentUrl;
-      transactionId = paymentData.transactionId || paymentData.orderId || orderDetails.merchantOrderId;
-      console.log('✅ PhonePe payment order created successfully (direct URL)');
+      console.log('✅ PhonePe Standard Checkout payment created successfully');
+      console.log('Payment State:', paymentData.state);
+      console.log('Expires At:', new Date(paymentData.expireAt));
     }
     else {
       console.error('Cannot extract payment URL from response:', JSON.stringify(paymentData, null, 2));
-      throw new Error('PhonePe response missing payment URL. Received: ' + JSON.stringify(paymentData));
+      throw new Error('PhonePe response missing redirectUrl. Received: ' + JSON.stringify(paymentData));
     }
 
     if (!paymentUrl) {
@@ -274,30 +301,28 @@ export async function verifyPhonePePayment(merchantOrderId: string) {
   validatePhonePeConfig();
 
   try {
-    // Step 1: Get OAuth access token (REQUIRED for v2)
+    // Step 1: Get OAuth access token (REQUIRED for Standard Checkout v2)
     const tokenData = await getPhonePeToken();
 
-    // Extract merchant ID from CLIENT_ID (format: M23BHBY0J6I85_2602091507)
-    const merchantId = PHONEPE_CLIENT_ID.split('_')[0];
+    // Standard Checkout v2 status endpoint: /checkout/v2/order/{merchantOrderId}/status
+    const statusEndpoint = `/checkout/v2/order/${merchantOrderId}/status`;
 
-    // OAuth v2 status endpoint
-    const statusEndpoint = `/pg/v1/status/${merchantId}/${merchantOrderId}`;
-
-    console.log('PhonePe OAuth v2: Checking payment status...', {
-      merchantId,
+    console.log('PhonePe Standard Checkout v2: Checking payment status...', {
       merchantOrderId: merchantOrderId,
       endpoint: `${PHONEPE_BASE_URL}${statusEndpoint}`,
       hasToken: !!tokenData.access_token,
     });
 
-    // Check payment status (OAuth v2 - NO checksum, NO X-VERIFY)
+    // Check payment status with optional query parameters
+    const statusUrl = `${PHONEPE_BASE_URL}${statusEndpoint}?details=false`;
+    
     const response = await fetch(
-      `${PHONEPE_BASE_URL}${statusEndpoint}`,
+      statusUrl,
       {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `O-Bearer ${tokenData.access_token}`,  // OAuth v2 uses O-Bearer prefix
+          'Authorization': `O-Bearer ${tokenData.access_token}`,
         },
       }
     );
@@ -318,18 +343,20 @@ export async function verifyPhonePePayment(merchantOrderId: string) {
       throw new Error(`Failed to verify payment: ${statusData.message || statusData.code || response.statusText}`);
     }
 
-    // OAuth v2 response structure:
-    // success: true/false
-    // code: PAYMENT_SUCCESS, PAYMENT_ERROR, PAYMENT_PENDING, etc.
-    // data: { merchantOrderId, transactionId, amount, state, etc. }
+    // Standard Checkout v2 response structure:
+    // state: PENDING, COMPLETED, FAILED
+    // orderId: PhonePe internal order ID
+    // amount: amount in paise
+    // paymentDetails: array of payment attempts
 
     return {
-      success: statusData.success,
-      status: statusData.code, // PAYMENT_SUCCESS, PAYMENT_PENDING, PAYMENT_ERROR, etc.
-      state: statusData.data?.state, // COMPLETED, FAILED, PENDING
-      transactionId: statusData.data?.transactionId,
-      amount: statusData.data?.amount,
-      paymentInstrument: statusData.data?.paymentInstrument,
+      success: statusData.state === 'COMPLETED',
+      status: statusData.state === 'COMPLETED' ? 'PAYMENT_SUCCESS' : 
+              statusData.state === 'FAILED' ? 'PAYMENT_ERROR' : 'PAYMENT_PENDING',
+      state: statusData.state, // COMPLETED, FAILED, PENDING
+      transactionId: statusData.paymentDetails?.[0]?.transactionId || statusData.orderId,
+      amount: statusData.amount,
+      paymentDetails: statusData.paymentDetails,
     };
   } catch (error: any) {
     console.error('PhonePe Status Verification Error:', error);
@@ -338,36 +365,40 @@ export async function verifyPhonePePayment(merchantOrderId: string) {
 }
 
 /**
- * Verify PhonePe Webhook Signature
+ * Verify PhonePe Webhook Signature for Standard Checkout
  * IMPORTANT: Always verify webhook signatures to prevent fraud
- * PhonePe sends X-VERIFY header with webhooks for verification
+ * PhonePe sends Authorization header with SHA256(username:password)
  * 
- * Format: SHA256(base64Response + saltKey) + ### + saltIndex
- * 
- * @param {string} base64Response - Base64 encoded response from PhonePe webhook
- * @param {string} signature - X-VERIFY header value from webhook
+ * @param {string} authHeader - Authorization header value from webhook
  * @returns {boolean} - True if signature is valid
  */
-export function verifyWebhookSignature(base64Response: string, signature: string): boolean {
+export function verifyWebhookSignature(authHeader: string): boolean {
   try {
-    if (!signature || !base64Response) {
-      console.error('Missing signature or response for webhook verification');
+    if (!authHeader) {
+      console.error('Missing Authorization header for webhook verification');
       return false;
     }
 
-    // Remove the salt index from signature (format: hash###saltIndex)
-    const receivedHash = signature.split('###')[0];
-    
-    // Compute checksum: SHA256(base64Response + saltKey)
-    const checksumString = base64Response + PHONEPE_CLIENT_SECRET;
-    const computedHash = crypto.createHash('sha256').update(checksumString).digest('hex');
+    // Get webhook credentials from environment
+    const webhookUsername = process.env.PHONEPE_WEBHOOK_USERNAME;
+    const webhookPassword = process.env.PHONEPE_WEBHOOK_PASSWORD;
 
-    const isValid = computedHash === receivedHash;
+    if (!webhookUsername || !webhookPassword) {
+      console.error('Webhook credentials not configured in environment');
+      return false;
+    }
+
+    // Compute expected hash: SHA256(username:password)
+    const credentials = `${webhookUsername}:${webhookPassword}`;
+    const expectedHash = crypto.createHash('sha256').update(credentials).digest('hex');
+
+    // Compare with received hash
+    const isValid = authHeader === expectedHash;
 
     if (!isValid) {
       console.error('Webhook signature verification failed:', {
-        receivedSignature: signature,
-        computedHash,
+        receivedHash: authHeader.substring(0, 20) + '...',
+        expectedHash: expectedHash.substring(0, 20) + '...',
       });
     } else {
       console.log('✅ Webhook signature verified successfully');

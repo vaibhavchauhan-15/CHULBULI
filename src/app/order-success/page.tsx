@@ -1,89 +1,219 @@
 'use client'
 
-import { useEffect, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import { FiCheckCircle } from 'react-icons/fi'
+import { FiCheckCircle, FiLoader } from 'react-icons/fi'
+import toast from 'react-hot-toast'
 
 function OrderSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
   const paymentId = searchParams.get('paymentId')
+  
+  const [verifying, setVerifying] = useState(true)
+  const [verified, setVerified] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'completed' | 'failed'>('pending')
+  const [transactionId, setTransactionId] = useState<string | null>(null)
+  const [pollCount, setPollCount] = useState(0)
+  const MAX_POLLS = 10 // Maximum number of status checks (10 * 3s = 30s)
 
+  // Verify payment status
   useEffect(() => {
     if (!orderId) {
       router.push('/')
+      return
     }
-  }, [orderId, router])
+
+    const verifyPaymentStatus = async () => {
+      try {
+        const response = await fetch(`/api/payment/phonepe/status?orderId=${orderId}`)
+        const data = await response.json()
+
+        console.log('Payment status check:', data)
+
+        if (data.status === 'completed') {
+          setPaymentStatus('completed')
+          setTransactionId(data.transactionId)
+          setVerified(true)
+          setVerifying(false)
+        } else if (data.status === 'failed') {
+          setPaymentStatus('failed')
+          setVerifying(false)
+          // Redirect to payment failed page
+          setTimeout(() => {
+            router.push(`/payment-failed?orderId=${orderId}&reason=Payment verification failed`)
+          }, 1500)
+        } else if (data.status === 'pending') {
+          setPaymentStatus('pending')
+          // Continue polling if we haven't reached max polls
+          if (pollCount < MAX_POLLS) {
+            setPollCount(prev => prev + 1)
+            // Poll again after 3 seconds
+            setTimeout(verifyPaymentStatus, 3000)
+          } else {
+            // Max polls reached, show timeout message
+            setVerifying(false)
+            toast.error('Payment verification is taking longer than expected. Please check order status in your account.')
+          }
+        }
+      } catch (error) {
+        console.error('Payment verification error:', error)
+        setVerifying(false)
+        toast.error('Unable to verify payment status. Please check your order in account section.')
+      }
+    }
+
+    // Start verification after a brief delay
+    const timeout = setTimeout(verifyPaymentStatus, 1000)
+    return () => clearTimeout(timeout)
+  }, [orderId, router, pollCount])
 
   return (
     <>
       <main className="min-h-screen pt-20 md:pt-24 px-4 pb-12 flex items-center justify-center bg-gradient-to-br from-champagne via-[#F2E6D8] to-sand">
         <div className="max-w-2xl w-full text-center">
           <div className="card-luxury p-6 md:p-10 lg:p-12 shadow-luxury-lg">
-            <div className="flex justify-center mb-4 md:mb-6">
-              <div className="bg-emerald-50 p-4 md:p-5 rounded-full">
-                <FiCheckCircle className="w-16 h-16 md:w-20 md:h-20 text-emerald-500" />
-              </div>
-            </div>
+            
+            {/* Loading/Verifying State */}
+            {verifying && (
+              <>
+                <div className="flex justify-center mb-4 md:mb-6">
+                  <div className="bg-blue-50 p-4 md:p-5 rounded-full">
+                    <FiLoader className="w-16 h-16 md:w-20 md:h-20 text-blue-500 animate-spin" />
+                  </div>
+                </div>
 
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold mb-3 md:mb-4 text-[#5A3E2B]">
-              Order Placed Successfully!
-            </h1>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold mb-3 md:mb-4 text-[#5A3E2B]">
+                  Verifying Payment...
+                </h1>
 
-            <p className="text-[#5A3E2B]/60 mb-2 text-sm md:text-base">
-              Thank you for your order. We&apos;ve received your order and will process it soon.
-            </p>
-
-            {orderId && (
-              <div className="mb-6 md:mb-8 space-y-2">
-                <p className="text-xs md:text-sm text-[#5A3E2B]/50">
-                  Order ID: <span className="font-mono font-semibold">{orderId.slice(0, 12)}</span>
+                <p className="text-[#5A3E2B]/60 mb-2 text-sm md:text-base">
+                  Please wait while we confirm your payment.
                 </p>
-                {paymentId && (
-                  <p className="text-xs md:text-sm text-emerald-600/80">
-                    Payment ID: <span className="font-mono font-semibold">{paymentId}</span>
+
+                {paymentStatus === 'pending' && (
+                  <p className="text-xs md:text-sm text-blue-600 mt-4">
+                    Payment is being processed... ({pollCount}/{MAX_POLLS})
                   </p>
                 )}
-              </div>
+              </>
             )}
 
-            <div className="space-y-3 md:space-y-4">
-              <Link href="/account?tab=orders" className="btn-primary btn-mobile-full md:w-full inline-block touch-target">
-                View Order Details
-              </Link>
-              <Link
-                href="/products"
-                className="btn-secondary btn-mobile-full md:w-full inline-block touch-target"
-              >
-                Continue Shopping
-              </Link>
-            </div>
+            {/* Success State */}
+            {!verifying && verified && paymentStatus === 'completed' && (
+              <>
+                <div className="flex justify-center mb-4 md:mb-6">
+                  <div className="bg-emerald-50 p-4 md:p-5 rounded-full">
+                    <FiCheckCircle className="w-16 h-16 md:w-20 md:h-20 text-emerald-500" />
+                  </div>
+                </div>
 
-            <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-[#C89A7A]/20">
-              <h3 className="font-semibold mb-3 md:mb-4 text-[#5A3E2B] text-sm md:text-base">What happens next?</h3>
-              <div className="space-y-2.5 md:space-y-3 text-left max-w-md mx-auto text-xs md:text-sm text-[#5A3E2B]/70">
-                <div className="flex gap-2 md:gap-3">
-                  <span className="font-semibold text-[#C89A7A] flex-shrink-0">1.</span>
-                  <p>Order confirmation email will be sent to your email address</p>
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold mb-3 md:mb-4 text-[#5A3E2B]">
+                  Order Placed Successfully!
+                </h1>
+
+                <p className="text-[#5A3E2B]/60 mb-2 text-sm md:text-base">
+                  Thank you for your order. We&apos;ve received your order and will process it soon.
+                </p>
+
+                {orderId && (
+                  <div className="mb-6 md:mb-8 space-y-2">
+                    <p className="text-xs md:text-sm text-[#5A3E2B]/50">
+                      Order ID: <span className="font-mono font-semibold">{orderId.slice(0, 12)}</span>
+                    </p>
+                    {(transactionId || paymentId) && (
+                      <p className="text-xs md:text-sm text-emerald-600/80">
+                        Payment ID: <span className="font-mono font-semibold">{transactionId || paymentId}</span>
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-3 md:space-y-4">
+                  <Link href="/account?tab=orders" className="btn-primary btn-mobile-full md:w-full inline-block touch-target">
+                    View Order Details
+                  </Link>
+                  <Link
+                    href="/products"
+                    className="btn-secondary btn-mobile-full md:w-full inline-block touch-target"
+                  >
+                    Continue Shopping
+                  </Link>
                 </div>
-                <div className="flex gap-2 md:gap-3">
-                  <span className="font-semibold text-[#C89A7A] flex-shrink-0">2.</span>
-                  <p>{paymentId ? 'Your payment is confirmed and secure' : 'Pay cash on delivery when you receive your order'}</p>
+
+                <div className="mt-6 md:mt-8 pt-6 md:pt-8 border-t border-[#C89A7A]/20">
+                  <h3 className="font-semibold mb-3 md:mb-4 text-[#5A3E2B] text-sm md:text-base">What happens next?</h3>
+                  <div className="space-y-2.5 md:space-y-3 text-left max-w-md mx-auto text-xs md:text-sm text-[#5A3E2B]/70">
+                    <div className="flex gap-2 md:gap-3">
+                      <span className="font-semibold text-[#C89A7A] flex-shrink-0">1.</span>
+                      <p>Order confirmation email will be sent to your email address</p>
+                    </div>
+                    <div className="flex gap-2 md:gap-3">
+                      <span className="font-semibold text-[#C89A7A] flex-shrink-0">2.</span>
+                      <p>Your payment is confirmed and secure</p>
+                    </div>
+                    <div className="flex gap-2 md:gap-3">
+                      <span className="font-semibold text-[#C89A7A] flex-shrink-0">3.</span>
+                      <p>We&apos;ll pack your order with care</p>
+                    </div>
+                    <div className="flex gap-2 md:gap-3">
+                      <span className="font-semibold text-[#C89A7A] flex-shrink-0">4.</span>
+                      <p>Your order will be shipped to your address</p>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex gap-2 md:gap-3">
-                  <span className="font-semibold text-[#C89A7A] flex-shrink-0">3.</span>
-                  <p>We&apos;ll pack your order with care</p>
+              </>
+            )}
+
+            {/* Pending/Timeout State */}
+            {!verifying && !verified && paymentStatus === 'pending' && (
+              <>
+                <div className="flex justify-center mb-4 md:mb-6">
+                  <div className="bg-amber-50 p-4 md:p-5 rounded-full">
+                    <FiLoader className="w-16 h-16 md:w-20 md:h-20 text-amber-500" />
+                  </div>
                 </div>
-                <div className="flex gap-2 md:gap-3">
-                  <span className="font-semibold text-[#C89A7A] flex-shrink-0">4.</span>
-                  <p>Your order will be shipped to your address</p>
+
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-playfair font-bold mb-3 md:mb-4 text-[#5A3E2B]">
+                  Payment Verification Pending
+                </h1>
+
+                <p className="text-[#5A3E2B]/60 mb-6 text-sm md:text-base">
+                  Your payment is being processed. This may take a few moments.
+                </p>
+
+                {orderId && (
+                  <div className="mb-6 md:mb-8">
+                    <p className="text-xs md:text-sm text-[#5A3E2B]/50">
+                      Order ID: <span className="font-mono font-semibold">{orderId.slice(0, 12)}</span>
+                    </p>
+                  </div>
+                )}
+
+                <div className="space-y-3 md:space-y-4">
+                  <Link href="/account?tab=orders" className="btn-primary btn-mobile-full md:w-full inline-block touch-target">
+                    Check Order Status
+                  </Link>
+                  <Link
+                    href="/products"
+                    className="btn-secondary btn-mobile-full md:w-full inline-block touch-target"
+                  >
+                    Continue Shopping
+                  </Link>
                 </div>
-              </div>
-            </div>
+
+                <div className="mt-6 md:mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-xs md:text-sm text-amber-900">
+                    <strong>Note:</strong> Payment confirmation is still pending. Your order will be confirmed once payment is verified. Please check your order status in your account after a few minutes.
+                  </p>
+                </div>
+              </>
+            )}
+            
           </div>
         </div>
       </main>

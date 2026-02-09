@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'react-hot-toast'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import AuthInitializer from '@/components/AuthInitializer'
+import Script from 'next/script'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -24,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        {/* PhonePe Checkout Script is loaded dynamically in checkout page based on environment */}
         <ErrorBoundary>
           <AuthInitializer />
           {children}

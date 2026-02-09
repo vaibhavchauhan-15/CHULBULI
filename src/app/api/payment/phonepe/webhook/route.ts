@@ -1,5 +1,5 @@
 /**
- * PhonePe Payment Webhook Handler
+ * PhonePe Payment Webhook Handler - Standard Checkout v2
  * 
  * CRITICAL: This is the most important endpoint for PhonePe integration.
  * - NEVER trust frontend success responses
@@ -7,11 +7,11 @@
  * - ALWAYS verify webhook signature
  * - Handle idempotency (webhooks may be sent multiple times)
  * 
- * This handler works with OAuth-based Standard Checkout (v2) API
- * 
- * Events handled:
- * - pg.order.completed - Payment successful
- * - pg.order.failed - Payment failed
+ * Events handled (Standard Checkout v2):
+ * - checkout.order.completed - Payment successful
+ * - checkout.order.failed - Payment failed
+ * - pg.refund.completed - Refund successful
+ * - pg.refund.failed - Refund failed
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -24,25 +24,25 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
   try {
-    // Get X-VERIFY signature header from PhonePe webhook
-    const signature = request.headers.get('x-verify') || 
-                      request.headers.get('x-phonepe-signature') || 
-                      '';
+    // Get Authorization header from PhonePe webhook (Standard Checkout v2)
+    // Format: SHA256(username:password)
+    const authHeader = request.headers.get('authorization') || '';
 
-    // PhonePe sends webhook with base64 encoded response
-    const body = await request.json();
-    const base64Response = body.response;
+    // Get webhook payload (Standard Checkout sends JSON directly)
+    const webhookData = await request.json();
 
-    if (!base64Response) {
-      console.error('PhonePe Webhook: Missing response field');
-      return NextResponse.json(
-        { error: 'Missing response field' },
-        { status: 400 }
-      );
-    }
+    console.log('PhonePe Webhook Received:', {
+      hasAuthHeader: !!authHeader,
+      event: webhookData.event,
+      timestamp: new Date().toISOString(),
+      payloadPreview: {
+        event: webhookData.event,
+        state: webhookData.payload?.state,
+      },
+    });
 
     // CRITICAL: Verify webhook signature to prevent fraud
-    if (signature && !verifyWebhookSignature(base64Response, signature)) {
+    if (authHeader && !verifyWebhookSignature(authHeader)) {
       console.error('PhonePe Webhook Signature Verification Failed');
       return NextResponse.json(
         { error: 'Invalid signature' },
@@ -50,36 +50,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Decode the base64 response
-    const decodedResponse = Buffer.from(base64Response, 'base64').toString('utf-8');
-    const webhookData = JSON.parse(decodedResponse);
+    // Extract event type and payload from Standard Checkout v2 webhook
+    const eventType = webhookData.event; // e.g., 'checkout.order.completed'
+    const payload = webhookData.payload;
 
-    console.log('PhonePe Webhook Received:', {
-      hasSignature: !!signature,
-      success: webhookData.success,
-      code: webhookData.code,
-      merchantTransactionId: webhookData.data?.merchantTransactionId,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Extract merchantTransactionId from webhook data
-    const merchantOrderId = webhookData.data?.merchantTransactionId;
+    // Extract merchantOrderId from payload
+    const merchantOrderId = payload?.merchantOrderId || payload?.orderId;
 
     if (!merchantOrderId) {
-      console.error('PhonePe Webhook: Missing merchantTransactionId');
+      console.error('PhonePe Webhook: Missing merchantOrderId in payload');
       return NextResponse.json(
-        { error: 'Missing merchantTransactionId' },
+        { error: 'Missing merchantOrderId' },
         { status: 400 }
       );
     }
 
     console.log('PhonePe Webhook Details:', {
-      merchantTransactionId: merchantOrderId,
-      transactionId: webhookData.data?.transactionId,
-      success: webhookData.success,
-      code: webhookData.code,
-      state: webhookData.data?.state,
-      amount: webhookData.data?.amount,
+      event: eventType,
+      merchantOrderId: merchantOrderId,
+      orderId: payload?.orderId,
+      state: payload?.state,
+      amount: payload?.amount,
+      transactionId: payload?.paymentDetails?.[0]?.transactionId,
     });
 
     // Find order by merchantOrderId
@@ -104,36 +96,31 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Handle different payment states/codes
-    // OAuth v2 can use either 'code' or 'status' or 'state' field
-    const paymentCode = webhookData.code;
-    const paymentStatus = webhookData.data?.status || webhookData.status;
-    const paymentState = webhookData.data?.state;
+    // Handle different payment events based on Standard Checkout v2 event types
+    // Use payload.state to determine payment status (COMPLETED, FAILED, PENDING)
+    const paymentState = payload?.state;
 
     // Check if payment is successful
-    const isSuccess = paymentCode === 'PAYMENT_SUCCESS' || 
-                     paymentStatus === 'SUCCESS' ||
+    const isSuccess = eventType === 'checkout.order.completed' || 
                      paymentState === 'COMPLETED';
 
     // Check if payment failed
-    const isFailed = paymentCode === 'PAYMENT_ERROR' ||
-                    paymentCode === 'PAYMENT_DECLINED' ||
-                    paymentStatus === 'FAILED' ||
+    const isFailed = eventType === 'checkout.order.failed' ||
                     paymentState === 'FAILED';
 
     if (isSuccess) {
       await handlePaymentSuccess(orderResult, {
-        transactionId: webhookData.data?.transactionId || webhookData.transactionId,
-        amount: webhookData.data?.amount,
+        transactionId: payload?.paymentDetails?.[0]?.transactionId || payload?.orderId,
+        amount: payload?.amount,
       });
     } else if (isFailed) {
       await handlePaymentFailed(orderResult, {
-        transactionId: webhookData.data?.transactionId || webhookData.transactionId,
+        transactionId: payload?.paymentDetails?.[0]?.transactionId || payload?.orderId,
+        errorCode: payload?.errorCode,
       });
     } else {
       console.log('PhonePe webhook - payment still pending or unknown state:', {
-        code: paymentCode,
-        status: paymentStatus,
+        event: eventType,
         state: paymentState,
       });
     }
@@ -209,10 +196,11 @@ async function handlePaymentFailed(order: any, event: any) {
   console.log('Processing failed payment for order:', order.id);
 
   try {
-    // Update order status to failed
+    // Update order status to failed and cancelled
     await db.update(orders)
       .set({
         paymentStatus: 'failed',
+        status: 'cancelled',
         transactionId: event.transactionId,
         updatedAt: new Date(),
       })

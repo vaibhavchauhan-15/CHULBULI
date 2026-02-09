@@ -71,12 +71,11 @@ export async function GET(request: NextRequest) {
         console.log('PhonePe Status Check Result:', {
           orderId: order.id,
           merchantOrderId: order.merchantOrderId,
-          code: phonePeStatus.status,
           state: phonePeStatus.state,
         });
 
-        // If payment is successful (state: COMPLETED or code: PAYMENT_SUCCESS)
-        if (phonePeStatus.success && (phonePeStatus.state === 'COMPLETED' || phonePeStatus.status === 'PAYMENT_SUCCESS')) {
+        // If payment is successful (state: COMPLETED)
+        if (phonePeStatus.success && phonePeStatus.state === 'COMPLETED') {
           // Use transaction to ensure atomicity
           await db.transaction(async (tx) => {
             // Update order status
@@ -115,11 +114,12 @@ export async function GET(request: NextRequest) {
           });
         }
 
-        // If payment failed (state: FAILED or code: PAYMENT_ERROR)
-        if (phonePeStatus.state === 'FAILED' || phonePeStatus.status === 'PAYMENT_ERROR') {
+        // If payment failed (state: FAILED)
+        if (phonePeStatus.state === 'FAILED') {
           await db.update(orders)
             .set({
               paymentStatus: 'failed',
+              status: 'cancelled',
               transactionId: phonePeStatus.transactionId,
               updatedAt: new Date(),
             })

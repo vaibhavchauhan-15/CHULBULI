@@ -1,0 +1,1387 @@
+Introduction to Website Checkout
+
+1. Overview
+
+PhonePe’s Standard Checkout API provides a secure and easy way to integrate a comprehensive payment solution into your website. It allows you to accept all major payment methods, including:
+
+UPI
+
+Credit/Debit Cards
+
+Net Banking
+
+This integration ensures safe transactions by maintaining PCI DSS compliance by default, while offering customers a smooth, reliable, and non-redirective checkout experience.
+
+To integrate the PhonePe Payment Gateway using the API integration method, this document provides an overview of:
+
+User journey
+
+Checkout experience across platforms
+
+API endpoints
+
+Environment configuration
+
+You can:
+
+Watch the integration video for step-by-step guidance.
+
+Fork the PhonePe Postman Public Workspace to explore and test Standard Checkout APIs.
+
+Use “Run in Postman” to test APIs.
+
+2. User Journey
+
+The user journey illustrates the complete payment lifecycle to help you understand the integration flow clearly.
+
+Payment Flow Overview:
+
+User initiates checkout on merchant website.
+
+Merchant calls Authorization API.
+
+Merchant creates payment using Create Payment API.
+
+User completes payment on PhonePe Checkout Page.
+
+Merchant verifies payment using Order Status API.
+
+Refund (if required) using Refund API.
+
+Check refund status using Refund Status API.
+
+3. Prerequisites
+
+Before starting the integration process, ensure you have:
+
+Access to PhonePe PG’s:
+
+UAT (User Acceptance Testing) Environment
+
+Production Environment
+
+API credentials:
+
+Client ID
+
+Client Version
+
+Client Secret
+
+Basic understanding of:
+
+HTTP methods (GET, POST)
+
+JSON
+
+A testing environment to simulate payment flows
+
+4. Environments
+
+Use the appropriate base URL depending on your environment.
+
+Sandbox (Testing Environment)
+https://api-preprod.phonepe.com/apis/pg-sandbox/<Endpoint>
+
+Production Environment
+
+Authorization API:
+
+https://api.phonepe.com/apis/identity-manager/<Endpoint>
+
+
+Other APIs:
+
+https://api.phonepe.com/apis/pg/<Endpoint>
+
+
+📘 Important:
+Always integrate and test in the Sandbox environment before moving to Production.
+
+5. API Endpoints
+API Name	Method	Endpoint
+Authorization	POST	/v1/oauth/token
+Create Payment	POST	/checkout/v2/pay
+Order Status API	GET	/checkout/v2/order/{merchantOrderId}/status
+Refund	POST	/payments/v2/refund
+Refund Status API	GET	/payments/v2/refund/{merchantRefundId}/status
+6. Checkout Page Experience
+
+The checkout pages are optimized for both desktop and mobile views.
+
+Supported Payment Methods:
+
+UPI ID
+
+Net Banking
+
+Credit/Debit Cards
+
+Desktop View:
+
+All payment methods supported
+
+QR-based payments available
+
+Mobile View:
+
+UPI ID
+
+Net Banking
+
+Credit/Debit Cards
+
+QR-based payments not available
+
+
+Website Integration
+
+Overview
+
+To process a payment using PhonePe’s Standard Checkout, the integration follows a structured sequence of steps that ensures:
+
+Security
+
+Reliability
+
+Smooth customer experience
+
+The complete integration flow consists of the following steps:
+
+Generate Authorization Token
+
+Create Payment Request
+
+Invoke iframe PayPage
+
+Verify Payment Response
+
+1. Generate Authorization Token
+
+Authentication is the first step in PhonePe Payment Gateway’s Standard Checkout API integration.
+
+It involves generating an authorization token to make further API calls.
+
+Creating an authorization token means generating a unique key or password that proves your system has permission to interact with PhonePe Payment Gateway. This token:
+
+Identifies your website
+
+Authenticates your system
+
+Allows access to services like:
+
+Processing payments
+
+Checking order status
+
+Initiating refunds
+
+For complete implementation details, refer to the Generate Authorization API Reference.
+
+2. Create Payment Request
+
+This step involves creating a payment request by sending key transaction details to PhonePe.
+
+Required Information
+
+Transaction amount
+
+Unique order ID
+
+Redirection URL (for success/failure cases)
+
+The redirection URL determines where the customer will be redirected after completing the payment process.
+
+Important Configuration Parameters
+1. expireAfter
+
+Can be passed in the request payload
+
+Customizes the expiry time of the PhonePe Standard Checkout Page
+
+2. User-Defined Fields (UDFs)
+
+Passed inside the metaInfo block
+
+Returned in:
+
+Status API response
+
+Webhook response
+
+Useful for passing custom merchant-specific data
+
+3. paymentModeConfig
+
+Used to control which payment instruments are displayed
+
+Allows you to show/hide selected instruments as per business requirements
+
+For complete implementation details, refer to the Create Payment API Reference.
+
+3. Invoke iframe PayPage
+
+In this step, you integrate and invoke the PayPage inside your website’s checkout page.
+
+The PayPage:
+
+Acts as the secure payment interface
+
+Allows customers to complete the payment process
+
+Ensures secure and compliant handling of payment details
+
+For complete implementation details, refer to the PayPage documentation.
+
+4. Verify Payment Response
+
+After a payment is initiated, it is important to verify whether the transaction is:
+
+Successful
+
+Failed
+
+Pending
+
+This ensures your system takes appropriate actions, such as:
+
+Confirming the order
+
+Retrying payment
+
+Triggering refund logic
+
+There are two methods to verify payment status:
+
+A. Webhook (Server-to-Server Callback) – Recommended
+
+PhonePe sends an automated notification directly to your server when the payment status changes.
+
+This method ensures:
+
+Real-time updates
+
+Reliable status communication
+
+Reduced dependency on manual polling
+
+Webhook Event Types
+
+checkout.order.completed
+
+checkout.order.failed
+
+pg.refund.completed
+
+pg.refund.failed
+
+B. Check Status API
+
+If the webhook callback is not received, you can manually check the payment status using:
+
+Order Status API
+
+This allows you to fetch the latest transaction status.
+
+Important Guidelines
+1. Use the payload.state Parameter
+
+Always rely on the root-level payload.state field for determining payment status.
+
+2. Avoid Strict Deserialization
+
+Do not use overly strict rules while processing API responses.
+
+This prevents failures due to minor response structure changes.
+
+3. Use the event Parameter
+
+Use the event parameter to identify the webhook event type.
+
+4. Time Format
+
+expireAt and timestamp fields are provided in epoch time format.
+
+
+Generate Authorization Token
+
+Overview
+
+This API generates an Authorization Token required to authenticate all Standard Checkout API requests.
+
+The token must be obtained before initiating any checkout-related operations such as:
+
+Creating a payment request
+
+Checking payment status
+
+Processing refunds
+
+The generated token must be included in the Authorization header for all subsequent API calls.
+
+Environment Details
+Environment	HTTP Method	API Endpoint
+Sandbox	POST	https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token
+
+Production	POST	https://api.phonepe.com/apis/identity-manager/v1/oauth/token
+Request
+Request Headers
+Header Name	Header Value
+Content-Type	application/x-www-form-urlencoded
+Request Parameters
+Parameter Name	Parameter Value
+client_id	Client ID shared by PhonePe PG
+client_version	Client Version shared by PhonePe PG
+client_secret	Client Secret shared by PhonePe PG
+grant_type	Set the value to client_credentials
+Sample cURL Request
+curl --location 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'client_id=CLIENT_ID' \
+--data-urlencode 'client_version=CLIENT_VERSION' \
+--data-urlencode 'client_secret=CLIENT_SECRET' \
+--data-urlencode 'grant_type=client_credentials'
+
+Response
+Sample Response
+{
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "encrypted_access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "expires_in": null,
+    "issued_at": 1706073005,
+    "expires_at": 1706697605,
+    "session_expires_at": 1706697605,
+    "token_type": "O-Bearer"
+}
+
+Response Parameters
+Parameter Name	Data Type	Description
+access_token	String	The token generated by PhonePe. Must be included in subsequent API calls. Valid until expiry.
+issued_at	DateTime (epoch seconds)	Timestamp when the token was generated.
+expires_at	DateTime (epoch seconds)	Token expiry timestamp.
+token_type	String	Token type. Value will be O-Bearer.
+Access Token Guidelines
+
+You should depend on the following key response parameters:
+
+access_token
+This token must be included in API calls for authentication.
+
+expires_at
+Indicates token validity (in epoch seconds).
+You must refresh the token before it expires. If expired, generate a new token using the same API.
+
+The authorization token is required for all subsequent API calls. Use this access token to initiate payment processes.
+
+Accessing Your Credentials
+
+You can view your:
+
+Client ID
+
+Client Secret
+
+From the PhonePe Business Dashboard under Developer Settings.
+
+Use these credentials to test the API using sample code.
+
+Body Parameters (for Testing Tools)
+Field	Type	Required	Description
+Client Id	String	Yes	Enter your Client ID
+Client Secret	String	Yes	Enter your Client Secret
+Sample Node.js (Axios) Implementation
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/x-www-form-urlencoded"
+};
+
+const requestBodyJson = {
+  "client_id": "CLIENT_ID",
+  "client_secret": "CLIENT_SECRET",
+  "client_version": 1,
+  "grant_type": "client_credentials"
+};
+
+const requestBody = new URLSearchParams(requestBodyJson).toString();
+
+const options = {
+  method: 'POST',
+  url: 'https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token',
+  headers: requestHeaders,
+  data: requestBody
+};
+
+axios.request(options)
+  .then(function (response) {
+    console.log(response.data);
+  })
+  .catch(function (error) {
+    console.error(error.response?.data || error.message);
+  });
+
+
+Create Payment
+
+
+Overview
+
+This API is used to initiate a Payment Gateway Checkout session by providing transaction details such as:
+
+Amount
+
+Merchant Order ID
+
+Redirect URLs
+
+Once the request is successfully created, a checkout session is generated and the customer is redirected to complete the payment.
+
+Environment Details
+Environment	HTTP Method	API Endpoint
+Sandbox	POST	https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay
+
+Production	POST	https://api.phonepe.com/apis/pg/checkout/v2/pay
+Request
+Request Headers
+Header Name	Header Value
+Content-Type	application/json
+Authorization	O-Bearer <merchant-auth-token>
+Request Parameters
+Parameter Name	Data Type	Description	Mandatory	Constraints
+merchantOrderId	String	Unique merchant order ID generated by you	Yes	Max length = 63 characters. Only _ and - allowed as special characters
+amount	Long	Total order amount in paisa (₹10 = 1000)	Yes	Minimum value = 100
+expireAfter	Long	Expiry time in seconds	No	Min = 300, Max = 3600
+metaInfo	Object	Merchant-defined additional information	No	See metaInfo section
+paymentFlow	Object	Additional details required for checkout	Yes	See paymentFlow section
+metaInfo Object
+metaInfo Parameters
+Parameter	Data Type	Description	Mandatory	Constraints
+udf1–udf15	String	Optional additional details	No	Udf1–10: Max 256 chars
+Udf11–15: Max 50 chars
+
+⚠️ Important:
+Do not rename udf1, udf2, etc. Renaming these parameters will result in a production error.
+
+paymentFlow Object
+paymentFlow Parameters
+Parameter	Data Type	Description	Mandatory	Constraints
+type	String	Type of payment flow	Yes	Allowed value: PG_CHECKOUT
+message	String	Payment message for collect requests	No	—
+merchantUrls	Object	Object storing merchant URLs	Yes	—
+merchantUrls.redirectUrl	String	Redirect URL after success/failure	Yes	—
+paymentModeConfig	Object	Controls payment instruments displayed	No	See below
+Managing Payment Modes
+
+⚠️ Include paymentModeConfig only if you want to control payment instruments.
+If not provided, PhonePe default instruments will be shown.
+
+You must provide either:
+
+enabledPaymentModes
+OR
+
+disabledPaymentModes
+(Not both — otherwise API will return error.)
+
+enabledPaymentModes
+
+Displays only specified instruments.
+
+disabledPaymentModes
+
+Hides only specified instruments.
+
+Special Case: Card Payments
+
+When configuring cards, include cardTypes with type = "CARD".
+
+Rules
+
+If enabledPaymentModes.type = "CARD" but no cardTypes → Default (Credit/Debit) shown.
+
+If enabledPaymentModes.type = "CARD" and cardTypes = ["DEBIT_CARD"] → Only Debit Cards shown.
+
+For disabling:
+
+If disabledPaymentModes.type = "CARD" without cardTypes → No effect.
+
+If disabledPaymentModes.type = "CARD" with ["DEBIT_CARD"] → Debit Cards disabled.
+
+If ["DEBIT_CARD", "CREDIT_CARD"] → Both disabled.
+
+Sample Request (Basic)
+{
+  "merchantOrderId": "TX123653456743456",
+  "amount": 1000,
+  "expireAfter": 1200,
+  "paymentFlow": {
+    "type": "PG_CHECKOUT",
+    "message": "Payment message used for collect requests",
+    "merchantUrls": {
+      "redirectUrl": ""
+    }
+  },
+  "disablePaymentRetry": true,
+  "metaInfo": {
+    "udf1": "additional-information-1",
+    "udf2": "additional-information-2",
+    "udf3": "additional-information-3",
+    "udf4": "additional-information-4",
+    "udf5": "additional-information-5",
+    "udf6": "additional-information-6",
+    "udf7": "additional-information-7",
+    "udf8": "additional-information-8",
+    "udf9": "additional-information-9",
+    "udf10": "additional-information-10",
+    "udf11": "additional-information-11",
+    "udf12": "additional-information-12",
+    "udf13": "additional-information-13",
+    "udf14": "additional-information-14",
+    "udf15": "additional-information-15"
+  }
+}
+
+Sample cURL Request
+curl --location 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: O-Bearer YOUR_ACCESS_TOKEN' \
+--data '{
+  "merchantOrderId": "TX123rrty34432456",
+  "amount": 1000,
+  "paymentFlow": {
+    "type": "PG_CHECKOUT",
+    "message": "Payment message used for collect requests",
+    "merchantUrls": {
+      "redirectUrl": "https://www.xyz.com/PGIntegration/"
+    }
+  }
+}'
+
+Response
+Case 1: Order Created Successfully
+{
+  "orderId": "OMO123456789",
+  "state": "PENDING",
+  "expireAt": 1703756259307,
+  "redirectUrl": "https://mercury-uat.phonepe.com/transact/uat_v2?token=..."
+}
+
+Case 2: Duplicate merchantOrderId
+{
+  "code": "BAD_REQUEST",
+  "message": "Please check the inputs you have provided."
+}
+
+Case 3: Internal Server Error
+{
+  "code": "INTERNAL_SERVER_ERROR",
+  "message": "There is an error trying to process your transaction at the moment. Please try again in a while."
+}
+
+Response Parameters
+Field Name	Data Type	Description
+orderId	String	PhonePe generated internal order ID
+state	String	Order state (Expected: PENDING)
+expireAt	Long	Expiry time in epoch
+redirectUrl	String	URL to redirect user for payment completion
+Headers for Testing
+Header	Type	Required	Description
+Token	String	Yes	Access Token received earlier
+Authorization	String	Yes	O-Bearer <access_token>
+Sample Node.js (Axios) Implementation
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/json",
+  "Authorization": "O-Bearer YOUR_ACCESS_TOKEN"
+};
+
+const requestBody = {
+  merchantOrderId: "TX123456",
+  amount: 1000,
+  expireAfter: 1200,
+  metaInfo: {
+    udf1: "additional-information-1"
+  },
+  paymentFlow: {
+    type: "PG_CHECKOUT",
+    message: "Payment message used for collect requests",
+    merchantUrls: {
+      redirectUrl: "https://yourwebsite.com/payment-status"
+    }
+  }
+};
+
+const options = {
+  method: 'POST',
+  url: 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/pay',
+  headers: requestHeaders,
+  data: requestBody
+};
+
+axios.request(options)
+  .then(response => console.log(response.data))
+  .catch(error => console.error(error.response?.data || error.message));
+
+
+
+Invoke iframe PayPage
+Overview
+
+To start accepting payments using PhonePe’s PayPage, you must include the PhonePe Checkout script in your checkout page.
+
+The PayPage supports two modes:
+
+IFrame Mode (Recommended) – Opens within your website
+
+Redirect Mode – Redirects the user to a new page
+
+Include the PhonePe Checkout Script
+
+Add the following JavaScript file to your checkout page:
+
+<script src="https://mercury.phonepe.com/web/bundle/checkout.js"></script>
+
+
+After adding this script:
+
+The PhonePeCheckout object is appended to the window object.
+
+It provides two functions:
+
+PhonePeCheckout.transact() → Opens the PayPage
+
+PhonePeCheckout.closePage() → Closes the PayPage manually (IFrame mode only)
+
+Use these functions in your checkout flow as per your payment experience requirements.
+
+Invoking PayPage in IFrame Mode (Recommended)
+
+To open the PayPage within your website using an IFrame:
+
+window.PhonePeCheckout.transact({
+  tokenUrl: "https://merchant-t2.phonepe.com/transact....",
+  callback,
+  type: "IFRAME"
+});
+
+Parameters
+
+tokenUrl
+Must be the redirectUrl received in the Create Payment API response from your backend server.
+
+callback
+Function executed after the PayPage closes.
+
+type
+Set to "IFRAME" for embedded mode.
+
+Example Callback Function
+function callback(response) {
+  if (response === 'USER_CANCEL') {
+    // Custom UI logic when user cancels
+    return;
+  } else if (response === 'CONCLUDED') {
+    // Custom UI logic when transaction reaches terminal state
+    return;
+  }
+}
+
+Possible Response Values
+
+USER_CANCEL
+
+CONCLUDED
+
+Use these values to update your UI accordingly.
+
+Closing the PayPage IFrame Manually
+
+To close the PayPage manually (IFrame mode only):
+
+window.PhonePeCheckout.closePage();
+
+
+⚠️ Use Only for Exceptional Cases
+
+The IFrame closes automatically after payment completion.
+Use this method only if you have a specific reason to manually close it.
+
+Invoking PayPage in Redirect Mode
+
+To open the PayPage in a new tab or redirect the user:
+
+window.PhonePeCheckout.transact({ tokenUrl });
+
+Important Notes
+
+tokenUrl is the PayPage link received from your backend.
+
+The user will be redirected to PhonePe’s PayPage.
+
+After payment, the user is redirected back to your website.
+
+Your backend must verify payment status before showing confirmation.
+
+Integrating PhonePe Checkout with Flutter Web
+
+If building a Flutter Web application, follow the steps below.
+
+1. Include the PhonePe Checkout Script
+<script src="https://mercury-stg.phonepe.com/web/bundle/checkout.js" defer></script>
+
+
+This loads the PhonePeCheckout object into the global window context.
+
+2. Define a JavaScript Function to Invoke PayPage
+window.checkout = (tokenUrl, type, callback) => {
+  if (window && window.PhonePeCheckout && window.PhonePeCheckout.transact) {
+    window.PhonePeCheckout.transact({ tokenUrl, callback, type });
+  }
+};
+
+
+This function:
+
+Validates availability of PhonePeCheckout
+
+Calls transact() with required parameters
+
+3. Define a Callback Function in Dart
+void callback(response) {
+   if (response == 'USER_CANCEL') {
+     // Handle user cancellation
+     return;
+   } else if (response == 'CONCLUDED') {
+     // Handle transaction completion
+     return;
+   }
+}
+
+
+The response parameter indicates transaction status.
+
+4. Call Checkout Function from Dart
+import 'dart:js' as js;
+
+void handlePayPage() {
+   if (js.context.hasProperty('checkout')) {
+      const redirectUrl = "PayPage Generated URL";
+      const type = "IFRAME";
+
+      js.context.callMethod(
+        'checkout',
+        [redirectUrl, type, js.allowInterop(callback)]
+      );
+   }
+}
+
+
+This:
+
+Checks if the checkout function is available
+
+Calls it with:
+
+tokenUrl
+
+type
+
+Dart callback wrapped using js.allowInterop
+
+
+
+Check Payment Status (Order Status API)
+Overview
+
+The Order Status API enables you to check the current status of a specific order using its merchantOrderId.
+
+It returns details indicating whether:
+
+The order is successfully completed
+
+The order is part of a split payment (e.g., PPE_INTENT)
+
+No payment attempts have been made
+
+The payment has failed
+
+The order ID is invalid
+
+This API helps you reliably track and manage orders and take necessary actions based on their status.
+
+Environment Details
+Environment	HTTP Method	API Endpoint
+Sandbox	GET	https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/{merchantOrderId}/status
+
+Production	GET	https://api.phonepe.com/apis/pg/checkout/v2/order/{merchantOrderId}/status
+Request
+Request Headers
+Header Name	Header Value
+Content-Type	application/json
+Authorization	O-Bearer <merchant-auth-token>
+
+⚠️ For Partner Integrations
+
+It is mandatory to include:
+
+X-MERCHANT-ID: <End-Merchant-ID>
+
+Request Parameters (Query Parameters)
+Parameter	Description
+details	true → Returns all payment attempts
+false → Returns only latest payment attempt
+errorContext	true → Includes errorContext block if state is FAILED
+false → Excludes errorContext
+merchantOrderId	Order ID generated during payment creation
+Sample cURL Request
+curl --location 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/TX123rrty34432456/status?details=false' \
+--header 'Content-Type: application/json' \
+--header 'Authorization: O-Bearer YOUR_ACCESS_TOKEN'
+
+Response Scenarios
+Case 1: Order Completed
+{
+  "orderId": "OMO2403282020198641071317",
+  "state": "COMPLETED",
+  "amount": 1000,
+  "expireAt": 1711867462542,
+  "paymentDetails": [
+    {
+      "paymentMode": "UPI_QR",
+      "transactionId": "OM2403282020198651071949",
+      "timestamp": 1711694662542,
+      "amount": 1000,
+      "state": "COMPLETED"
+    }
+  ]
+}
+
+Case 2: PPE_INTENT Split Payment
+
+State: COMPLETED
+
+Multiple instruments used (e.g., ACCOUNT + WALLET)
+
+splitInstruments array present in response
+
+Case 3: Payment Mode – CARD
+
+paymentMode = CARD
+
+Instrument details include:
+
+bankId
+
+cardNetwork
+
+maskedCardNumber
+
+Rail type: PG
+
+Case 4: No Payment Attempt
+{
+  "state": "PENDING",
+  "paymentDetails": []
+}
+
+
+Indicates that no payment attempt has been made yet.
+
+Case 5: Payment Failed
+{
+  "state": "FAILED",
+  "errorCode": "INVALID_MPIN",
+  "errorContext": {
+    "source": "CUSTOMER",
+    "stage": "AUTHENTICATION",
+    "description": "Wrong MPIN was entered"
+  }
+}
+
+
+If errorContext=true, detailed failure reason is included.
+
+Case 6: Invalid Order ID
+{
+  "code": "INVALID_MERCHANT_ORDER_ID",
+  "message": "No entry found for given merchant order id"
+}
+
+Response Parameters
+Root-Level Fields
+Field	Data Type	Description
+orderId	String	Internal PhonePe Order ID
+state	String	Order state:
+• PENDING
+• COMPLETED
+• FAILED
+amount	String	Order amount in paisa
+expireAt	Long	Expiry timestamp in epoch
+metaInfo	Object	Merchant-defined meta information
+paymentDetails	List	List of payment attempts
+paymentDetails Object
+Field	Data Type	Description
+paymentMode	String	Payment mode:
+• UPI_INTENT
+• UPI_COLLECT
+• UPI_QR
+• CARD
+• NET_BANKING
+timestamp	Long	Attempt timestamp (epoch)
+amount	Long	Attempt amount in paisa
+transactionId	String	Internal transaction ID
+state	String	Attempt state:
+• PENDING
+• COMPLETED
+• FAILED
+errorCode	String	Present only if FAILED
+detailedErrorCode	String	Present only if FAILED
+rail.type	String	Processing rail:
+• UPI
+• PG
+instrument.type	String	Instrument type:
+• ACCOUNT
+• CREDIT_CARD
+• DEBIT_CARD
+• NET_BANKING
+Verify a Sample Payment Status
+Required Headers
+Header	Required	Description
+Authorization	Yes	O-Bearer <access_token>
+URL Parameter
+Parameter	Required	Description
+merchantOrderId	Yes	Order ID used during payment creation
+Sample Node.js (Axios) Implementation
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/json",
+  "Authorization": "O-Bearer YOUR_ACCESS_TOKEN"
+};
+
+const options = {
+  method: 'GET',
+  url: 'https://api-preprod.phonepe.com/apis/pg-sandbox/checkout/v2/order/TX123456/status?details=false',
+  headers: requestHeaders
+};
+
+axios.request(options)
+  .then(response => console.log(response.data))
+  .catch(error => console.error(error.response?.data || error.message));
+
+
+
+Initiate Refund & Check Refund Status
+Overview
+
+This section explains how to:
+
+Initiate a refund for a successful transaction
+
+Check the status of a refund request
+
+Using these APIs, you can:
+
+Process cancellations
+
+Handle returns
+
+Adjust payments
+
+Track refund lifecycle efficiently
+
+Provide transparent updates to customers
+
+Initiate Refund API
+
+The Refund API allows you to initiate refunds for specific transactions and return funds to customers.
+
+Environment Details
+Environment	HTTP Method	API Endpoint
+Sandbox	POST	https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund
+
+Production	POST	https://api.phonepe.com/apis/pg/payments/v2/refund
+Request
+Request Headers
+Header Name	Header Value
+Content-Type	application/json
+Authorization	O-Bearer <merchant-auth-token>
+
+⚠️ For Partner Integrations
+
+Include the following header:
+
+X-MERCHANT-ID: <End-Merchant-ID>
+
+Request Parameters
+Field Name	Data Type	Mandatory	Description	Constraints
+merchantRefundId	String	Yes	Unique refund ID generated by merchant	Max Length = 63 characters
+originalMerchantOrderId	String	Yes	Original merchant order ID	—
+amount	Long	Yes	Refund amount in paisa	Minimum = 100
+
+⚠️ Important
+
+Refund amount must be ≤ original transaction amount
+
+Cannot exceed the initiated amount
+
+Sample Refund Request
+{
+  "merchantRefundId": "Refund-id-12345",
+  "originalMerchantOrderId": "Order-12345",
+  "amount": 1234
+}
+
+Refund Initiation Response
+Successful Refund Initiation
+{
+  "refundId": "OMRxxxxx",
+  "amount": 1234,
+  "state": "PENDING"
+}
+
+Response Parameters
+Field Name	Data Type	Description
+refundId	String	Internal PhonePe refund ID
+amount	Long	Refund amount in paisa
+state	String	Refund state (Expected: PENDING)
+Sample Node.js (Axios) Implementation – Refund
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/json",
+  "Authorization": "O-Bearer YOUR_ACCESS_TOKEN"
+};
+
+const requestBody = {
+  merchantRefundId: "Refund-id-12345",
+  originalMerchantOrderId: "Order-12345",
+  amount: 1234
+};
+
+axios.post(
+  "https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund",
+  requestBody,
+  { headers: requestHeaders }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response?.data || error.message));
+
+Check Refund Status API
+
+The Refund Status API allows you to check whether a refund is:
+
+PENDING
+
+CONFIRMED
+
+COMPLETED
+
+FAILED
+
+Environment Details
+Environment	HTTP Method	API Endpoint
+Sandbox	GET	https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund/{merchantRefundId}/status
+
+Production	GET	https://api.phonepe.com/apis/pg/payments/v2/refund/{merchantRefundId}/status
+Request Headers
+Header Name	Header Value
+Content-Type	application/json
+Authorization	O-Bearer <merchant-auth-token>
+
+⚠️ For Partner Integrations
+
+Include:
+
+X-MERCHANT-ID: <End-Merchant-ID>
+
+Refund Status Response Examples
+Case 1: Original Payment Source – UPI
+
+Rail type: UPI
+
+Instrument type: ACCOUNT
+
+Contains UTR, UPI Transaction ID, masked VPA
+
+Case 2: Original Source – PPE_INTENT (Wallet + Account Split)
+
+Multiple splitInstruments
+
+Refund distributed across wallet and account
+
+Case 3: Original Source – Net Banking
+
+Instrument type: NET_BANKING
+
+Rail type: PG
+
+Contains bankId and BRN
+
+May include paymentDetails block
+
+Refund Status Response Parameters
+Field Name	Data Type	Description
+originalMerchantOrderId	String	Original order ID
+amount	Long	Refund amount in paisa
+state	String	Refund state:
+• PENDING
+• CONFIRMED
+• COMPLETED
+• FAILED
+timestamp	Long	Refund timestamp (epoch)
+refundId	String	PhonePe generated refund ID
+errorCode	String	Present only if FAILED
+detailedErrorCode	String	Present only if FAILED
+splitInstruments Object
+Field	Description
+rail.type	UPI / PG
+instrument.type	ACCOUNT / CREDIT_CARD / DEBIT_CARD / NET_BANKING
+amount	Refund amount for that instrument
+Sample Node.js (Axios) Implementation – Refund Status
+const axios = require('axios');
+
+const requestHeaders = {
+  "Content-Type": "application/json",
+  "Authorization": "O-Bearer YOUR_ACCESS_TOKEN"
+};
+
+axios.get(
+  "https://api-preprod.phonepe.com/apis/pg-sandbox/payments/v2/refund/Refund-id-12345/status",
+  { headers: requestHeaders }
+)
+.then(response => console.log(response.data))
+.catch(error => console.error(error.response?.data || error.message));
+
+Complete Refund Lifecycle Flow
+
+Initiate Refund → State = PENDING
+
+Check Refund Status →
+
+CONFIRMED
+
+COMPLETED
+
+FAILED
+
+Use the Refund Status API or Webhook events to monitor final state.
+
+
+
+
+Webhook Handling (S2S Callbacks)
+Overview
+
+PhonePe Payment Gateway uses Webhooks (Server-to-Server Callbacks) to notify your system about key events such as:
+
+Payment completion
+
+Payment failure
+
+Refund completion
+
+Refund failure
+
+You must provide a Webhook URL (server endpoint) where these event updates will be delivered.
+
+To ensure secure communication, you must configure:
+
+Username
+
+Password
+
+These credentials are used to validate webhook requests.
+
+Webhook Integration – Best Practices
+1. HTTPS Requirement
+
+Webhook URL must use HTTPS
+
+Valid SSL/TLS certificate is mandatory
+
+2. Acknowledge Promptly
+
+Your server must return a 2xx status code (e.g., 200 OK)
+
+Response must be sent within 3–5 seconds
+
+Delays may cause retries or timeouts
+
+3. IP Whitelisting
+
+Allow traffic from the following IPs:
+
+103.116.33.8
+103.116.33.9
+103.116.33.10
+103.116.33.11
+103.116.33.136
+103.116.33.137
+103.116.33.138
+103.116.33.139
+103.116.32.16 – 103.116.32.29
+103.116.34.1
+103.116.34.16 – 103.116.34.23
+103.243.35.242
+
+Outbound IP CIDR
+103.116.34.16/29
+103.116.32.16/29
+103.116.33.8/30
+103.116.33.136/30
+
+4. Idempotency
+
+Webhooks may be delivered multiple times.
+
+Your system must handle duplicate events safely.
+
+Avoid double processing of orders or refunds.
+
+5. Event Filtering
+
+Select only required events to reduce unnecessary server load.
+
+6. Authentication Standards
+Field	Rules
+Username	5–20 characters, letters, digits, underscore only
+Password	8–20 characters, must include letters and numbers
+Webhook Setup (Dashboard Configuration)
+
+Log in to PhonePe Business Dashboard
+
+Set environment:
+
+Sandbox → Test Mode ON
+
+Production → Test Mode OFF
+
+Go to Developer Settings
+
+Select Webhook
+
+Click Create Webhook
+
+Fill:
+
+Webhook URL
+
+Username
+
+Password
+
+Description
+
+Select Events:
+
+Order Events
+
+checkout.order.completed
+
+checkout.order.failed
+
+Refund Events
+
+pg.refund.completed
+
+pg.refund.failed
+
+Click Create
+
+Webhook is now active.
+
+Webhook Authorization
+
+PhonePe sends the Authorization header in this format:
+
+Authorization: SHA256(username:password)
+
+Verification Steps
+
+Extract the Authorization header.
+
+Compute SHA256 of username:password.
+
+Compare with received hash.
+
+If match → Accept request.
+
+If mismatch → Ignore request.
+
+Callback Validation Guidelines
+
+Use payload.state (root-level) to determine payment status.
+
+Use event parameter to identify event type.
+
+Ignore type parameter.
+
+expireAt and timestamp are in epoch format.
+
+Avoid strict deserialization rules.
+
+Webhook Event Payloads
+Order Completed
+{
+  "event": "checkout.order.completed",
+  "payload": {
+    "state": "COMPLETED",
+    "amount": 10000
+  }
+}
+
+Order Failed
+{
+  "event": "checkout.order.failed",
+  "payload": {
+    "state": "FAILED",
+    "errorCode": "AUTHORIZATION_ERROR"
+  }
+}
+
+Refund Completed
+{
+  "event": "pg.refund.completed",
+  "payload": {
+    "state": "COMPLETED",
+    "refundId": "OMR7878098045517540996"
+  }
+}
+
+
+Supports UPI, CARD, NET_BANKING, Wallet split scenarios.
+
+Refund Failed
+{
+  "event": "pg.refund.failed",
+  "payload": {
+    "state": "FAILED",
+    "errorCode": "AUTHORIZATION_ERROR"
+  }
+}
+
+What If Webhook Fails?
+
+If webhook callback is not received:
+
+Use Order Status API to verify payment status manually.
+
+Use Refund Status API to verify refund state.
+
+Complete Webhook Flow Summary
+
+Payment/Refund event occurs
+
+PhonePe sends webhook
+
+Validate Authorization header
+
+Check event field
+
+Use payload.state
+
+Update order/refund in DB
+
+Return 200 OK

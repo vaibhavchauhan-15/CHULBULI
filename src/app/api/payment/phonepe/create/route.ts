@@ -16,7 +16,7 @@ import { orders, orderItems } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { sanitizeOrderData, validateEmail, validatePhoneNumber, validatePincode } from '@/lib/validation';
 import { generateId } from '@/lib/db/queries';
-import { createPhonePeOrder, generateMerchantOrderId } from '@/lib/phonepe';
+import { createPhonePeOrder, generateMerchantOrderId, getPhonePeCheckoutScriptUrl } from '@/lib/phonepe';
 
 export const dynamic = 'force-dynamic';
 
@@ -159,10 +159,10 @@ export async function POST(request: NextRequest) {
         city: sanitizedData.city,
         state: sanitizedData.state,
         pincode: sanitizedData.pincode,
-        status: 'placed', // Order is placed, but payment is pending
+        status: 'pending_payment', // Order awaiting payment - will be 'placed' only after payment success
         paymentMethod: 'online',
         paymentProvider: 'phonepe',
-        paymentStatus: 'pending', // Will be updated by webhook
+        paymentStatus: 'pending', // Will be updated by webhook or status check
         merchantOrderId: merchantOrderId,
         transactionId: null, // Will be set when PhonePe returns it
         createdAt: now,
@@ -176,6 +176,30 @@ export async function POST(request: NextRequest) {
 
       return newOrder;
     });
+
+    // Validate minimum amount for PhonePe (₹1 = 100 paisa)
+    const orderTotal = parseFloat(order.totalPrice);
+    if (orderTotal < 1) {
+      // Mark order as cancelled since we can't process payment
+      await db.update(orders)
+        .set({
+          paymentStatus: 'failed',
+          status: 'cancelled',
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, order.id));
+
+      return NextResponse.json(
+        { 
+          error: 'Order total must be at least ₹1 for online payment',
+          code: 'MINIMUM_AMOUNT_ERROR',
+          minimumAmount: 1,
+          currentAmount: orderTotal,
+          suggestion: 'Please add more items to cart or use Cash on Delivery option.'
+        },
+        { status: 400 }
+      );
+    }
 
     // Now create payment with PhonePe
     try {
@@ -202,10 +226,14 @@ export async function POST(request: NextRequest) {
         transactionId: phonePePayment.transactionId,
       });
 
-      // Return payment URL for frontend to redirect
+      // Get the correct checkout script URL for the environment
+      const checkoutScriptUrl = getPhonePeCheckoutScriptUrl(phonePePayment.paymentUrl);
+
+      // Return payment URL and checkout script for frontend
       return NextResponse.json({
         success: true,
         paymentUrl: phonePePayment.paymentUrl,
+        checkoutScriptUrl: checkoutScriptUrl,
         orderId: order.id,
         merchantOrderId: order.merchantOrderId,
         transactionId: phonePePayment.transactionId,
@@ -213,20 +241,30 @@ export async function POST(request: NextRequest) {
     } catch (phonePeError: any) {
       console.error('PhonePe payment creation failed:', phonePeError);
 
-      // Update order status to failed
+      // Mark order as cancelled since payment gateway failed
       await db.update(orders)
         .set({
           paymentStatus: 'failed',
+          status: 'cancelled',
           updatedAt: new Date(),
         })
         .where(eq(orders.id, order.id));
 
+      // Determine if it's a merchant configuration error
+      const isMerchantConfigError = 
+        phonePeError.message?.includes('not properly configured') ||
+        phonePeError.message?.includes('KEY_NOT_CONFIGURED') ||
+        phonePeError.message?.includes('Merchant Configuration Error');
+
       return NextResponse.json(
         { 
-          error: 'Failed to initiate payment with PhonePe',
+          error: isMerchantConfigError 
+            ? 'PhonePe merchant account not properly configured. Please use an alternative payment method.'
+            : 'Failed to initiate payment with PhonePe',
+          code: isMerchantConfigError ? 'MERCHANT_NOT_CONFIGURED' : 'PHONEPE_ERROR',
           details: phonePeError.message,
         },
-        { status: 500 }
+        { status: isMerchantConfigError ? 503 : 500 }
       );
     }
   } catch (error: any) {

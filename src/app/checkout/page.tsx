@@ -36,7 +36,7 @@ export default function CheckoutPage() {
   const user = useAuthStore((state) => state.user)
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('online')
-  const [paymentGateway, setPaymentGateway] = useState<'razorpay' | 'phonepe'>('phonepe')
+  const [paymentGateway, setPaymentGateway] = useState<'razorpay' | 'phonepe'>('phonepe') // Default to PhonePe
   const [razorpayLoaded, setRazorpayLoaded] = useState(false)
   const [scriptLoadAttempts, setScriptLoadAttempts] = useState(0)
   const [mounted, setMounted] = useState(false)
@@ -163,6 +163,48 @@ export default function CheckoutPage() {
     }
   }, [subtotal, selectedShipping])
 
+  // Load PhonePe Checkout script
+  useEffect(() => {
+    const loadPhonePeScript = (scriptUrl: string) => {
+      // Check if PhonePe Checkout is already loaded
+      if ((window as any).PhonePeCheckout) {
+        console.log('PhonePe Checkout already loaded')
+        return
+      }
+
+      // Remove any existing PhonePe scripts first
+      const existingScripts = document.querySelectorAll('script[src*="mercury"]')
+      existingScripts.forEach(script => {
+        console.log('Removing old PhonePe script:', script.getAttribute('src'))
+        script.remove()
+      })
+
+      console.log('Loading PhonePe Checkout script:', scriptUrl)
+      const script = document.createElement('script')
+      script.src = scriptUrl
+      script.async = true
+      
+      script.onload = () => {
+        console.log('✅ PhonePe Checkout script loaded successfully')
+        if ((window as any).PhonePeCheckout) {
+          console.log('✅ PhonePeCheckout object available')
+        } else {
+          console.error('❌ PhonePeCheckout object not found after script load')
+        }
+      }
+      
+      script.onerror = (error) => {
+        console.error('❌ Failed to load PhonePe Checkout script:', error)
+        toast.error('Failed to load PhonePe payment gateway')
+      }
+      
+      document.head.appendChild(script)
+    }
+
+    // Load the staging/test script by default (will be updated when payment is created)
+    loadPhonePeScript('https://mercury-stg.phonepe.com/web/bundle/checkout.js')
+  }, [])
+
   // Load Razorpay script with retry logic
   useEffect(() => {
     const loadRazorpayScript = () => {
@@ -221,6 +263,14 @@ export default function CheckoutPage() {
 
     loadRazorpayScript()
   }, [scriptLoadAttempts])
+
+  // Auto-switch from PhonePe to Razorpay if total falls below ₹1
+  useEffect(() => {
+    if (paymentMethod === 'online' && paymentGateway === 'phonepe' && totalAmount < 1) {
+      setPaymentGateway('razorpay')
+      toast.error('PhonePe requires minimum ₹1. Switched to Razorpay payment.', { duration: 4000 })
+    }
+  }, [totalAmount, paymentMethod, paymentGateway])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -396,44 +446,196 @@ export default function CheckoutPage() {
       else if (paymentMethod === 'online') {
         // Handle PhonePe Payment
         if (paymentGateway === 'phonepe') {
-          const orderData = {
-            ...formData,
-            userId: user?.id || null,
-            items: selectedItems.map((item) => ({
-              productId: item.id,
-              quantity: item.quantity,
-            })),
-            shippingMethod: selectedShipping,
-            shippingCost: getShippingCost(),
-            gstAmount: gstAmount,
-            totalAmount: totalAmount,
-          }
+          try {
+            // PhonePe minimum amount validation (₹1 = 100 paisa)
+            if (totalAmount < 1) {
+              toast.error(
+                `PhonePe requires a minimum payment of ₹1. Your order total is ₹${totalAmount.toFixed(2)}. Please add more items or use Cash on Delivery.`,
+                { duration: 6000 }
+              )
+              setLoading(false)
+              return
+            }
 
-          // Call PhonePe create payment API
-          const phonePeResponse = await fetch('/api/payment/phonepe/create', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData),
-          })
+            const orderData = {
+              ...formData,
+              userId: user?.id || null,
+              items: selectedItems.map((item) => ({
+                productId: item.id,
+                quantity: item.quantity,
+              })),
+              shippingMethod: selectedShipping,
+              shippingCost: getShippingCost(),
+              gstAmount: gstAmount,
+              totalAmount: totalAmount,
+            }
 
-          if (!phonePeResponse.ok) {
-            const error = await phonePeResponse.json()
-            toast.error(error.error || 'Failed to create payment')
+            // Call PhonePe create payment API
+            const phonePeResponse = await fetch('/api/payment/phonepe/create', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(orderData),
+            })
+
+            if (!phonePeResponse.ok) {
+              const error = await phonePeResponse.json()
+              
+              // Check for minimum amount error
+              if (error.code === 'MINIMUM_AMOUNT_ERROR') {
+                toast.error(
+                  `PhonePe requires minimum ₹${error.minimumAmount}. Your order is ₹${error.currentAmount.toFixed(2)}. Please add more items or use Cash on Delivery.`,
+                  { duration: 6000 }
+                )
+                setLoading(false)
+                return
+              }
+              
+              // Check if it's a merchant configuration error
+              if (error.code === 'MERCHANT_NOT_CONFIGURED' || error.error?.includes('not properly configured')) {
+                // Automatically switch to Razorpay
+                console.log('PhonePe not configured, switching to Razorpay...')
+                toast.error(
+                  'PhonePe is currently unavailable. Please use Razorpay or Cash on Delivery.',
+                  { duration: 5000 }
+                )
+                setPaymentGateway('razorpay')
+                setLoading(false)
+                
+                // Show info message
+                setTimeout(() => {
+                  toast(
+                    'Click "Place Order" again to proceed with Razorpay payment.',
+                    { icon: 'ℹ️', duration: 5000 }
+                  )
+                }, 500)
+                return
+              }
+              
+              toast.error(error.error || 'Failed to create payment')
+              setLoading(false)
+              return
+            }
+
+            const phonePeData = await phonePeResponse.json()
+
+            // Save address to user account before payment
+            await saveAddressToAccount()
+
+            // Load the correct PhonePe Checkout script for this environment
+            if (phonePeData.checkoutScriptUrl) {
+              const loadPhonePeScript = (scriptUrl: string): Promise<void> => {
+                return new Promise((resolve, reject) => {
+                  // Check if PhonePe Checkout is already loaded
+                  if ((window as any).PhonePeCheckout) {
+                    console.log('PhonePe Checkout already loaded')
+                    resolve()
+                    return
+                  }
+
+                  // Remove any existing PhonePe scripts first
+                  const existingScripts = document.querySelectorAll('script[src*="mercury"]')
+                  existingScripts.forEach(script => {
+                    console.log('Removing old PhonePe script:', script.getAttribute('src'))
+                    script.remove()
+                  })
+
+                  console.log('Loading PhonePe Checkout script:', scriptUrl)
+                  const script = document.createElement('script')
+                  script.src = scriptUrl
+                  script.async = true
+                  
+                  script.onload = () => {
+                    console.log('✅ PhonePe Checkout script loaded successfully')
+                    if ((window as any).PhonePeCheckout) {
+                      console.log('✅ PhonePeCheckout object available')
+                      resolve()
+                    } else {
+                      console.error('❌ PhonePeCheckout object not found after script load')
+                      reject(new Error('PhonePeCheckout object not available'))
+                    }
+                  }
+                  
+                  script.onerror = (error) => {
+                    console.error('❌ Failed to load PhonePe Checkout script:', error)
+                    reject(error)
+                  }
+                  
+                  document.head.appendChild(script)
+                })
+              }
+
+              // Load the script before opening payment page
+              try {
+                await loadPhonePeScript(phonePeData.checkoutScriptUrl)
+              } catch (scriptError) {
+                console.error('Failed to load PhonePe script, using redirect mode:', scriptError)
+                // Fallback to direct redirect if script fails to load
+                toast.success('Redirecting to PhonePe payment...')
+                window.location.href = phonePeData.paymentUrl
+                return
+              }
+            }
+
+            // Use PhonePe Checkout iframe mode (recommended) - Standard Checkout v2
+            // Check if PhonePe Checkout is loaded
+            if ((window as any).PhonePeCheckout) {
+              console.log('Opening PhonePe payment in iframe mode...')
+              toast.success('Opening PhonePe payment gateway...')
+              
+              // Define callback for iframe mode
+              const phonePeCallback = (response: string) => {
+                console.log('PhonePe callback received:', response)
+                
+                if (response === 'USER_CANCEL') {
+                  // User cancelled the payment
+                  setLoading(false)
+                  toast.error('Payment cancelled')
+                  return
+                } else if (response === 'CONCLUDED') {
+                  // Payment reached terminal state - verify status
+                  toast.loading('Verifying payment status...')
+                  
+                  // Redirect to order success page with status check
+                  setTimeout(() => {
+                    router.push(`/order-success?orderId=${phonePeData.orderId}`)
+                  }, 1000)
+                }
+              }
+
+              // Open PhonePe payment in iframe mode
+              try {
+                (window as any).PhonePeCheckout.transact({
+                  tokenUrl: phonePeData.paymentUrl,
+                  callback: phonePeCallback,
+                  type: 'IFRAME' // Use IFRAME mode for better UX - supports all payment methods
+                })
+                console.log('✅ PhonePe iframe opened successfully')
+              } catch (iframeError) {
+                console.error('PhonePe iframe error, falling back to redirect:', iframeError)
+                // Fallback to redirect mode if iframe fails
+                toast.success('Redirecting to PhonePe payment...')
+                window.location.href = phonePeData.paymentUrl
+              }
+            } else {
+              // Fallback: Direct redirect if PhonePe Checkout not loaded
+              console.warn('PhonePe Checkout not loaded, using redirect mode')
+              toast.success('Redirecting to PhonePe payment...')
+              window.location.href = phonePeData.paymentUrl
+            }
+            return
+          } catch (phonePeError: any) {
+            console.error('PhonePe error:', phonePeError)
+            toast.error(
+              'PhonePe payment gateway is currently unavailable. Please try Razorpay or Cash on Delivery.',
+              { duration: 5000 }
+            )
+            // Auto-switch to Razorpay
+            setPaymentGateway('razorpay')
             setLoading(false)
             return
           }
-
-          const phonePeData = await phonePeResponse.json()
-
-          // Save address to user account before redirecting
-          await saveAddressToAccount()
-
-          // Redirect to PhonePe payment page
-          toast.success('Redirecting to PhonePe payment...')
-          window.location.href = phonePeData.paymentUrl
-          return
         }
 
         // Handle Razorpay Payment
@@ -1072,19 +1274,22 @@ export default function CheckoutPage() {
                       <p className="text-sm font-medium text-[#5A3E2B]/80 mb-3">Select Payment Gateway:</p>
                       <div className="grid grid-cols-2 gap-3">
                         {/* PhonePe */}
-                        <label className="relative block cursor-pointer">
+                        <label className={`relative block ${totalAmount >= 1 ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
                           <input
                             type="radio"
                             name="paymentGateway"
                             value="phonepe"
                             checked={paymentGateway === 'phonepe'}
                             onChange={(e) => setPaymentGateway('phonepe')}
+                            disabled={totalAmount < 1}
                             className="sr-only"
                           />
                           <div className={`bg-white border-2 rounded-lg p-3 transition-all ${
-                            paymentGateway === 'phonepe'
+                            paymentGateway === 'phonepe' && totalAmount >= 1
                               ? 'border-[#5F259F] bg-[#5F259F]/5 shadow-md'
-                              : 'border-gray-200 hover:border-[#5F259F]/40'
+                              : totalAmount >= 1
+                              ? 'border-gray-200 hover:border-[#5F259F]/40'
+                              : 'border-gray-200'
                           }`}>
                             <div className="flex items-center gap-2">
                               <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
@@ -1097,8 +1302,24 @@ export default function CheckoutPage() {
                                 )}
                               </div>
                               <div className="flex-1">
-                                <p className="font-semibold text-[#5A3E2B] text-sm">PhonePe</p>
-                                <p className="text-xs text-[#5A3E2B]/60">UPI, Cards & More</p>
+                                <div className="flex items-center gap-1">
+                                  <p className="font-semibold text-[#5A3E2B] text-sm">PhonePe</p>
+                                  {totalAmount >= 1 ? (
+                                    <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 border border-emerald-300 rounded">
+                                      ✓ ready
+                                    </span>
+                                  ) : (
+                                    <span className="px-1.5 py-0.5 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-300 rounded">
+                                      Min ₹1
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs text-[#5A3E2B]/60">UPI & Cards</p>
+                                {totalAmount < 1 && (
+                                  <p className="text-xs text-amber-600 mt-1">
+                                    Add ₹{(1 - totalAmount).toFixed(2)} more
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1130,7 +1351,12 @@ export default function CheckoutPage() {
                                 )}
                               </div>
                               <div className="flex-1">
-                                <p className="font-semibold text-[#5A3E2B] text-sm">Razorpay</p>
+                                <div className="flex items-center gap-1">
+                                  <p className="font-semibold text-[#5A3E2B] text-sm">Razorpay</p>
+                                  <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 border border-emerald-300 rounded">
+                                    ✓ ready
+                                  </span>
+                                </div>
                                 <p className="text-xs text-[#5A3E2B]/60">Cards & Netbanking</p>
                               </div>
                             </div>
