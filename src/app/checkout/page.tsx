@@ -163,7 +163,7 @@ export default function CheckoutPage() {
     }
   }, [subtotal, selectedShipping])
 
-  // Load PhonePe Checkout script
+  // Load PhonePe Checkout script based on environment
   useEffect(() => {
     const loadPhonePeScript = (scriptUrl: string) => {
       // Check if PhonePe Checkout is already loaded
@@ -201,8 +201,17 @@ export default function CheckoutPage() {
       document.head.appendChild(script)
     }
 
-    // Load the staging/test script by default (will be updated when payment is created)
-    loadPhonePeScript('https://mercury-stg.phonepe.com/web/bundle/checkout.js')
+    // Load the correct PhonePe script based on environment
+    // Production: mercury.phonepe.com | Sandbox: mercury-stg.phonepe.com
+    const isProduction = process.env.NODE_ENV === 'production' && 
+                        !window.location.hostname.includes('localhost') &&
+                        !window.location.hostname.includes('127.0.0.1')
+    const phonePeScriptUrl = isProduction 
+      ? 'https://mercury.phonepe.com/web/bundle/checkout.js'
+      : 'https://mercury-stg.phonepe.com/web/bundle/checkout.js'
+    
+    console.log(`Loading PhonePe script for ${isProduction ? 'PRODUCTION' : 'SANDBOX'} environment`)
+    loadPhonePeScript(phonePeScriptUrl)
   }, [])
 
   // Load Razorpay script with retry logic
@@ -1306,7 +1315,7 @@ export default function CheckoutPage() {
                                   <p className="font-semibold text-[#5A3E2B] text-sm">PhonePe</p>
                                   {totalAmount >= 1 ? (
                                     <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 border border-emerald-300 rounded">
-                                      ✓ ready
+                                      ✓Testing
                                     </span>
                                   ) : (
                                     <span className="px-1.5 py-0.5 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-300 rounded">
@@ -1354,7 +1363,7 @@ export default function CheckoutPage() {
                                 <div className="flex items-center gap-1">
                                   <p className="font-semibold text-[#5A3E2B] text-sm">Razorpay</p>
                                   <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 border border-emerald-300 rounded">
-                                    ✓ ready
+                                    ✓ Testing
                                   </span>
                                 </div>
                                 <p className="text-xs text-[#5A3E2B]/60">Cards & Netbanking</p>
