@@ -94,10 +94,11 @@ export async function getPhonePeToken(forceRefresh: boolean = false) {
   try {
     console.log('PhonePe: Requesting new OAuth token...');
     console.log('PhonePe Config:', {
-      client_id: PHONEPE_CLIENT_ID,
+      client_id: PHONEPE_CLIENT_ID?.substring(0, 15) + '...', // Mask sensitive info
       client_version: PHONEPE_CLIENT_VERSION,
       auth_url: PHONEPE_AUTH_URL,
       base_url: PHONEPE_BASE_URL,
+      has_client_secret: !!PHONEPE_CLIENT_SECRET,
     });
 
     // Prepare URL-encoded request body (OAuth 2.0 standard format)
@@ -163,7 +164,11 @@ export async function getPhonePeToken(forceRefresh: boolean = false) {
     console.log('Token expires at:', new Date(cachedToken.expires_at * 1000).toISOString());
     return cachedToken;
   } catch (error: any) {
-    console.error('PhonePe Token Error:', error);
+    console.error('❌ PhonePe Token Error:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+    });
     throw new Error(`Failed to authenticate with PhonePe: ${error.message}`);
   }
 }
@@ -191,6 +196,35 @@ export async function createPhonePeOrder(orderDetails: {
   customerPhone: string;
 }) {
   validatePhonePeConfig();
+
+  // Validate all required parameters
+  if (!orderDetails) {
+    throw new Error('Order details are required');
+  }
+
+  if (!orderDetails.merchantOrderId || typeof orderDetails.merchantOrderId !== 'string') {
+    throw new Error('Valid merchantOrderId is required');
+  }
+
+  if (!orderDetails.orderId || typeof orderDetails.orderId !== 'string') {
+    throw new Error('Valid orderId is required');
+  }
+
+  if (typeof orderDetails.amount !== 'number' || orderDetails.amount <= 0) {
+    throw new Error(`Valid amount is required (received: ${orderDetails.amount})`);
+  }
+
+  if (!orderDetails.customerName || typeof orderDetails.customerName !== 'string') {
+    throw new Error('Valid customerName is required');
+  }
+
+  if (!orderDetails.customerEmail || typeof orderDetails.customerEmail !== 'string') {
+    throw new Error('Valid customerEmail is required');
+  }
+
+  if (!orderDetails.customerPhone || typeof orderDetails.customerPhone !== 'string') {
+    throw new Error('Valid customerPhone is required');
+  }
 
   try {
     // Validate amount before making API call (PhonePe minimum: 100 paisa = ₹1)
@@ -396,7 +430,13 @@ export async function createPhonePeOrder(orderDetails: {
       merchantOrderId: orderDetails.merchantOrderId,
     };
   } catch (error: any) {
-    console.error('PhonePe Order Creation Error:', error);
+    console.error('❌ PhonePe Order Creation Error:', {
+      message: error.message,
+      name: error.name,
+      merchantOrderId: orderDetails.merchantOrderId,
+      amount: orderDetails.amount,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+    });
     throw new Error(`Failed to create payment with PhonePe: ${error.message}`);
   }
 }

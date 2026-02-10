@@ -21,7 +21,16 @@ import { createPhonePeOrder, generateMerchantOrderId, getPhonePeCheckoutScriptUr
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+  let orderId: string | null = null; // Track order ID for cleanup
+  
   try {
+    // Add request logging for debugging
+    console.log('🔵 PhonePe payment creation request received:', {
+      timestamp: new Date().toISOString(),
+      url: request.url,
+      method: request.method,
+    });
+
     const body = await request.json();
     const {
       items,
@@ -91,7 +100,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create order in database transaction
-    const order = await db.transaction(async (tx) => {
+    let order;
+    try {
+      order = await db.transaction(async (tx) => {
       let totalPrice = 0;
       const orderItemsData = [];
 
@@ -177,6 +188,77 @@ export async function POST(request: NextRequest) {
       return newOrder;
     });
 
+    orderId = order.id; // Store order ID for error handling
+    console.log('✅ Order created in database:', {
+      orderId: order.id,
+      merchantOrderId: order.merchantOrderId,
+      totalPrice: order.totalPrice,
+    });
+  } catch (dbError: any) {
+    // Database transaction error - provide detailed error information
+    console.error('❌ Database transaction failed:', {
+      error: dbError.message,
+      errorName: dbError.name,
+      errorCode: dbError.code,
+      stack: dbError.stack?.split('\n').slice(0, 5).join('\n'),
+      timestamp: new Date().toISOString(),
+    });
+
+    // Determine specific error type
+    const isStockError = dbError.message?.includes('Insufficient stock');
+    const isProductNotFound = dbError.message?.includes('Product') && dbError.message?.includes('not found');
+    const isConnectionError = dbError.message?.includes('ECONNREFUSED') || 
+                              dbError.message?.includes('connection') ||
+                              dbError.code === 'ECONNREFUSED';
+
+    if (isStockError) {
+      return NextResponse.json(
+        { 
+          error: dbError.message,
+          code: 'INSUFFICIENT_STOCK',
+          suggestion: 'Please review your cart and adjust quantities.',
+        },
+        { status: 400 }
+      );
+    }
+
+    if (isProductNotFound) {
+      return NextResponse.json(
+        { 
+          error: dbError.message,
+          code: 'PRODUCT_NOT_FOUND',
+          suggestion: 'Please refresh and try again.',
+        },
+        { status: 404 }
+      );
+    }
+
+    if (isConnectionError) {
+      return NextResponse.json(
+        { 
+          error: 'Database connection error. Please try again.',
+          code: 'DATABASE_CONNECTION_ERROR',
+          suggestion: 'Please try again in a moment.',
+        },
+        { status: 503 }
+      );
+    }
+
+    // Generic database error
+    return NextResponse.json(
+      { 
+        error: 'Failed to create order. Please try again.',
+        code: 'DATABASE_ERROR',
+        details: process.env.NODE_ENV === 'development' ? {
+          message: dbError.message,
+          code: dbError.code,
+        } : undefined,
+        suggestion: 'Please try again or contact support if the issue persists.',
+      },
+      { status: 500 }
+    );
+  }
+
     // Validate minimum amount for PhonePe (₹1 = 100 paisa)
     const orderTotal = parseFloat(order.totalPrice);
     if (orderTotal < 1) {
@@ -198,6 +280,31 @@ export async function POST(request: NextRequest) {
           suggestion: 'Please add more items to cart or use Cash on Delivery option.'
         },
         { status: 400 }
+      );
+    }
+
+    // Safety check - verify order has all required fields
+    if (!order.merchantOrderId) {
+      console.error('❌ Order missing merchantOrderId:', order);
+      return NextResponse.json(
+        { 
+          error: 'Order creation incomplete - missing merchant order ID',
+          code: 'INVALID_ORDER_STATE',
+          suggestion: 'Please try creating the order again.',
+        },
+        { status: 500 }
+      );
+    }
+
+    if (!order.totalPrice || parseFloat(order.totalPrice) <= 0) {
+      console.error('❌ Order has invalid total price:', order.totalPrice);
+      return NextResponse.json(
+        { 
+          error: 'Order creation incomplete - invalid total price',
+          code: 'INVALID_ORDER_STATE',
+          suggestion: 'Please try creating the order again.',
+        },
+        { status: 500 }
       );
     }
 
@@ -322,12 +429,20 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error: any) {
-    console.error('PhonePe order creation error:', error);
+    console.error('❌ PhonePe order creation error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      cause: error.cause,
+    });
 
     // Handle specific errors
     if (error.message?.includes('Insufficient stock')) {
       return NextResponse.json(
-        { error: error.message },
+        { 
+          error: error.message,
+          code: 'INSUFFICIENT_STOCK',
+        },
         { status: 400 }
       );
     }
@@ -336,14 +451,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { 
           error: error.message,
+          code: 'PRODUCT_NOT_FOUND',
           suggestion: 'One or more items in your cart are no longer available. Please refresh your cart and try again.'
         },
         { status: 404 }
       );
     }
 
+    // Database connection errors
+    if (error.message?.includes('ECONNREFUSED') || 
+        error.message?.includes('database') ||
+        error.message?.includes('connection')) {
+      console.error('❌ Database connection error detected');
+      return NextResponse.json(
+        { 
+          error: 'Database connection error. Please try again.',
+          code: 'DATABASE_ERROR',
+          suggestion: 'Please try Razorpay payment or Cash on Delivery option.',
+        },
+        { status: 503 }
+      );
+    }
+
+    // Return detailed error for debugging in development, generic in production
     return NextResponse.json(
-      { error: 'Failed to create payment. Please try again.' },
+      { 
+        error: 'Failed to create payment. Please try again.',
+        code: 'PAYMENT_CREATION_ERROR',
+        details: process.env.NODE_ENV === 'development' ? {
+          message: error.message,
+          type: error.name,
+          stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+        } : undefined,
+        suggestion: 'Please try Razorpay payment or Cash on Delivery option.',
+      },
       { status: 500 }
     );
   }
