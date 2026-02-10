@@ -491,22 +491,30 @@ export default function CheckoutPage() {
             if (!phonePeResponse.ok) {
               const error = await phonePeResponse.json()
               
+              console.error('PhonePe API Error:', {
+                status: phonePeResponse.status,
+                error: error,
+              });
+              
               // Check for minimum amount error
               if (error.code === 'MINIMUM_AMOUNT_ERROR') {
                 toast.error(
-                  `PhonePe requires minimum ₹${error.minimumAmount}. Your order is ₹${error.currentAmount.toFixed(2)}. Please add more items or use Cash on Delivery.`,
+                  `PhonePe requires minimum ₹${error.minimumAmount}. Your order is ₹${error.currentAmount?.toFixed(2) || totalAmount.toFixed(2)}. Please add more items or use an alternative payment method.`,
                   { duration: 6000 }
                 )
                 setLoading(false)
                 return
               }
               
-              // Check if it's a merchant configuration error
-              if (error.code === 'MERCHANT_NOT_CONFIGURED' || error.error?.includes('not properly configured')) {
+              // Check if it's a merchant configuration error or service unavailable
+              if (error.code === 'MERCHANT_NOT_CONFIGURED' || 
+                  error.code === 'SERVICE_UNAVAILABLE' ||
+                  error.error?.includes('not properly configured') ||
+                  error.error?.includes('unavailable')) {
                 // Automatically switch to Razorpay
-                console.log('PhonePe not configured, switching to Razorpay...')
+                console.log('PhonePe not available, switching to Razorpay...')
                 toast.error(
-                  'PhonePe is currently unavailable. Please use Razorpay or Cash on Delivery.',
+                  error.error || 'PhonePe is currently unavailable. Switching to Razorpay...',
                   { duration: 5000 }
                 )
                 setPaymentGateway('razorpay')
@@ -515,14 +523,17 @@ export default function CheckoutPage() {
                 // Show info message
                 setTimeout(() => {
                   toast(
-                    'Click "Place Order" again to proceed with Razorpay payment.',
+                    'You can now place your order using Razorpay or Cash on Delivery.',
                     { icon: 'ℹ️', duration: 5000 }
                   )
                 }, 500)
                 return
               }
               
-              toast.error(error.error || 'Failed to create payment')
+              // Show error with suggestion
+              const errorMessage = error.error || 'Failed to create payment'
+              const suggestion = error.suggestion || 'Please try Razorpay or Cash on Delivery'
+              toast.error(`${errorMessage}. ${suggestion}`, { duration: 6000 })
               setLoading(false)
               return
             }

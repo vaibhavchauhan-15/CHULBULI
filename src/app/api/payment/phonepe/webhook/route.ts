@@ -51,16 +51,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract event type and payload from Standard Checkout v2 webhook
+    // Documentation structure: { event: "checkout.order.completed", payload: {...} }
     const eventType = webhookData.event; // e.g., 'checkout.order.completed'
     const payload = webhookData.payload;
 
-    // Extract merchantOrderId from payload
-    const merchantOrderId = payload?.merchantOrderId || payload?.orderId;
+    // CRITICAL: Per documentation, merchantOrderId is the primary identifier in payload
+    // https://developer.phonepe.com/v1/docs/webhook-handling
+    const merchantOrderId = payload?.merchantOrderId;
 
     if (!merchantOrderId) {
-      console.error('PhonePe Webhook: Missing merchantOrderId in payload');
+      console.error('PhonePe Webhook: Missing merchantOrderId in payload:', {
+        event: eventType,
+        receivedPayload: payload,
+      });
       return NextResponse.json(
-        { error: 'Missing merchantOrderId' },
+        { error: 'Missing merchantOrderId in payload' },
         { status: 400 }
       );
     }
@@ -68,10 +73,12 @@ export async function POST(request: NextRequest) {
     console.log('PhonePe Webhook Details:', {
       event: eventType,
       merchantOrderId: merchantOrderId,
-      orderId: payload?.orderId,
-      state: payload?.state,
-      amount: payload?.amount,
+      phonePeOrderId: payload?.orderId, // PhonePe internal order ID
+      state: payload?.state, // PENDING, COMPLETED, FAILED
+      amount: payload?.amount, // Amount in paisa
       transactionId: payload?.paymentDetails?.[0]?.transactionId,
+      paymentMode: payload?.paymentDetails?.[0]?.paymentMode,
+      metaInfo: payload?.metaInfo, // UDF fields we sent
     });
 
     // Find order by merchantOrderId
@@ -97,16 +104,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Handle different payment events based on Standard Checkout v2 event types
-    // Use payload.state to determine payment status (COMPLETED, FAILED, PENDING)
-    const paymentState = payload?.state;
+    // Documentation: ALWAYS use payload.state field (root-level) for status determination
+    // https://developer.phonepe.com/v1/docs/webhook-handling#important-guidelines
+    const paymentState = payload?.state; // PENDING, COMPLETED, FAILED
 
-    // Check if payment is successful
-    const isSuccess = eventType === 'checkout.order.completed' || 
-                     paymentState === 'COMPLETED';
+    // Check if payment is successful - use both event type AND state for reliability
+    const isSuccess = (eventType === 'checkout.order.completed' && paymentState === 'COMPLETED');
 
     // Check if payment failed
-    const isFailed = eventType === 'checkout.order.failed' ||
-                    paymentState === 'FAILED';
+    const isFailed = (eventType === 'checkout.order.failed' && paymentState === 'FAILED');
 
     if (isSuccess) {
       await handlePaymentSuccess(orderResult, {

@@ -23,6 +23,11 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const merchantOrderId = searchParams.get('merchantOrderId');
     const orderId = searchParams.get('orderId');
+    
+    // Optional query parameters as per PhonePe documentation
+    // https://developer.phonepe.com/v1/docs/order-status-api
+    const details = searchParams.get('details') === 'true'; // true = all payment attempts, false = latest only
+    const errorContext = searchParams.get('errorContext') === 'true'; // true = include errorContext if FAILED
 
     // Need at least one identifier
     if (!merchantOrderId && !orderId) {

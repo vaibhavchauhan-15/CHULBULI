@@ -202,6 +202,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Now create payment with PhonePe
+    console.log('Creating PhonePe payment order:', {
+      orderId: order.id,
+      merchantOrderId: order.merchantOrderId,
+      amount: parseFloat(order.totalPrice),
+      customerName: order.customerName,
+      customerEmail: order.customerEmail,
+      customerPhone: order.customerPhone,
+    });
+
     try {
       const phonePePayment = await createPhonePeOrder({
         merchantOrderId: order.merchantOrderId!,
@@ -220,10 +229,11 @@ export async function POST(request: NextRequest) {
         })
         .where(eq(orders.id, order.id));
 
-      console.log('PhonePe payment created:', {
+      console.log('✅ PhonePe payment created successfully:', {
         orderId: order.id,
         merchantOrderId: order.merchantOrderId,
         transactionId: phonePePayment.transactionId,
+        paymentUrlLength: phonePePayment.paymentUrl?.length || 0,
       });
 
       // Get the correct checkout script URL for the environment
@@ -239,7 +249,13 @@ export async function POST(request: NextRequest) {
         transactionId: phonePePayment.transactionId,
       });
     } catch (phonePeError: any) {
-      console.error('PhonePe payment creation failed:', phonePeError);
+      console.error('❌ PhonePe payment creation failed:', {
+        error: phonePeError.message,
+        stack: phonePeError.stack,
+        orderId: order.id,
+        merchantOrderId: order.merchantOrderId,
+        amount: parseFloat(order.totalPrice),
+      });
 
       // Mark order as cancelled since payment gateway failed
       await db.update(orders)
@@ -250,21 +266,59 @@ export async function POST(request: NextRequest) {
         })
         .where(eq(orders.id, order.id));
 
-      // Determine if it's a merchant configuration error
+      // Determine error type and provide appropriate response
+      const errorMessage = phonePeError.message || 'Unknown error';
       const isMerchantConfigError = 
-        phonePeError.message?.includes('not properly configured') ||
-        phonePeError.message?.includes('KEY_NOT_CONFIGURED') ||
-        phonePeError.message?.includes('Merchant Configuration Error');
+        errorMessage.includes('not properly configured') ||
+        errorMessage.includes('KEY_NOT_CONFIGURED') ||
+        errorMessage.includes('MERCHANT_NOT_CONFIGURED') ||
+        errorMessage.includes('Merchant Configuration Error') ||
+        errorMessage.includes('not authorized');
+      
+      const isAuthError = 
+        errorMessage.includes('Authentication Failed') ||
+        errorMessage.includes('Invalid Client ID') ||
+        errorMessage.includes('Invalid credentials');
+      
+      const isMinimumAmountError =
+        errorMessage.includes('minimum') ||
+        errorMessage.includes('100 paisa');
+      
+      const isServerError = 
+        errorMessage.includes('Server Error') ||
+        errorMessage.includes('temporarily unavailable');
+
+      // User-friendly error message
+      let userMessage: string;
+      let errorCode: string;
+      let statusCode: number;
+
+      if (isMinimumAmountError) {
+        userMessage = 'PhonePe requires a minimum payment of ₹1. Please add more items or use an alternative payment method.';
+        errorCode = 'MINIMUM_AMOUNT_ERROR';
+        statusCode = 400;
+      } else if (isMerchantConfigError || isAuthError) {
+        userMessage = 'PhonePe payment is currently unavailable. Please use Razorpay or Cash on Delivery.';
+        errorCode = 'MERCHANT_NOT_CONFIGURED';
+        statusCode = 503;
+      } else if (isServerError) {
+        userMessage = 'PhonePe service is temporarily unavailable. Please try again in a few moments or use an alternative payment method.';
+        errorCode = 'SERVICE_UNAVAILABLE';
+        statusCode = 503;
+      } else {
+        userMessage = 'Failed to initiate payment with PhonePe. Please try again or use an alternative payment method.';
+        errorCode = 'PHONEPE_ERROR';
+        statusCode = 500;
+      }
 
       return NextResponse.json(
         { 
-          error: isMerchantConfigError 
-            ? 'PhonePe merchant account not properly configured. Please use an alternative payment method.'
-            : 'Failed to initiate payment with PhonePe',
-          code: isMerchantConfigError ? 'MERCHANT_NOT_CONFIGURED' : 'PHONEPE_ERROR',
-          details: phonePeError.message,
+          error: userMessage,
+          code: errorCode,
+          details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
+          suggestion: 'Please try Razorpay payment or Cash on Delivery option.',
         },
-        { status: isMerchantConfigError ? 503 : 500 }
+        { status: statusCode }
       );
     }
   } catch (error: any) {

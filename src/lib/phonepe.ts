@@ -27,6 +27,9 @@ const PHONEPE_AUTH_URL = process.env.PHONEPE_AUTH_URL || 'https://api.phonepe.co
 // Application base URL (no trailing slash)
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
+// Token caching to avoid unnecessary token requests
+let cachedToken: { access_token: string; expires_at: number } | null = null;
+
 // Detect environment from payment URL
 // Test/Sandbox environments use: mercury-t2, mercury-uat, or mercury-stg
 // Production uses: mercury.phonepe.com
@@ -73,14 +76,29 @@ function validatePhonePeConfig() {
 /**
  * Get OAuth Access Token from PhonePe
  * Required for OAuth v2 Standard Checkout - MUST be called before payment creation
+ * Implements token caching to avoid unnecessary API calls
  * 
- * @returns {Promise<{access_token: string, expires_in: number}>}
+ * @param {boolean} forceRefresh - Force token refresh even if cached token is valid
+ * @returns {Promise<{access_token: string, expires_at: number}>}
  */
-export async function getPhonePeToken() {
+export async function getPhonePeToken(forceRefresh: boolean = false) {
   validatePhonePeConfig();
 
+  // Check if we have a valid cached token (with 5 minute buffer before expiry)
+  const now = Math.floor(Date.now() / 1000);
+  if (!forceRefresh && cachedToken && cachedToken.expires_at > (now + 300)) {
+    console.log('✅ Using cached PhonePe token (expires in', cachedToken.expires_at - now, 'seconds)');
+    return cachedToken;
+  }
+
   try {
-    console.log('PhonePe: Requesting OAuth token...');
+    console.log('PhonePe: Requesting new OAuth token...');
+    console.log('PhonePe Config:', {
+      client_id: PHONEPE_CLIENT_ID,
+      client_version: PHONEPE_CLIENT_VERSION,
+      auth_url: PHONEPE_AUTH_URL,
+      base_url: PHONEPE_BASE_URL,
+    });
 
     // Prepare URL-encoded request body (OAuth 2.0 standard format)
     const params = new URLSearchParams({
@@ -90,8 +108,11 @@ export async function getPhonePeToken() {
       client_version: PHONEPE_CLIENT_VERSION,
     });
 
+    const tokenEndpoint = `${PHONEPE_AUTH_URL}/v1/oauth/token`;
+    console.log('Token endpoint:', tokenEndpoint);
+
     // Standard Checkout: Use dedicated auth endpoint for token
-    const response = await fetch(`${PHONEPE_AUTH_URL}/v1/oauth/token`, {
+    const response = await fetch(tokenEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -101,7 +122,10 @@ export async function getPhonePeToken() {
 
     const responseText = await response.text();
     console.log('PhonePe Token Response Status:', response.status);
-    console.log('PhonePe Token Response:', responseText);
+    
+    if (response.status !== 200) {
+      console.error('PhonePe Token Error Response:', responseText);
+    }
 
     if (!response.ok) {
       let errorData;
@@ -110,13 +134,34 @@ export async function getPhonePeToken() {
       } catch {
         errorData = { message: responseText };
       }
-      console.error('PhonePe Token Error:', errorData);
-      throw new Error(`Failed to get PhonePe token: ${errorData.message || response.statusText}`);
+      console.error('PhonePe Token Error Details:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+        endpoint: tokenEndpoint,
+      });
+      
+      // Provide specific error messages
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(`PhonePe Authentication Failed: Invalid Client ID or Client Secret. Please verify your credentials in the environment variables.`);
+      } else if (response.status === 404) {
+        throw new Error(`PhonePe API Endpoint Not Found: ${tokenEndpoint}. Please verify PHONEPE_AUTH_URL is correct for your environment.`);
+      }
+      
+      throw new Error(`Failed to get PhonePe token: ${errorData.message || errorData.code || response.statusText} (Status: ${response.status})`);
     }
 
     const tokenData = JSON.parse(responseText);
+    
+    // Cache the token with expiry time
+    cachedToken = {
+      access_token: tokenData.access_token,
+      expires_at: tokenData.expires_at || (now + 86400), // Default 24h if not provided
+    };
+    
     console.log('✅ PhonePe OAuth token obtained successfully');
-    return tokenData;
+    console.log('Token expires at:', new Date(cachedToken.expires_at * 1000).toISOString());
+    return cachedToken;
   } catch (error: any) {
     console.error('PhonePe Token Error:', error);
     throw new Error(`Failed to authenticate with PhonePe: ${error.message}`);
@@ -148,11 +193,28 @@ export async function createPhonePeOrder(orderDetails: {
   validatePhonePeConfig();
 
   try {
-    // Step 1: Get OAuth access token (REQUIRED for v2)
-    const tokenData = await getPhonePeToken();
-
-    // Convert amount to paise (PhonePe requires amount in paise)
+    // Validate amount before making API call (PhonePe minimum: 100 paisa = ₹1)
     const amountInPaise = Math.round(orderDetails.amount * 100);
+    if (amountInPaise < 100) {
+      throw new Error(
+        `PhonePe requires a minimum payment of ₹1 (100 paisa). Your order amount is ₹${orderDetails.amount.toFixed(2)} (${amountInPaise} paisa).`
+      );
+    }
+
+    // Step 1: Get OAuth access token (REQUIRED for v2)
+    let tokenData;
+    try {
+      tokenData = await getPhonePeToken();
+    } catch (tokenError: any) {
+      console.error('Failed to get PhonePe token:', tokenError);
+      // Try once more with force refresh
+      try {
+        console.log('Retrying token request with force refresh...');
+        tokenData = await getPhonePeToken(true);
+      } catch (retryError: any) {
+        throw new Error(`PhonePe authentication failed after retry: ${retryError.message}`);
+      }
+    }
 
     // Prepare payment request payload according to Standard Checkout v2 documentation
     const payload = {
@@ -174,17 +236,22 @@ export async function createPhonePeOrder(orderDetails: {
       }
     };
 
-    console.log('PhonePe Standard Checkout v2: Creating payment order...', {
+    const paymentEndpoint = `${PHONEPE_BASE_URL}/checkout/v2/pay`;
+
+    console.log('PhonePe Standard Checkout v2: Creating payment order...');
+    console.log('Request Details:', {
+      endpoint: paymentEndpoint,
       merchantOrderId: orderDetails.merchantOrderId,
       amount: amountInPaise,
-      endpoint: `${PHONEPE_BASE_URL}/checkout/v2/pay`,
-      hasToken: !!tokenData.access_token,
-      payloadPreview: payload,
+      amountInRupees: orderDetails.amount,
+      redirectUrl: payload.paymentFlow.merchantUrls.redirectUrl,
+      hasToken: !!tokenData?.access_token,
+      tokenLength: tokenData?.access_token?.length || 0,
     });
 
     // Create payment using Standard Checkout v2 API
     // Uses plain JSON with O-Bearer token (NO Base64, NO checksum)
-    const response = await fetch(`${PHONEPE_BASE_URL}/checkout/v2/pay`, {
+    const response = await fetch(paymentEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -195,7 +262,11 @@ export async function createPhonePeOrder(orderDetails: {
 
     const responseText = await response.text();
     console.log('PhonePe Payment Response Status:', response.status);
-    console.log('PhonePe Payment Response:', responseText);
+    
+    if (response.status !== 200 && response.status !== 201) {
+      console.error('PhonePe Payment Error Response:', responseText);
+      console.error('Sent Payload:', JSON.stringify(payload, null, 2));
+    }
 
     let paymentData;
     try {
@@ -207,46 +278,87 @@ export async function createPhonePeOrder(orderDetails: {
 
     // OAuth v2 response validation - check for error responses
     if (!response.ok) {
-      console.error('PhonePe Order Creation Error:', paymentData);
-      console.error('Sent Payload:', payload);
+      console.error('PhonePe Order Creation Failed');
+      console.error('Response Status:', response.status, response.statusText);
+      console.error('Response Body:', paymentData);
+      console.error('Sent Payload:', JSON.stringify(payload, null, 2));
       console.error('Request Headers:', {
         'Content-Type': 'application/json',
-        'Authorization': `O-Bearer ${tokenData.access_token.substring(0, 20)}...`,
+        'Authorization': `O-Bearer ${tokenData.access_token.substring(0, 20)}...${tokenData.access_token.substring(tokenData.access_token.length - 10)}`,
+        'Endpoint': paymentEndpoint,
       });
       
+      // Handle token expiry - retry with fresh token
+      if (response.status === 401 && paymentData.code === 'UNAUTHORIZED') {
+        console.log('Token expired or invalid, retrying with fresh token...');
+        try {
+          const freshTokenData = await getPhonePeToken(true);
+          const retryResponse = await fetch(paymentEndpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `O-Bearer ${freshTokenData.access_token}`,
+            },
+            body: JSON.stringify(payload),
+          });
+          
+          const retryResponseText = await retryResponse.text();
+          if (retryResponse.ok) {
+            const retryPaymentData = JSON.parse(retryResponseText);
+            console.log('✅ Retry successful with fresh token');
+            return {
+              success: true,
+              paymentUrl: retryPaymentData.redirectUrl,
+              transactionId: retryPaymentData.orderId,
+              merchantOrderId: orderDetails.merchantOrderId,
+            };
+          }
+        } catch (retryError) {
+          console.error('Retry with fresh token failed:', retryError);
+        }
+      }
+      
       // Check for minimum amount error (PhonePe requires minimum ₹1)
-      if (paymentData.message?.includes('amount must be greater than or equal to 100')) {
+      if (paymentData.message?.includes('amount must be greater than or equal to 100') ||
+          paymentData.message?.includes('minimum amount')) {
         throw new Error(
           `PhonePe requires a minimum payment of ₹1 (100 paisa). Your order amount is ₹${(amountInPaise / 100).toFixed(2)}. Please ensure the order total is at least ₹1.`
         );
       }
       
       // Provide helpful error messages for common issues
-      if (paymentData.code === 'KEY_NOT_CONFIGURED' || paymentData.errorCode === 'KEY_NOT_CONFIGURED') {
+      if (paymentData.code === 'KEY_NOT_CONFIGURED' || 
+          paymentData.errorCode === 'KEY_NOT_CONFIGURED' ||
+          paymentData.code === 'MERCHANT_NOT_CONFIGURED' ||
+          paymentData.message?.includes('not configured') ||
+          paymentData.message?.includes('not authorized')) {
         throw new Error(
-          `⚠️ PhonePe Merchant Configuration Error: Your merchant account is not properly configured for Standard Checkout.
-
-Possible causes:
-1. Merchant account not activated - Contact PhonePe support to activate your merchant account for Standard Checkout
-2. Using test/demo credentials - Verify you're using actual credentials from PhonePe Business Dashboard
-3. API not enabled - Enable "Standard Checkout API" in PhonePe Dashboard under Settings > API Configuration
-4. Sandbox not configured - For testing, ensure your merchant is enabled for sandbox environment
-
-Current credentials:
-- Client ID: ${PHONEPE_CLIENT_ID}
-
-Action required: Contact PhonePe support or check your merchant dashboard settings.`
+          `⚠️ PhonePe Merchant Configuration Error: Your merchant account is not properly configured for Standard Checkout.\n\nPossible causes:\n1. Merchant account not activated for production\n2. Invalid credentials for production environment\n3. API not enabled in PhonePe Dashboard\n4. Client ID/Secret mismatch\n\nCurrent environment: ${PHONEPE_BASE_URL.includes('preprod') ? 'SANDBOX' : 'PRODUCTION'}\nClient ID: ${PHONEPE_CLIENT_ID}\n\nAction required: Verify credentials in PhonePe Business Dashboard and ensure production API access is enabled.`
         );
       }
 
-      if (paymentData.errorCode === 'PR000' || paymentData.message === 'Bad Request') {
+      if (paymentData.code === 'BAD_REQUEST' || 
+          paymentData.errorCode === 'PR000' || 
+          paymentData.message?.includes('Bad Request')) {
         throw new Error(
-          `PhonePe Bad Request - Invalid payload structure. Error: ${paymentData.message}. Please check PhonePe API documentation for correct payload format.`
+          `PhonePe Bad Request - Invalid payload structure. Error: ${paymentData.message || 'Check request format'}. Code: ${paymentData.code || paymentData.errorCode}`
+        );
+      }
+
+      if (response.status === 404) {
+        throw new Error(
+          `PhonePe API Endpoint Not Found: ${paymentEndpoint}. Please verify PHONEPE_BASE_URL is correct.`
+        );
+      }
+
+      if (response.status >= 500) {
+        throw new Error(
+          `PhonePe Server Error (${response.status}): ${paymentData.message || 'PhonePe service is temporarily unavailable'}. Please try again in a few moments.`
         );
       }
       
       throw new Error(
-        `Failed to create PhonePe order: ${paymentData.message || paymentData.errorCode || paymentData.code || response.statusText}`
+        `Failed to create PhonePe order: ${paymentData.message || paymentData.errorCode || paymentData.code || response.statusText} (Status: ${response.status})`
       );
     }
 
@@ -305,6 +417,7 @@ export async function verifyPhonePePayment(merchantOrderId: string) {
     const tokenData = await getPhonePeToken();
 
     // Standard Checkout v2 status endpoint: /checkout/v2/order/{merchantOrderId}/status
+    // Documentation: https://developer.phonepe.com/v1/docs/order-status-api
     const statusEndpoint = `/checkout/v2/order/${merchantOrderId}/status`;
 
     console.log('PhonePe Standard Checkout v2: Checking payment status...', {
@@ -314,7 +427,9 @@ export async function verifyPhonePePayment(merchantOrderId: string) {
     });
 
     // Check payment status with optional query parameters
-    const statusUrl = `${PHONEPE_BASE_URL}${statusEndpoint}?details=false`;
+    // details=false: Returns only latest payment attempt (recommended for most cases)
+    // errorContext=true: Includes detailed error information if payment failed
+    const statusUrl = `${PHONEPE_BASE_URL}${statusEndpoint}?details=false&errorContext=true`;
     
     const response = await fetch(
       statusUrl,
@@ -343,11 +458,16 @@ export async function verifyPhonePePayment(merchantOrderId: string) {
       throw new Error(`Failed to verify payment: ${statusData.message || statusData.code || response.statusText}`);
     }
 
-    // Standard Checkout v2 response structure:
-    // state: PENDING, COMPLETED, FAILED
-    // orderId: PhonePe internal order ID
-    // amount: amount in paise
-    // paymentDetails: array of payment attempts
+    // Standard Checkout v2 response structure (per documentation):
+    // https://developer.phonepe.com/v1/docs/order-status-api#response-parameters
+    // {
+    //   orderId: "OMO...",  // PhonePe internal order ID
+    //   state: "COMPLETED",  // PENDING, COMPLETED, FAILED
+    //   amount: 1000,  // in paisa
+    //   expireAt: 1711867462542,  // epoch timestamp
+    //   metaInfo: { udf1: "...", ... },
+    //   paymentDetails: [{ paymentMode, transactionId, timestamp, amount, state, ... }]
+    // }
 
     return {
       success: statusData.state === 'COMPLETED',
@@ -357,6 +477,9 @@ export async function verifyPhonePePayment(merchantOrderId: string) {
       transactionId: statusData.paymentDetails?.[0]?.transactionId || statusData.orderId,
       amount: statusData.amount,
       paymentDetails: statusData.paymentDetails,
+      metaInfo: statusData.metaInfo, // User-defined fields we sent
+      errorCode: statusData.errorCode, // Present only if FAILED
+      errorContext: statusData.errorContext, // Detailed error info if errorContext=true
     };
   } catch (error: any) {
     console.error('PhonePe Status Verification Error:', error);
