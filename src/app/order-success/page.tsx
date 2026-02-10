@@ -28,49 +28,75 @@ function OrderSuccessContent() {
       return
     }
 
+    let cancelled = false
+    let timer: ReturnType<typeof setTimeout> | null = null
+    let attempts = 0
+
+    toast.dismiss()
+
     const verifyPaymentStatus = async () => {
+      if (cancelled) return
+
       try {
         const response = await fetch(`/api/payment/phonepe/status?orderId=${orderId}`)
         const data = await response.json()
 
         console.log('Payment status check:', data)
 
+        if (!response.ok) {
+          setVerifying(false)
+          toast.dismiss()
+          toast.error(data?.error || 'Unable to verify payment status. Please check your order in account section.')
+          return
+        }
+
         if (data.status === 'completed') {
           setPaymentStatus('completed')
           setTransactionId(data.transactionId)
           setVerified(true)
           setVerifying(false)
+          toast.dismiss()
         } else if (data.status === 'failed') {
           setPaymentStatus('failed')
           setVerifying(false)
+          toast.dismiss()
           // Redirect to payment failed page
-          setTimeout(() => {
+          timer = setTimeout(() => {
             router.push(`/payment-failed?orderId=${orderId}&reason=Payment verification failed`)
           }, 1500)
         } else if (data.status === 'pending') {
           setPaymentStatus('pending')
           // Continue polling if we haven't reached max polls
-          if (pollCount < MAX_POLLS) {
-            setPollCount(prev => prev + 1)
-            // Poll again after 3 seconds
-            setTimeout(verifyPaymentStatus, 3000)
+          if (attempts < MAX_POLLS) {
+            attempts += 1
+            setPollCount(attempts)
+            timer = setTimeout(verifyPaymentStatus, 3000)
           } else {
             // Max polls reached, show timeout message
             setVerifying(false)
+            toast.dismiss()
             toast.error('Payment verification is taking longer than expected. Please check order status in your account.')
           }
+        } else {
+          setVerifying(false)
+          toast.dismiss()
+          toast.error('Unexpected payment status. Please check order status in your account.')
         }
       } catch (error) {
         console.error('Payment verification error:', error)
         setVerifying(false)
+        toast.dismiss()
         toast.error('Unable to verify payment status. Please check your order in account section.')
       }
     }
 
     // Start verification after a brief delay
-    const timeout = setTimeout(verifyPaymentStatus, 1000)
-    return () => clearTimeout(timeout)
-  }, [orderId, router, pollCount])
+    timer = setTimeout(verifyPaymentStatus, 800)
+    return () => {
+      cancelled = true
+      if (timer) clearTimeout(timer)
+    }
+  }, [orderId, router])
 
   return (
     <>

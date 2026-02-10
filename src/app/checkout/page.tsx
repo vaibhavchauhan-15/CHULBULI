@@ -163,57 +163,6 @@ export default function CheckoutPage() {
     }
   }, [subtotal, selectedShipping])
 
-  // Load PhonePe Checkout script based on environment
-  useEffect(() => {
-    const loadPhonePeScript = (scriptUrl: string) => {
-      // Check if PhonePe Checkout is already loaded
-      if ((window as any).PhonePeCheckout) {
-        console.log('PhonePe Checkout already loaded')
-        return
-      }
-
-      // Remove any existing PhonePe scripts first
-      const existingScripts = document.querySelectorAll('script[src*="mercury"]')
-      existingScripts.forEach(script => {
-        console.log('Removing old PhonePe script:', script.getAttribute('src'))
-        script.remove()
-      })
-
-      console.log('Loading PhonePe Checkout script:', scriptUrl)
-      const script = document.createElement('script')
-      script.src = scriptUrl
-      script.async = true
-      
-      script.onload = () => {
-        console.log('✅ PhonePe Checkout script loaded successfully')
-        if ((window as any).PhonePeCheckout) {
-          console.log('✅ PhonePeCheckout object available')
-        } else {
-          console.error('❌ PhonePeCheckout object not found after script load')
-        }
-      }
-      
-      script.onerror = (error) => {
-        console.error('❌ Failed to load PhonePe Checkout script:', error)
-        toast.error('Failed to load PhonePe payment gateway')
-      }
-      
-      document.head.appendChild(script)
-    }
-
-    // Load the correct PhonePe script based on environment
-    // Production: mercury.phonepe.com | Sandbox: mercury-stg.phonepe.com
-    const isProduction = process.env.NODE_ENV === 'production' && 
-                        !window.location.hostname.includes('localhost') &&
-                        !window.location.hostname.includes('127.0.0.1')
-    const phonePeScriptUrl = isProduction 
-      ? 'https://mercury.phonepe.com/web/bundle/checkout.js'
-      : 'https://mercury-stg.phonepe.com/web/bundle/checkout.js'
-    
-    console.log(`Loading PhonePe script for ${isProduction ? 'PRODUCTION' : 'SANDBOX'} environment`)
-    loadPhonePeScript(phonePeScriptUrl)
-  }, [])
-
   // Load Razorpay script with retry logic
   useEffect(() => {
     const loadRazorpayScript = () => {
@@ -543,107 +492,10 @@ export default function CheckoutPage() {
             // Save address to user account before payment
             await saveAddressToAccount()
 
-            // Load the correct PhonePe Checkout script for this environment
-            if (phonePeData.checkoutScriptUrl) {
-              const loadPhonePeScript = (scriptUrl: string): Promise<void> => {
-                return new Promise((resolve, reject) => {
-                  // Check if PhonePe Checkout is already loaded
-                  if ((window as any).PhonePeCheckout) {
-                    console.log('PhonePe Checkout already loaded')
-                    resolve()
-                    return
-                  }
-
-                  // Remove any existing PhonePe scripts first
-                  const existingScripts = document.querySelectorAll('script[src*="mercury"]')
-                  existingScripts.forEach(script => {
-                    console.log('Removing old PhonePe script:', script.getAttribute('src'))
-                    script.remove()
-                  })
-
-                  console.log('Loading PhonePe Checkout script:', scriptUrl)
-                  const script = document.createElement('script')
-                  script.src = scriptUrl
-                  script.async = true
-                  
-                  script.onload = () => {
-                    console.log('✅ PhonePe Checkout script loaded successfully')
-                    if ((window as any).PhonePeCheckout) {
-                      console.log('✅ PhonePeCheckout object available')
-                      resolve()
-                    } else {
-                      console.error('❌ PhonePeCheckout object not found after script load')
-                      reject(new Error('PhonePeCheckout object not available'))
-                    }
-                  }
-                  
-                  script.onerror = (error) => {
-                    console.error('❌ Failed to load PhonePe Checkout script:', error)
-                    reject(error)
-                  }
-                  
-                  document.head.appendChild(script)
-                })
-              }
-
-              // Load the script before opening payment page
-              try {
-                await loadPhonePeScript(phonePeData.checkoutScriptUrl)
-              } catch (scriptError) {
-                console.error('Failed to load PhonePe script, using redirect mode:', scriptError)
-                // Fallback to direct redirect if script fails to load
-                toast.success('Redirecting to PhonePe payment...')
-                window.location.href = phonePeData.paymentUrl
-                return
-              }
-            }
-
-            // Use PhonePe Checkout iframe mode (recommended) - Standard Checkout v2
-            // Check if PhonePe Checkout is loaded
-            if ((window as any).PhonePeCheckout) {
-              console.log('Opening PhonePe payment in iframe mode...')
-              toast.success('Opening PhonePe payment gateway...')
-              
-              // Define callback for iframe mode
-              const phonePeCallback = (response: string) => {
-                console.log('PhonePe callback received:', response)
-                
-                if (response === 'USER_CANCEL') {
-                  // User cancelled the payment
-                  setLoading(false)
-                  toast.error('Payment cancelled')
-                  return
-                } else if (response === 'CONCLUDED') {
-                  // Payment reached terminal state - verify status
-                  toast.loading('Verifying payment status...')
-                  
-                  // Redirect to order success page with status check
-                  setTimeout(() => {
-                    router.push(`/order-success?orderId=${phonePeData.orderId}`)
-                  }, 1000)
-                }
-              }
-
-              // Open PhonePe payment in iframe mode
-              try {
-                (window as any).PhonePeCheckout.transact({
-                  tokenUrl: phonePeData.paymentUrl,
-                  callback: phonePeCallback,
-                  type: 'IFRAME' // Use IFRAME mode for better UX - supports all payment methods
-                })
-                console.log('✅ PhonePe iframe opened successfully')
-              } catch (iframeError) {
-                console.error('PhonePe iframe error, falling back to redirect:', iframeError)
-                // Fallback to redirect mode if iframe fails
-                toast.success('Redirecting to PhonePe payment...')
-                window.location.href = phonePeData.paymentUrl
-              }
-            } else {
-              // Fallback: Direct redirect if PhonePe Checkout not loaded
-              console.warn('PhonePe Checkout not loaded, using redirect mode')
-              toast.success('Redirecting to PhonePe payment...')
-              window.location.href = phonePeData.paymentUrl
-            }
+            // Use redirect mode to avoid third-party iframe script warnings and noisy console errors
+            toast.dismiss()
+            toast.success('Redirecting to PhonePe payment...')
+            window.location.href = phonePeData.paymentUrl
             return
           } catch (phonePeError: any) {
             console.error('PhonePe error:', phonePeError)
@@ -1705,3 +1557,7 @@ export default function CheckoutPage() {
     </>
   )
 }
+
+
+
+
