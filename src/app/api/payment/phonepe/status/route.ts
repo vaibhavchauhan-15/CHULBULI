@@ -71,7 +71,10 @@ export async function GET(request: NextRequest) {
     // If payment is still pending, check with PhonePe
     if (order.paymentStatus === 'pending' && order.merchantOrderId) {
       try {
-        const phonePeStatus = await verifyPhonePePayment(order.merchantOrderId);
+        const phonePeStatus = await verifyPhonePePayment(order.merchantOrderId, {
+          details,
+          errorContext,
+        });
 
         console.log('PhonePe Status Check Result:', {
           orderId: order.id,

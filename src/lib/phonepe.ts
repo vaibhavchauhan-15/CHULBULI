@@ -449,7 +449,10 @@ export async function createPhonePeOrder(orderDetails: {
  * @param {string} merchantOrderId - Merchant order ID used during payment creation
  * @returns {Promise<{success: boolean, status: string, transactionId?: string}>}
  */
-export async function verifyPhonePePayment(merchantOrderId: string) {
+export async function verifyPhonePePayment(
+  merchantOrderId: string,
+  options?: { details?: boolean; errorContext?: boolean }
+) {
   validatePhonePeConfig();
 
   try {
@@ -469,7 +472,9 @@ export async function verifyPhonePePayment(merchantOrderId: string) {
     // Check payment status with optional query parameters
     // details=false: Returns only latest payment attempt (recommended for most cases)
     // errorContext=true: Includes detailed error information if payment failed
-    const statusUrl = `${PHONEPE_BASE_URL}${statusEndpoint}?details=false&errorContext=true`;
+    const details = options?.details === true;
+    const errorContext = options?.errorContext === true;
+    const statusUrl = `${PHONEPE_BASE_URL}${statusEndpoint}?details=${details}&errorContext=${errorContext}`;
     
     const response = await fetch(
       statusUrl,
@@ -555,8 +560,10 @@ export function verifyWebhookSignature(authHeader: string): boolean {
     const credentials = `${webhookUsername}:${webhookPassword}`;
     const expectedHash = crypto.createHash('sha256').update(credentials).digest('hex');
 
-    // Compare with received hash
-    const isValid = authHeader === expectedHash;
+    // PhonePe sends only hash value as Authorization header.
+    // Accept optional "sha256=" prefix defensively and compare case-insensitively.
+    const normalizedHeader = authHeader.trim().replace(/^sha256=/i, '').toLowerCase();
+    const isValid = normalizedHeader === expectedHash.toLowerCase();
 
     if (!isValid) {
       console.error('Webhook signature verification failed:', {

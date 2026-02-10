@@ -42,7 +42,15 @@ export async function POST(request: NextRequest) {
     });
 
     // CRITICAL: Verify webhook signature to prevent fraud
-    if (authHeader && !verifyWebhookSignature(authHeader)) {
+    if (!authHeader) {
+      console.error('PhonePe Webhook missing Authorization header');
+      return NextResponse.json(
+        { error: 'Missing Authorization header' },
+        { status: 401 }
+      );
+    }
+
+    if (!verifyWebhookSignature(authHeader)) {
       console.error('PhonePe Webhook Signature Verification Failed');
       return NextResponse.json(
         { error: 'Invalid signature' },
@@ -231,7 +239,7 @@ export async function OPTIONS(request: NextRequest) {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, x-phonepe-signature, x-verify',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   });
 }
