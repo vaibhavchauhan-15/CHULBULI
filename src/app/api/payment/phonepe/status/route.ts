@@ -13,7 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, pool } from '@/lib/db/client';
 import { orders } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { verifyPhonePePayment } from '@/lib/phonepe';
 
 export const dynamic = 'force-dynamic';
@@ -64,7 +64,20 @@ export async function GET(request: NextRequest) {
         paymentStatus: order.paymentStatus,
         transactionId: order.transactionId,
         orderId: order.id,
+        paymentProvider: order.paymentProvider,
         message: 'Payment already completed',
+      });
+    }
+
+    if (order.paymentStatus === 'failed' || order.status === 'cancelled') {
+      return NextResponse.json({
+        success: false,
+        status: 'failed',
+        paymentStatus: 'failed',
+        transactionId: order.transactionId,
+        orderId: order.id,
+        paymentProvider: order.paymentProvider,
+        message: 'Payment failed',
       });
     }
 
@@ -85,16 +98,27 @@ export async function GET(request: NextRequest) {
         // If payment is successful (state: COMPLETED)
         if (phonePeStatus.success && phonePeStatus.state === 'COMPLETED') {
           // Use transaction to ensure atomicity
+          let markedCompleted = false;
           await db.transaction(async (tx) => {
-            // Update order status
-            await tx.update(orders)
+            // Update order status only if still pending (idempotency guard)
+            const updatedOrder = await tx.update(orders)
               .set({
                 paymentStatus: 'completed',
                 transactionId: phonePeStatus.transactionId,
                 status: 'placed',
                 updatedAt: new Date(),
               })
-              .where(eq(orders.id, order.id));
+              .where(and(
+                eq(orders.id, order.id),
+                eq(orders.paymentStatus, 'pending')
+              ))
+              .returning({ id: orders.id });
+
+            if (updatedOrder.length === 0) {
+              return;
+            }
+
+            markedCompleted = true;
 
             // Deduct stock for all items
             const orderItemsResult = await pool.query(
@@ -110,7 +134,10 @@ export async function GET(request: NextRequest) {
             }
           });
 
-          console.log('✅ Payment verified and order updated:', order.id);
+          console.log('Payment verified and order update attempted:', {
+            orderId: order.id,
+            markedCompleted,
+          });
 
           return NextResponse.json({
             success: true,
@@ -118,6 +145,7 @@ export async function GET(request: NextRequest) {
             paymentStatus: 'completed',
             transactionId: phonePeStatus.transactionId,
             orderId: order.id,
+            paymentProvider: order.paymentProvider,
             message: 'Payment verified successfully',
           });
         }
@@ -131,13 +159,17 @@ export async function GET(request: NextRequest) {
               transactionId: phonePeStatus.transactionId,
               updatedAt: new Date(),
             })
-            .where(eq(orders.id, order.id));
+            .where(and(
+              eq(orders.id, order.id),
+              eq(orders.paymentStatus, 'pending')
+            ));
 
           return NextResponse.json({
             success: false,
             status: 'failed',
             paymentStatus: 'failed',
             orderId: order.id,
+            paymentProvider: order.paymentProvider,
             message: 'Payment failed',
           });
         }
@@ -148,6 +180,7 @@ export async function GET(request: NextRequest) {
           status: 'pending',
           paymentStatus: 'pending',
           orderId: order.id,
+          paymentProvider: order.paymentProvider,
           message: 'Payment is still being processed',
         });
       } catch (error: any) {
@@ -159,6 +192,7 @@ export async function GET(request: NextRequest) {
           status: order.paymentStatus,
           paymentStatus: order.paymentStatus,
           orderId: order.id,
+          paymentProvider: order.paymentProvider,
           message: 'Unable to verify payment status at the moment',
           error: error.message,
         });
@@ -172,6 +206,7 @@ export async function GET(request: NextRequest) {
       paymentStatus: order.paymentStatus,
       transactionId: order.transactionId,
       orderId: order.id,
+      paymentProvider: order.paymentProvider,
     });
   } catch (error: any) {
     console.error('Status check error:', error);
@@ -181,3 +216,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

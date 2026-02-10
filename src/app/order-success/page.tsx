@@ -7,18 +7,21 @@ import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { FiCheckCircle, FiLoader } from 'react-icons/fi'
 import toast from 'react-hot-toast'
+import { useCartStore } from '@/store/cartStore'
 
 function OrderSuccessContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
   const paymentId = searchParams.get('paymentId')
+  const { getSelectedItems, removeItem, deselectAllItems } = useCartStore()
   
   const [verifying, setVerifying] = useState(true)
   const [verified, setVerified] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'completed' | 'failed'>('pending')
   const [transactionId, setTransactionId] = useState<string | null>(null)
   const [pollCount, setPollCount] = useState(0)
+  const [cartSynced, setCartSynced] = useState(false)
   const MAX_POLLS = 10 // Maximum number of status checks (10 * 3s = 30s)
 
   // Verify payment status
@@ -62,7 +65,8 @@ function OrderSuccessContent() {
           toast.dismiss()
           // Redirect to payment failed page
           timer = setTimeout(() => {
-            router.push(`/payment-failed?orderId=${orderId}&reason=Payment verification failed`)
+            const reason = encodeURIComponent(data?.message || 'Payment failed')
+            router.push(`/payment-failed?orderId=${orderId}&reason=${reason}`)
           }, 1500)
         } else if (data.status === 'pending') {
           setPaymentStatus('pending')
@@ -97,6 +101,20 @@ function OrderSuccessContent() {
       if (timer) clearTimeout(timer)
     }
   }, [orderId, router])
+
+  // Clear purchased (selected) cart items once payment is confirmed.
+  useEffect(() => {
+    if (cartSynced || !verified || paymentStatus !== 'completed') {
+      return
+    }
+
+    const selectedItems = getSelectedItems()
+    if (selectedItems.length > 0) {
+      selectedItems.forEach((item) => removeItem(item.id))
+    }
+    deselectAllItems()
+    setCartSynced(true)
+  }, [cartSynced, verified, paymentStatus, getSelectedItems, removeItem, deselectAllItems])
 
   return (
     <>

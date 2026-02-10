@@ -17,7 +17,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, pool } from '@/lib/db/client';
 import { orders } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { verifyWebhookSignature } from '@/lib/phonepe';
 
 export const dynamic = 'force-dynamic';
@@ -161,16 +161,27 @@ async function handlePaymentSuccess(order: any, event: any) {
 
   try {
     // Use transaction to ensure atomicity
+    let markedCompleted = false;
     await db.transaction(async (tx) => {
-      // Update order status to completed
-      await tx.update(orders)
+      // Update order status only if still pending (idempotency guard)
+      const updatedOrder = await tx.update(orders)
         .set({
           paymentStatus: 'completed',
           transactionId: event.transactionId,
           status: 'placed', // Now order is truly placed
           updatedAt: new Date(),
         })
-        .where(eq(orders.id, order.id));
+        .where(and(
+          eq(orders.id, order.id),
+          eq(orders.paymentStatus, 'pending')
+        ))
+        .returning({ id: orders.id });
+
+      if (updatedOrder.length === 0) {
+        return;
+      }
+
+      markedCompleted = true;
 
       // Deduct stock for all items in the order
       // Get order items
@@ -193,7 +204,10 @@ async function handlePaymentSuccess(order: any, event: any) {
       }
     });
 
-    console.log('✅ Payment success processed for order:', order.id);
+    console.log('Payment success processed for order:', {
+      orderId: order.id,
+      markedCompleted,
+    });
 
     // TODO: Send confirmation email to customer
     // TODO: Send notification to admin
@@ -218,7 +232,10 @@ async function handlePaymentFailed(order: any, event: any) {
         transactionId: event.transactionId,
         updatedAt: new Date(),
       })
-      .where(eq(orders.id, order.id));
+      .where(and(
+        eq(orders.id, order.id),
+        eq(orders.paymentStatus, 'pending')
+      ));
 
     console.log('❌ Payment failed processed for order:', order.id);
 
@@ -243,3 +260,4 @@ export async function OPTIONS(request: NextRequest) {
     },
   });
 }
+
