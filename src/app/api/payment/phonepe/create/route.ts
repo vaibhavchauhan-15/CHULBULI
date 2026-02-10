@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
   let orderId: string | null = null; // Track order ID for cleanup
   
   try {
+    const requestOrigin = new URL(request.url).origin;
     // Add request logging for debugging
     console.log('🔵 PhonePe payment creation request received:', {
       timestamp: new Date().toISOString(),
@@ -326,6 +327,7 @@ export async function POST(request: NextRequest) {
         customerName: order.customerName,
         customerEmail: order.customerEmail,
         customerPhone: order.customerPhone,
+        appUrl: requestOrigin,
       });
 
       // Update order with transaction ID
@@ -395,14 +397,26 @@ export async function POST(request: NextRequest) {
         errorMessage.includes('Server Error') ||
         errorMessage.includes('temporarily unavailable');
 
+      const isBadRequest =
+        errorMessage.includes('PhonePe Bad Request') ||
+        errorMessage.includes('Invalid payload structure') ||
+        errorMessage.includes('redirect URL') ||
+        errorMessage.includes('redirectUrl') ||
+        errorMessage.includes('merchantOrderId must be') ||
+        errorMessage.includes('Invalid response from PhonePe');
+
       // User-friendly error message
       let userMessage: string;
       let errorCode: string;
       let statusCode: number;
 
       if (isMinimumAmountError) {
-        userMessage = 'PhonePe requires a minimum payment of ₹1. Please add more items or use an alternative payment method.';
+        userMessage = 'PhonePe requires a minimum payment of Rs 1. Please add more items or use an alternative payment method.';
         errorCode = 'MINIMUM_AMOUNT_ERROR';
+        statusCode = 400;
+      } else if (isBadRequest) {
+        userMessage = 'PhonePe rejected the payment request due to configuration or request format. Please try again.';
+        errorCode = 'PHONEPE_BAD_REQUEST';
         statusCode = 400;
       } else if (isMerchantConfigError || isAuthError) {
         userMessage = 'PhonePe payment is currently unavailable. Please use Razorpay or Cash on Delivery.';

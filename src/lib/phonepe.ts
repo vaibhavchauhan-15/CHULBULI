@@ -10,25 +10,73 @@
 import crypto from 'crypto';
 
 // PhonePe Configuration from environment variables
-const PHONEPE_CLIENT_ID = process.env.PHONEPE_CLIENT_ID!;
-const PHONEPE_CLIENT_SECRET = process.env.PHONEPE_CLIENT_SECRET!;
-const PHONEPE_CLIENT_VERSION = process.env.PHONEPE_CLIENT_VERSION || '1';
+const PHONEPE_CLIENT_ID = (process.env.PHONEPE_CLIENT_ID || '').trim();
+const PHONEPE_CLIENT_SECRET = (process.env.PHONEPE_CLIENT_SECRET || '').trim();
+const PHONEPE_CLIENT_VERSION = (process.env.PHONEPE_CLIENT_VERSION || '1').trim();
 
 // Standard Checkout v2 uses different base URLs for different environments
 // Sandbox: https://api-preprod.phonepe.com/apis/pg-sandbox
 // Production: https://api.phonepe.com/apis/pg
-const PHONEPE_BASE_URL = process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg';
+const PHONEPE_BASE_URL = (process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg').trim().replace(/\/+$/, '');
 
 // Authorization URL (separate endpoint in production)
 // Sandbox: https://api-preprod.phonepe.com/apis/pg-sandbox
 // Production: https://api.phonepe.com/apis/identity-manager
-const PHONEPE_AUTH_URL = process.env.PHONEPE_AUTH_URL || 'https://api.phonepe.com/apis/identity-manager';
+const PHONEPE_AUTH_URL = (process.env.PHONEPE_AUTH_URL || 'https://api.phonepe.com/apis/identity-manager').trim().replace(/\/+$/, '');
 
 // Application base URL (no trailing slash)
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'http://localhost:3000').trim();
 
 // Token caching to avoid unnecessary token requests
 let cachedToken: { access_token: string; expires_at: number } | null = null;
+
+function trimTrailingSlash(url: string): string {
+  return url.replace(/\/+$/, '');
+}
+
+function isValidHttpUrl(value?: string): boolean {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function toSafeMetaValue(value: string, maxLength: number): string {
+  return String(value ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .slice(0, maxLength);
+}
+
+function resolveAppUrl(overrideAppUrl?: string): string {
+  const candidates = [
+    overrideAppUrl,
+    process.env.APP_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXTAUTH_URL,
+    process.env.SITE_URL,
+    process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+    APP_URL,
+  ].filter(Boolean) as string[];
+
+  const resolved = candidates.find((candidate) => isValidHttpUrl(candidate));
+
+  if (!resolved) {
+    throw new Error('PhonePe redirect URL configuration is invalid. Set NEXT_PUBLIC_APP_URL or APP_URL to your HTTPS domain.');
+  }
+
+  const normalized = trimTrailingSlash(resolved);
+
+  if (process.env.NODE_ENV === 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(normalized)) {
+    throw new Error('PhonePe redirect URL cannot use localhost in production. Configure NEXT_PUBLIC_APP_URL/APP_URL with your live domain.');
+  }
+
+  return normalized;
+}
 
 // Detect environment from payment URL
 // Test/Sandbox environments use: mercury-t2, mercury-uat, or mercury-stg
@@ -194,6 +242,7 @@ export async function createPhonePeOrder(orderDetails: {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
+  appUrl?: string;
 }) {
   validatePhonePeConfig();
 
@@ -204,6 +253,9 @@ export async function createPhonePeOrder(orderDetails: {
 
   if (!orderDetails.merchantOrderId || typeof orderDetails.merchantOrderId !== 'string') {
     throw new Error('Valid merchantOrderId is required');
+  }
+  if (orderDetails.merchantOrderId.length > 63 || !/^[A-Za-z0-9_-]+$/.test(orderDetails.merchantOrderId)) {
+    throw new Error('merchantOrderId must be <= 63 chars and contain only letters, digits, underscore, and hyphen');
   }
 
   if (!orderDetails.orderId || typeof orderDetails.orderId !== 'string') {
@@ -228,6 +280,7 @@ export async function createPhonePeOrder(orderDetails: {
 
   try {
     // Validate amount before making API call (PhonePe minimum: 100 paisa = ₹1)
+    const appUrl = resolveAppUrl(orderDetails.appUrl);
     const amountInPaise = Math.round(orderDetails.amount * 100);
     if (amountInPaise < 100) {
       throw new Error(
@@ -259,14 +312,14 @@ export async function createPhonePeOrder(orderDetails: {
         type: 'PG_CHECKOUT',
         message: `Payment for Order #${orderDetails.merchantOrderId}`,
         merchantUrls: {
-          redirectUrl: `${APP_URL}/order-success?orderId=${orderDetails.orderId}`
+          redirectUrl: `${appUrl}/order-success?orderId=${encodeURIComponent(orderDetails.orderId)}`
         }
       },
       metaInfo: {
-        udf1: orderDetails.orderId,
-        udf2: orderDetails.customerEmail,
-        udf3: orderDetails.customerName,
-        udf4: orderDetails.customerPhone
+        udf1: toSafeMetaValue(orderDetails.orderId, 256),
+        udf2: toSafeMetaValue(orderDetails.customerEmail, 256),
+        udf3: toSafeMetaValue(orderDetails.customerName, 256),
+        udf4: toSafeMetaValue(orderDetails.customerPhone, 256)
       }
     };
 
@@ -375,7 +428,7 @@ export async function createPhonePeOrder(orderDetails: {
           paymentData.errorCode === 'PR000' || 
           paymentData.message?.includes('Bad Request')) {
         throw new Error(
-          `PhonePe Bad Request - Invalid payload structure. Error: ${paymentData.message || 'Check request format'}. Code: ${paymentData.code || paymentData.errorCode}`
+          `PhonePe Bad Request - Invalid payload structure or configuration. Error: ${paymentData.message || 'Check request format'}. Code: ${paymentData.code || paymentData.errorCode}`
         );
       }
 
@@ -548,8 +601,8 @@ export function verifyWebhookSignature(authHeader: string): boolean {
     }
 
     // Get webhook credentials from environment
-    const webhookUsername = process.env.PHONEPE_WEBHOOK_USERNAME;
-    const webhookPassword = process.env.PHONEPE_WEBHOOK_PASSWORD;
+    const webhookUsername = (process.env.PHONEPE_WEBHOOK_USERNAME || '').trim();
+    const webhookPassword = (process.env.PHONEPE_WEBHOOK_PASSWORD || '').trim();
 
     if (!webhookUsername || !webhookPassword) {
       console.error('Webhook credentials not configured in environment');

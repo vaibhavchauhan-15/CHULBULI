@@ -13,9 +13,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const isProd = process.env.PHONEPE_BASE_URL?.includes('api.phonepe.com');
-    const baseUrl = process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg';
-    const authUrl = process.env.PHONEPE_AUTH_URL || 'https://api.phonepe.com/apis/identity-manager';
+    const baseUrl = (process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg').trim().replace(/\/+$/, '');
+    const authUrl = (process.env.PHONEPE_AUTH_URL || 'https://api.phonepe.com/apis/identity-manager').trim().replace(/\/+$/, '');
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'http://localhost:3000').trim().replace(/\/+$/, '');
+    const clientVersion = (process.env.PHONEPE_CLIENT_VERSION || '1').trim();
+    const isProd = baseUrl.includes('api.phonepe.com');
     
     const diagnostics = {
       environment: process.env.NODE_ENV,
@@ -23,13 +25,13 @@ export async function GET(request: NextRequest) {
       phonePeEnvironment: isProd ? 'PRODUCTION' : 'SANDBOX',
       config: {
         clientId: process.env.PHONEPE_CLIENT_ID ? 
-          `${process.env.PHONEPE_CLIENT_ID.substring(0, 15)}...` : 
+          `${process.env.PHONEPE_CLIENT_ID.trim().substring(0, 15)}...` : 
           '❌ NOT SET',
         clientSecret: process.env.PHONEPE_CLIENT_SECRET ? '✅ SET (Hidden)' : '❌ NOT SET',
-        clientVersion: process.env.PHONEPE_CLIENT_VERSION || '1',
+        clientVersion: clientVersion,
         baseUrl: baseUrl,
         authUrl: authUrl,
-        appUrl: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+        appUrl: appUrl,
         expectedEndpoints: {
           token: `${authUrl}/v1/oauth/token`,
           createPayment: `${baseUrl}/checkout/v2/pay`,
