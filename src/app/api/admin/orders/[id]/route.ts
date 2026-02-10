@@ -11,7 +11,7 @@ async function handlePUT(
   try {
     const { status } = await request.json()
 
-    if (!['placed', 'packed', 'shipped', 'delivered'].includes(status)) {
+    if (!['placed', 'packed', 'shipped', 'delivered', 'cancelled'].includes(status)) {
       return NextResponse.json(
         { error: 'Invalid status' },
         { status: 400 }
@@ -27,6 +27,14 @@ async function handlePUT(
       return NextResponse.json(
         { error: 'Order not found' },
         { status: 404 }
+      )
+    }
+
+    // Business rule: failed payments cannot be moved to placed/fulfillment statuses.
+    if (existingOrder.paymentStatus === 'failed' && status !== 'cancelled') {
+      return NextResponse.json(
+        { error: 'Failed payment orders can only be set to cancelled' },
+        { status: 400 }
       )
     }
 

@@ -75,6 +75,8 @@ export default function AdminOrdersPage() {
         return 'bg-purple-50 text-purple-700 border-purple-100'
       case 'delivered':
         return 'bg-emerald-50 text-emerald-700 border-emerald-100'
+      case 'cancelled':
+        return 'bg-red-50 text-red-700 border-red-100'
       default:
         return 'bg-sand text-taupe border-softgold/30'
     }
@@ -111,6 +113,10 @@ export default function AdminOrdersPage() {
         ) : orders.length > 0 ? (
           <div className="space-y-4 md:space-y-5">
             {orders.map((order: any) => (
+              (() => {
+                const displayStatus = order.paymentStatus === 'failed' ? 'cancelled' : order.status
+                const isFailedPayment = order.paymentStatus === 'failed'
+                return (
               <div key={order.id} className="bg-white/90 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-7 shadow-xl hover:shadow-2xl transition-all border-2 border-softgold/20 hover:border-rosegold/30">
                 {/* Order Header */}
                 <div className="flex flex-col lg:flex-row items-start justify-between mb-4 md:mb-6 pb-4 md:pb-5 border-b-2 border-softgold/30 gap-3 md:gap-4">
@@ -120,16 +126,18 @@ export default function AdminOrdersPage() {
                         Order #{order.orderNumber || order.id.slice(0, 8)}
                       </h3>
                       <select
-                        value={order.status}
+                        value={displayStatus}
                         onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                        disabled={isFailedPayment}
                         className={`input-luxury px-3 md:px-4 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-bold capitalize border-2 w-full sm:w-auto shadow-sm hover:shadow-md transition-all cursor-pointer touch-target active:scale-95 ${getStatusColor(
-                          order.status
+                          displayStatus
                         )}`}
                       >
                         <option value="placed">Placed</option>
                         <option value="packed">Packed</option>
                         <option value="shipped">Shipped</option>
                         <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
                       </select>
                     </div>
                     <p className="text-sm text-taupe font-medium">
@@ -258,6 +266,8 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
               </div>
+                )
+              })()
             ))}
           </div>
         ) : (
@@ -307,6 +317,12 @@ export default function AdminOrdersPage() {
                 <span className="text-sm text-taupe font-medium">Delivered</span>
                 <span className="font-bold text-base text-emerald-600 bg-emerald-100 px-3 py-1 rounded-lg">
                   {orders.filter((o: any) => o.status === 'delivered').length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-red-50 transition-all border border-red-200">
+                <span className="text-sm text-taupe font-medium">Cancelled</span>
+                <span className="font-bold text-base text-red-600 bg-red-100 px-3 py-1 rounded-lg">
+                  {orders.filter((o: any) => o.status === 'cancelled' || o.paymentStatus === 'failed').length}
                 </span>
               </div>
             </div>
