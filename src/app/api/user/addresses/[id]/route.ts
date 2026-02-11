@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db/client'
 import { addresses } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, ne } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
@@ -44,23 +44,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid pincode' }, { status: 400 })
     }
 
-    // Verify address belongs to user
-    const [existingAddress] = await db
-      .select()
-      .from(addresses)
-      .where(and(eq(addresses.id, params.id), eq(addresses.userId, decoded.userId)))
-      .limit(1)
-
-    if (!existingAddress) {
-      return NextResponse.json({ error: 'Address not found' }, { status: 404 })
-    }
-
     // If this is set as default, unset other defaults
-    if (isDefault && !existingAddress.isDefault) {
+    if (isDefault) {
       await db
         .update(addresses)
         .set({ isDefault: false })
-        .where(eq(addresses.userId, decoded.userId))
+        .where(and(eq(addresses.userId, decoded.userId), ne(addresses.id, params.id)))
     }
 
     // Update address

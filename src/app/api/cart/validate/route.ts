@@ -20,9 +20,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const uniqueProductIds = Array.from(new Set(productIds))
+
     // Fetch all products matching the IDs
     const foundProducts = await db.query.products.findMany({
-      where: inArray(products.id, productIds),
+      where: inArray(products.id, uniqueProductIds),
       columns: {
         id: true,
         name: true,
@@ -35,7 +37,7 @@ export async function POST(request: NextRequest) {
     })
 
     const foundProductIds = new Set(foundProducts.map(p => p.id))
-    const unavailableProductIds = productIds.filter(id => !foundProductIds.has(id))
+    const unavailableProductIds = uniqueProductIds.filter(id => !foundProductIds.has(id))
 
     // Check for products that exist but are not available for purchase
     // Only mark as unavailable if stock is 0 or productStatus is explicitly 'out_of_stock'
@@ -45,9 +47,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       valid: unavailableProductIds.length === 0 && unavailableProducts.length === 0,
-      availableProducts: foundProducts.filter(
-        p => p.stock > 0 && p.productStatus !== 'out_of_stock'
-      ),
       unavailableProductIds,
       unavailableProducts: unavailableProducts.map(p => ({
         id: p.id,

@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import Navbar from '@/components/Navbar'
@@ -13,23 +13,29 @@ import toast from 'react-hot-toast'
 
 export default function CartPage() {
   const router = useRouter()
-  const { 
-    items, 
-    removeItem, 
-    updateQuantity, 
-    getTotalPrice, 
-    clearCart,
-    selectedItems,
-    toggleItemSelection,
-    selectAllItems,
-    deselectAllItems,
-    getSelectedTotalPrice,
-    getSelectedItems,
-    isItemSelected
-  } = useCartStore()
+  const items = useCartStore((state) => state.items)
+  const selectedItems = useCartStore((state) => state.selectedItems)
+  const removeItem = useCartStore((state) => state.removeItem)
+  const updateQuantity = useCartStore((state) => state.updateQuantity)
+  const toggleItemSelection = useCartStore((state) => state.toggleItemSelection)
+  const selectAllItems = useCartStore((state) => state.selectAllItems)
+  const deselectAllItems = useCartStore((state) => state.deselectAllItems)
   const user = useAuthStore((state) => state.user)
   const [unavailableItems, setUnavailableItems] = useState<string[]>([])
-  const [validating, setValidating] = useState(false)
+  const selectedTotalPrice = useMemo(
+    () =>
+      items
+        .filter((item) => selectedItems.includes(item.id))
+        .reduce((total, item) => {
+          const finalPrice = item.price - (item.price * item.discount) / 100
+          return total + finalPrice * item.quantity
+        }, 0),
+    [items, selectedItems]
+  )
+  const uniqueProductIds = useMemo(
+    () => Array.from(new Set(items.map((item) => item.id))).sort(),
+    [items]
+  )
 
   // Auto-select all items on mount if none are selected
   useEffect(() => {
@@ -41,19 +47,19 @@ export default function CartPage() {
 
   // Validate cart items on mount
   useEffect(() => {
+    const controller = new AbortController()
+
     const validateCart = async () => {
-      if (items.length === 0) return
-      
-      setValidating(true)
+      if (uniqueProductIds.length === 0) return
+
       try {
-        const productIds = items.map(item => item.id)
-        
         const response = await fetch('/api/cart/validate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ productIds }),
+          signal: controller.signal,
+          body: JSON.stringify({ productIds: uniqueProductIds }),
         })
 
         if (response.ok) {
@@ -74,15 +80,15 @@ export default function CartPage() {
           }
         }
       } catch (error) {
-        // Cart validation error
-      } finally {
-        setValidating(false)
+        if ((error as Error)?.name !== 'AbortError') {
+          // Cart validation error
+        }
       }
     }
 
     validateCart()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items.length])
+    return () => controller.abort()
+  }, [uniqueProductIds])
 
   const handleCheckout = () => {
     if (items.length === 0) return
@@ -236,7 +242,7 @@ export default function CartPage() {
                         <input
                           type="checkbox"
                           id={`select-${item.id}`}
-                          checked={isItemSelected(item.id)}
+                          checked={selectedItems.includes(item.id)}
                           onChange={() => toggleItemSelection(item.id)}
                           disabled={isUnavailable}
                           className="w-4 h-4 md:w-5 md:h-5 text-[#C89A7A] bg-white border-2 border-[#C89A7A]/30 rounded focus:ring-2 focus:ring-[#C89A7A]/20 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0"
@@ -357,7 +363,7 @@ export default function CartPage() {
                     <span className="font-medium text-xs md:text-sm">
                       Subtotal ({selectedItems.length} {selectedItems.length === 1 ? 'item' : 'items'} selected)
                     </span>
-                    <span className="font-semibold text-sm md:text-base">₹{getSelectedTotalPrice().toFixed(2)}</span>
+                    <span className="font-semibold text-sm md:text-base">₹{selectedTotalPrice.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center gap-2">
                     <span className="font-medium text-[#5A3E2B]/70 text-xs md:text-sm">Shipping</span>
@@ -371,7 +377,7 @@ export default function CartPage() {
                     <div className="flex justify-between items-center gap-2">
                       <span className="text-base md:text-lg font-playfair font-semibold text-[#5A3E2B]">Total</span>
                       <span className="text-xl md:text-2xl lg:text-3xl font-playfair font-bold text-[#C89A7A]">
-                        ₹{getSelectedTotalPrice().toFixed(2)}
+                        ₹{selectedTotalPrice.toFixed(2)}
                       </span>
                     </div>
                   </div>
@@ -426,10 +432,10 @@ export default function CartPage() {
             <div className="px-4 py-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-[#5A3E2B]/60 font-medium">{selectedItems.length} items selected</span>
-                <span className="text-lg font-playfair font-bold text-[#C89A7A]">₹{getSelectedTotalPrice().toFixed(2)}</span>
+                <span className="text-lg font-playfair font-bold text-[#C89A7A]">₹{selectedTotalPrice.toFixed(2)}</span>
               </div>
               <button
-                onClick={() => router.push('/checkout')}
+                onClick={handleCheckout}
                 disabled={selectedItems.length === 0}
                 className="btn-primary btn-mobile-full flex items-center justify-center gap-2"
               >

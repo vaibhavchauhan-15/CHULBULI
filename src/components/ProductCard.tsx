@@ -32,7 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Link href={`/products/${product.id}`} className="group block">
       {/* Card Container - Mobile-optimized */}
-      <div className="bg-white rounded-2xl md:rounded-[20px] overflow-hidden shadow-md hover:shadow-xl md:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:hover:shadow-[0_12px_40px_rgba(200,154,122,0.2)] transition-all duration-300 md:duration-700 active:scale-[0.98] md:active:scale-100">
+      <div className="smooth-transform bg-white rounded-2xl md:rounded-[20px] overflow-hidden shadow-md hover:shadow-xl md:shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:hover:shadow-[0_12px_40px_rgba(200,154,122,0.2)] transition-shadow duration-300 md:duration-700 active:scale-[0.98] md:active:scale-100">
         
         {/* Image Area - Mobile-first aspect ratio */}
         <div className="relative aspect-[3/4] md:aspect-[4/5] overflow-hidden bg-champagne/30">
@@ -42,7 +42,6 @@ export default function ProductCard({ product }: ProductCardProps) {
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 25vw, 20vw"
             className="object-cover transition-transform duration-300 md:duration-700 ease-out group-hover:scale-[1.05] md:group-hover:scale-[1.03]"
-            loading="eager"
             quality={85}
             onError={() => setImgError(true)}
             unoptimized={imageUrl.startsWith('data:')}

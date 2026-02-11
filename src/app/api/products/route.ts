@@ -3,7 +3,7 @@ import { db } from '@/lib/db/client'
 import { products } from '@/lib/db/schema'
 import { and, eq, gte, lte, asc, desc } from 'drizzle-orm'
 import { apiRateLimiter } from '@/lib/rateLimit'
-import { safeParseFloat } from '@/lib/validation'
+import { safeParseFloat, safeParseInt } from '@/lib/validation'
 import { logger } from '@/lib/logger'
 
 // Cache products list for 60 seconds
@@ -23,6 +23,15 @@ export async function GET(request: NextRequest) {
     const maxPrice = searchParams.get('maxPrice')
     const sort = searchParams.get('sort') || 'latest'
     const featured = searchParams.get('featured')
+    const limitParam = searchParams.get('limit')
+    const limit = limitParam ? safeParseInt(limitParam, 0) : null
+
+    if (limitParam && (!limit || limit < 1 || limit > 100)) {
+      return NextResponse.json(
+        { error: 'Invalid limit parameter. Use a value between 1 and 100.' },
+        { status: 400 }
+      )
+    }
 
     // Build WHERE conditions
     const whereConditions = []
@@ -53,6 +62,17 @@ export async function GET(request: NextRequest) {
       whereConditions.push(lte(products.price, max.toString()))
     }
 
+    if (minPrice && maxPrice) {
+      const min = safeParseFloat(minPrice, 0)
+      const max = safeParseFloat(maxPrice, 0)
+      if (min > max) {
+        return NextResponse.json(
+          { error: 'minPrice cannot be greater than maxPrice' },
+          { status: 400 }
+        )
+      }
+    }
+
     if (featured === 'true') {
       whereConditions.push(eq(products.featured, true))
     }
@@ -71,7 +91,7 @@ export async function GET(request: NextRequest) {
 
     // Execute query with all conditions - select only needed columns for listing
     const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined
-    const allProducts = await db.select({
+    const baseQuery = db.select({
       id: products.id,
       name: products.name,
       price: products.price,
@@ -86,8 +106,13 @@ export async function GET(request: NextRequest) {
     }).from(products)
       .where(whereClause)
       .orderBy(orderByClause)
+    const allProducts = limit ? await baseQuery.limit(limit) : await baseQuery
 
-    return NextResponse.json(allProducts)
+    return NextResponse.json(allProducts, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    })
   } catch (error) {
     logger.error('Products fetch error', { error })
     return NextResponse.json(

@@ -43,17 +43,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Comment must be at least 10 characters' }, { status: 400 })
     }
 
-    // Verify review belongs to user
-    const [existingReview] = await db
-      .select()
-      .from(reviews)
-      .where(and(eq(reviews.id, params.id), eq(reviews.userId, decoded.userId)))
-      .limit(1)
-
-    if (!existingReview) {
-      return NextResponse.json({ error: 'Review not found' }, { status: 404 })
-    }
-
     // Update review (will need re-approval if approved previously)
     const updateData: any = {
       updatedAt: new Date(),

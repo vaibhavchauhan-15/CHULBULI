@@ -1,43 +1,78 @@
 'use client'
 
-import { useEffect, useState, Suspense, useCallback } from 'react'
+import { useEffect, useState, Suspense, useCallback, useDeferredValue, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import ProductCard from '@/components/ProductCard'
 import SearchBar from '@/components/SearchBar'
 
+type ProductListItem = {
+  id: string
+  name: string
+  price: number | string
+  discount: number | string
+  images: string[]
+  category?: string
+  thumbnailImage?: string | null
+  stock?: number
+  featured?: boolean
+  isNewArrival?: boolean
+}
+
 function ProductsContent() {
   const searchParams = useSearchParams()
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState<ProductListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState(searchParams.get('category') || 'all')
   const [minPrice, setMinPrice] = useState('')
   const [maxPrice, setMaxPrice] = useState('')
   const [sort, setSort] = useState('latest')
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '')
+  const deferredSearchQuery = useDeferredValue(searchQuery)
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = useCallback(async (signal?: AbortSignal) => {
     try {
-      setLoading(true)
       const params = new URLSearchParams()
       if (category !== 'all') params.append('category', category)
       if (minPrice) params.append('minPrice', minPrice)
       if (maxPrice) params.append('maxPrice', maxPrice)
       params.append('sort', sort)
 
-      const response = await fetch(`/api/products?${params.toString()}`)
+      const response = await fetch(`/api/products?${params.toString()}`, {
+        signal,
+        cache: 'no-store',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch products')
+      }
+
       const data = await response.json()
-      setProducts(data)
+      setProducts(Array.isArray(data) ? data : [])
     } catch (error) {
-      // Error fetching products
+      if ((error as Error)?.name !== 'AbortError') {
+        setProducts([])
+      }
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+      }
     }
   }, [category, minPrice, maxPrice, sort])
 
   useEffect(() => {
-    fetchProducts()
+    const controller = new AbortController()
+    setLoading(true)
+
+    const timer = setTimeout(() => {
+      fetchProducts(controller.signal)
+    }, 150)
+
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
   }, [fetchProducts])
 
   // Handle smooth scroll to search bar if hash is present
@@ -58,8 +93,12 @@ function ProductsContent() {
   }, [])
 
   // Filter products based on search query (client-side filtering)
-  const filteredProducts = products.filter((product: any) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((product: any) =>
+        product.name.toLowerCase().includes(deferredSearchQuery.toLowerCase())
+      ),
+    [products, deferredSearchQuery]
   )
 
   const categories = [

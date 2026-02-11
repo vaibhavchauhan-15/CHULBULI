@@ -12,6 +12,7 @@ import toast from 'react-hot-toast'
 
 export default function ProductDetailPage() {
   const params = useParams()
+  const productId = Array.isArray(params.id) ? params.id[0] : params.id
   const router = useRouter()
   const [product, setProduct] = useState<any>(null)
   const [loading, setLoading] = useState(true)
@@ -27,25 +28,37 @@ export default function ProductDetailPage() {
   // SVG placeholder as data URI
   const placeholderSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Crect fill='%23F2E6D8' width='800' height='800'/%3E%3Ctext fill='%238B6D57' font-family='Arial' font-size='48' font-weight='bold' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3ENo Image%3C/text%3E%3C/svg%3E"
 
-  const fetchProduct = useCallback(async () => {
+  const fetchProduct = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch(`/api/products/${params.id}`)
+      const response = await fetch(`/api/products/${productId}`, {
+        signal,
+        cache: 'force-cache',
+      })
       if (response.ok) {
         const data = await response.json()
         setProduct(data)
+      } else {
+        setProduct(null)
       }
     } catch (error) {
-      // Error fetching product
+      if ((error as Error)?.name !== 'AbortError') {
+        setProduct(null)
+      }
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+      }
     }
-  }, [params.id])
+  }, [productId])
 
   useEffect(() => {
-    if (params.id) {
-      fetchProduct()
+    if (productId) {
+      const controller = new AbortController()
+      setLoading(true)
+      fetchProduct(controller.signal)
+      return () => controller.abort()
     }
-  }, [params.id, fetchProduct])
+  }, [productId, fetchProduct])
 
   const handleAddToCart = () => {
     if (!product) return

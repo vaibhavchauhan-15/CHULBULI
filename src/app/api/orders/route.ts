@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, pool } from '@/lib/db/client'
-import { products, orders, orderItems } from '@/lib/db/schema'
+import { orders, orderItems } from '@/lib/db/schema'
 import { eq, sql, desc } from 'drizzle-orm'
 import { verifyToken } from '@/lib/auth'
 import { sanitizeOrderData, validateEmail, validatePhoneNumber, validatePincode } from '@/lib/validation'
@@ -226,17 +226,42 @@ export async function GET(request: NextRequest) {
 
     const userOrders = await db.query.orders.findMany({
       where: eq(orders.userId, payload.userId),
+      columns: {
+        id: true,
+        totalPrice: true,
+        status: true,
+        addressLine1: true,
+        addressLine2: true,
+        city: true,
+        state: true,
+        pincode: true,
+        createdAt: true,
+      },
       with: {
         orderItems: {
+          columns: {
+            id: true,
+            quantity: true,
+            price: true,
+          },
           with: {
-            product: true,
+            product: {
+              columns: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
       orderBy: desc(orders.createdAt),
     })
 
-    return NextResponse.json(userOrders)
+    return NextResponse.json(userOrders, {
+      headers: {
+        'Cache-Control': 'private, max-age=30, stale-while-revalidate=120',
+      },
+    })
   } catch (error) {
     console.error('Orders fetch error:', error)
     return NextResponse.json(

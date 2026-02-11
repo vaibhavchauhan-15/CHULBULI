@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -32,7 +32,10 @@ interface UserProfile {
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, getTotalPrice, clearCart, removeItem, getSelectedItems, getSelectedTotalPrice, deselectAllItems } = useCartStore()
+  const items = useCartStore((state) => state.items)
+  const selectedItemIds = useCartStore((state) => state.selectedItems)
+  const removeItem = useCartStore((state) => state.removeItem)
+  const deselectAllItems = useCartStore((state) => state.deselectAllItems)
   const user = useAuthStore((state) => state.user)
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('online')
@@ -47,8 +50,18 @@ export default function CheckoutPage() {
   const [showAddressForm, setShowAddressForm] = useState(false)
 
   // Use selected items for checkout
-  const selectedItems = getSelectedItems()
-  const subtotal = getSelectedTotalPrice()
+  const selectedItems = useMemo(
+    () => items.filter((item) => selectedItemIds.includes(item.id)),
+    [items, selectedItemIds]
+  )
+  const subtotal = useMemo(
+    () =>
+      selectedItems.reduce((total, item) => {
+        const finalPrice = item.price - (item.price * item.discount) / 100
+        return total + finalPrice * item.quantity
+      }, 0),
+    [selectedItems]
+  )
   const [selectedShipping, setSelectedShipping] = useState<'free' | 'standard' | 'express'>(
     subtotal >= 500 ? 'free' : 'standard'
   )
@@ -67,6 +80,7 @@ export default function CheckoutPage() {
   const gstRate = 0.03 // 3% GST
   const gstAmount = subtotal * gstRate
   const totalAmount = subtotal + getShippingCost() + gstAmount
+  const requiresRazorpay = paymentMethod === 'online' && paymentGateway === 'razorpay'
 
   const [formData, setFormData] = useState({
     customerName: user?.name || '',
@@ -86,57 +100,73 @@ export default function CheckoutPage() {
 
   // Fetch user profile and addresses
   useEffect(() => {
+    const controller = new AbortController()
+
     const fetchUserData = async () => {
       if (!user) return
 
       try {
-        // Fetch profile
-        const profileRes = await fetch('/api/user/profile', { credentials: 'include' })
+        const [profileRes, addressesRes] = await Promise.all([
+          fetch('/api/user/profile', {
+            credentials: 'include',
+            cache: 'no-store',
+            signal: controller.signal,
+          }),
+          fetch('/api/user/addresses', {
+            credentials: 'include',
+            cache: 'no-store',
+            signal: controller.signal,
+          }),
+        ])
+
         if (profileRes.ok) {
           const profileData = await profileRes.json()
-          setUserProfile(profileData)
-          
-          // Update form data with profile info
-          setFormData(prev => ({
-            ...prev,
-            customerName: profileData.name || prev.customerName,
-            customerEmail: profileData.email || prev.customerEmail,
-            customerPhone: profileData.mobile || prev.customerPhone,
-          }))
-        }
-
-        // Fetch addresses
-        const addressesRes = await fetch('/api/user/addresses', { credentials: 'include' })
-        if (addressesRes.ok) {
-          const addressesData = await addressesRes.json()
-          setSavedAddresses(addressesData)
-          
-          // Auto-select default address or first address
-          const defaultAddress = addressesData.find((addr: Address) => addr.isDefault)
-          const addressToUse = defaultAddress || addressesData[0]
-          
-          if (addressToUse) {
-            setSelectedAddressId(addressToUse.id)
-            setFormData(prev => ({
+          if (!controller.signal.aborted) {
+            setUserProfile(profileData)
+            setFormData((prev) => ({
               ...prev,
-              customerName: addressToUse.fullName,
-              customerPhone: addressToUse.mobile,
-              addressLine1: addressToUse.addressLine1,
-              addressLine2: addressToUse.addressLine2 || '',
-              city: addressToUse.city,
-              state: addressToUse.state,
-              pincode: addressToUse.pincode,
+              customerName: profileData.name || prev.customerName,
+              customerEmail: profileData.email || prev.customerEmail,
+              customerPhone: profileData.mobile || prev.customerPhone,
             }))
           }
         }
+
+        if (addressesRes.ok) {
+          const addressesData = await addressesRes.json()
+          if (!controller.signal.aborted) {
+            setSavedAddresses(addressesData)
+
+            // Auto-select default address or first address
+            const defaultAddress = addressesData.find((addr: Address) => addr.isDefault)
+            const addressToUse = defaultAddress || addressesData[0]
+
+            if (addressToUse) {
+              setSelectedAddressId(addressToUse.id)
+              setFormData((prev) => ({
+                ...prev,
+                customerName: addressToUse.fullName,
+                customerPhone: addressToUse.mobile,
+                addressLine1: addressToUse.addressLine1,
+                addressLine2: addressToUse.addressLine2 || '',
+                city: addressToUse.city,
+                state: addressToUse.state,
+                pincode: addressToUse.pincode,
+              }))
+            }
+          }
+        }
       } catch (error) {
-        console.error('Error fetching user data:', error)
+        if ((error as Error)?.name !== 'AbortError') {
+          console.error('Error fetching user data:', error)
+        }
       }
     }
 
     if (mounted && user) {
       fetchUserData()
     }
+    return () => controller.abort()
   }, [mounted, user])
 
   // Redirect to cart if no items selected
@@ -165,6 +195,10 @@ export default function CheckoutPage() {
 
   // Load Razorpay script with retry logic
   useEffect(() => {
+    if (!mounted || paymentMethod !== 'online' || paymentGateway !== 'razorpay') {
+      return
+    }
+
     const loadRazorpayScript = () => {
       // Check if Razorpay is already loaded
       if ((window as any).Razorpay) {
@@ -207,7 +241,9 @@ export default function CheckoutPage() {
           console.log(`Retrying... Attempt ${scriptLoadAttempts + 1}`)
           setTimeout(() => {
             setScriptLoadAttempts(prev => prev + 1)
-            document.body.removeChild(script)
+            if (script.parentNode) {
+              script.parentNode.removeChild(script)
+            }
             loadRazorpayScript()
           }, 1000)
         } else {
@@ -220,7 +256,7 @@ export default function CheckoutPage() {
     }
 
     loadRazorpayScript()
-  }, [scriptLoadAttempts])
+  }, [mounted, paymentMethod, paymentGateway, scriptLoadAttempts])
 
   // Auto-switch from PhonePe to Razorpay if total falls below ₹1
   useEffect(() => {
@@ -252,9 +288,12 @@ export default function CheckoutPage() {
   // Helper function to save address to user account
   const saveAddressToAccount = async () => {
     if (!user) return // Only save if user is logged in
+    if (selectedAddressId) return // Existing address already linked to account
 
     // Check if this address already exists
     const isExistingAddress = savedAddresses.some(addr => 
+      addr.fullName === formData.customerName &&
+      addr.mobile === formData.customerPhone &&
       addr.addressLine1 === formData.addressLine1 &&
       addr.city === formData.city &&
       addr.state === formData.state &&
@@ -299,7 +338,11 @@ export default function CheckoutPage() {
       })
 
       if (response.ok) {
-        console.log('Address saved to account successfully')
+        const data = await response.json()
+        if (data?.address) {
+          setSavedAddresses((prev) => [data.address, ...prev])
+          setSelectedAddressId(data.address.id)
+        }
       }
     } catch (error) {
       console.error('Error saving address to account:', error)
@@ -308,7 +351,7 @@ export default function CheckoutPage() {
   }
 
   const validateCartItems = async () => {
-    const productIds = selectedItems.map(item => item.id)
+    const productIds = Array.from(new Set(selectedItems.map((item) => item.id)))
     
     const response = await fetch('/api/cart/validate', {
       method: 'POST',
@@ -512,7 +555,7 @@ export default function CheckoutPage() {
 
         // Handle Razorpay Payment
         // Wait for Razorpay to load if not already loaded
-        if (!razorpayLoaded && !(window as any).Razorpay) {
+        if (requiresRazorpay && !razorpayLoaded && !(window as any).Razorpay) {
           toast.error('Loading payment gateway. Please wait a moment and try again.')
           setLoading(false)
           return
@@ -1406,7 +1449,7 @@ export default function CheckoutPage() {
               {/* Place Order Button - Desktop only */}
               <button
                 type="submit"
-                disabled={loading || (paymentMethod === 'online' && !razorpayLoaded)}
+                disabled={loading || (requiresRazorpay && !razorpayLoaded)}
                 className="hidden md:flex btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed transition-all items-center justify-center gap-3 group"
               >
                 {loading ? (
@@ -1414,7 +1457,7 @@ export default function CheckoutPage() {
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     Placing Order...
                   </>
-                ) : paymentMethod === 'online' && !razorpayLoaded ? (
+                ) : requiresRazorpay && !razorpayLoaded ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     Loading Payment Gateway...
@@ -1530,7 +1573,7 @@ export default function CheckoutPage() {
             <button
               type="submit"
               onClick={handleSubmit}
-              disabled={loading || (paymentMethod === 'online' && !razorpayLoaded)}
+              disabled={loading || (requiresRazorpay && !razorpayLoaded)}
               className="btn-primary btn-mobile-full flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
@@ -1538,7 +1581,7 @@ export default function CheckoutPage() {
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   Placing Order...
                 </>
-              ) : paymentMethod === 'online' && !razorpayLoaded ? (
+              ) : requiresRazorpay && !razorpayLoaded ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   Loading...

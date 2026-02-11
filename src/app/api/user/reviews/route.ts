@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       .from(reviews)
       .leftJoin(products, eq(reviews.productId, products.id))
       .where(eq(reviews.userId, decoded.userId))
-      .orderBy(reviews.createdAt)
+      .orderBy(sql`${reviews.createdAt} DESC`)
 
     // Get purchased products that haven't been reviewed yet
     const purchasedProducts = await db
@@ -72,10 +72,17 @@ export async function GET(request: NextRequest) {
       p => !reviewedProductIds.has(p.productId)
     )
 
-    return NextResponse.json({
-      reviews: userReviews,
-      pendingReviews: pendingReviews,
-    })
+    return NextResponse.json(
+      {
+        reviews: userReviews,
+        pendingReviews: pendingReviews,
+      },
+      {
+        headers: {
+          'Cache-Control': 'private, max-age=30, stale-while-revalidate=120',
+        },
+      }
+    )
   } catch (error) {
     console.error('Get user reviews error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

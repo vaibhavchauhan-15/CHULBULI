@@ -52,7 +52,13 @@ async function handlePOST(request: NextRequest) {
       const buffer = Buffer.from(bytes)
 
       // Upload to Cloudinary with security options
-      const result = await uploadImage(buffer, 'chulbuli-jewels/products')
+      const result = await uploadImage(buffer, {
+        folder: 'chulbuli-jewels/products',
+        maxWidth: 1800,
+        maxHeight: 1800,
+        quality: 'auto:good',
+        mimeType: file.type || 'image/jpeg',
+      })
       
       if (!result.success) {
         throw new Error(result.error || 'Upload failed')

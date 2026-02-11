@@ -5,7 +5,7 @@
 
 import { db, withDatabase } from './client'
 import { users, products, orders, orderItems, reviews } from './schema'
-import { eq, and, desc, asc } from 'drizzle-orm'
+import { eq, and, desc } from 'drizzle-orm'
 
 // User Queries
 export const userQueries = {
@@ -55,8 +55,19 @@ export const productQueries = {
       with: {
         reviews: {
           where: eq(reviews.approved, true),
+          columns: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+          },
           with: {
-            user: true,
+            user: {
+              columns: {
+                id: true,
+                name: true,
+              },
+            },
           },
           orderBy: desc(reviews.createdAt),
         },
@@ -79,34 +90,28 @@ export const productQueries = {
   },
 
   update: async (id: string, productData: any) => {
-    // Check if product exists first
-    const existing = await db.query.products.findFirst({
-      where: eq(products.id, id),
-    })
-
-    if (!existing) {
-      throw new Error(`Product with id ${id} not found`)
-    }
-
     const [updated] = await db
       .update(products)
       .set({ ...productData, updatedAt: new Date() })
       .where(eq(products.id, id))
       .returning()
+
+    if (!updated) {
+      throw new Error(`Product with id ${id} not found`)
+    }
+
     return updated
   },
 
   delete: async (id: string) => {
-    // Check if product exists first
-    const existing = await db.query.products.findFirst({
-      where: eq(products.id, id),
-    })
+    const [deleted] = await db
+      .delete(products)
+      .where(eq(products.id, id))
+      .returning({ id: products.id })
 
-    if (!existing) {
+    if (!deleted) {
       throw new Error(`Product with id ${id} not found`)
     }
-
-    await db.delete(products).where(eq(products.id, id))
   },
 }
 
@@ -174,20 +179,16 @@ export const orderQueries = {
   },
 
   updateStatus: async (id: string, status: string) => {
-    // Check if order exists first
-    const existing = await db.query.orders.findFirst({
-      where: eq(orders.id, id),
-    })
-
-    if (!existing) {
-      throw new Error(`Order with id ${id} not found`)
-    }
-
     const [updated] = await db
       .update(orders)
       .set({ status, updatedAt: new Date() })
       .where(eq(orders.id, id))
       .returning()
+
+    if (!updated) {
+      throw new Error(`Order with id ${id} not found`)
+    }
+
     return updated
   },
 }
@@ -248,34 +249,28 @@ export const reviewQueries = {
   },
 
   approve: async (id: string) => {
-    // Check if review exists first
-    const existing = await db.query.reviews.findFirst({
-      where: eq(reviews.id, id),
-    })
-
-    if (!existing) {
-      throw new Error(`Review with id ${id} not found`)
-    }
-
     const [updated] = await db
       .update(reviews)
       .set({ approved: true, updatedAt: new Date() })
       .where(eq(reviews.id, id))
       .returning()
+
+    if (!updated) {
+      throw new Error(`Review with id ${id} not found`)
+    }
+
     return updated
   },
 
   delete: async (id: string) => {
-    // Check if review exists first
-    const existing = await db.query.reviews.findFirst({
-      where: eq(reviews.id, id),
-    })
+    const [deleted] = await db
+      .delete(reviews)
+      .where(eq(reviews.id, id))
+      .returning({ id: reviews.id })
 
-    if (!existing) {
+    if (!deleted) {
       throw new Error(`Review with id ${id} not found`)
     }
-
-    await db.delete(reviews).where(eq(reviews.id, id))
   },
 }
 

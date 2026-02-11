@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;500;600;700&family=Poppins:wght@200;300;400;500;600&family=Inter:wght@200;300;400;500;600&display=swap');
-
 @layer base {
   html {
     scroll-padding-top: 5rem;
@@ -11,7 +9,7 @@
   }
   
   body {
-    font-family: 'Poppins', 'Inter', 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+    font-family: var(--font-poppins), 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
     font-weight: 300;
     background: linear-gradient(to bottom right, #F2E6D8, #E8D5C2);
     color: #5A3E2B;
@@ -23,7 +21,7 @@
   
   /* Mobile-first typography */
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-playfair), serif;
     font-weight: 400;
     letter-spacing: 0.02em;
     color: #5A3E2B;
@@ -292,7 +290,7 @@
   
   /* Editorial text style */
   .text-editorial {
-    font-family: 'Playfair Display', serif;
+    font-family: var(--font-playfair), serif;
     font-weight: 300;
     letter-spacing: 0.08em;
   }
@@ -300,6 +298,13 @@
   /* Smooth transitions for luxury feel */
   .transition-luxury {
     transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* GPU acceleration helper for transform-heavy cards/buttons */
+  .smooth-transform {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    will-change: transform;
   }
 
   /* Luxury hover scale effect */

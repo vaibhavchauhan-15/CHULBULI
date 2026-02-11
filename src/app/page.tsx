@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/Navbar'
@@ -11,30 +11,55 @@ import { FiArrowRight } from 'react-icons/fi'
 import { GiDiamondRing, GiNecklace, GiEarrings } from 'react-icons/gi'
 import { TbCirclesRelation } from 'react-icons/tb'
 
+type ProductListItem = {
+  id: string
+  name: string
+  price: number | string
+  discount: number | string
+  images: string[]
+  category?: string
+  thumbnailImage?: string | null
+  stock?: number
+  featured?: boolean
+  isNewArrival?: boolean
+}
+
 export default function HomePage() {
-  const [featuredProducts, setFeaturedProducts] = useState([])
+  const [featuredProducts, setFeaturedProducts] = useState<ProductListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const deferredSearchQuery = useDeferredValue(searchQuery)
 
-  useEffect(() => {
-    fetchFeaturedProducts()
-  }, [])
-
-  const fetchFeaturedProducts = async () => {
+  const fetchFeaturedProducts = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch('/api/products?featured=true')
+      const response = await fetch('/api/products?featured=true&limit=8', {
+        signal,
+        cache: 'force-cache',
+      })
       const data = await response.json()
-      setFeaturedProducts(data.slice(0, 8))
+      setFeaturedProducts(Array.isArray(data) ? data : [])
     } catch (error) {
-      // Error fetching featured products
+      if ((error as Error)?.name !== 'AbortError') {
+        setFeaturedProducts([])
+      }
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchFeaturedProducts(controller.signal)
+    return () => controller.abort()
+  }, [fetchFeaturedProducts])
 
   // Filter products based on search query
-  const filteredProducts = featuredProducts.filter((product: any) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = useMemo(
+    () =>
+      featuredProducts.filter((product: any) =>
+        product.name.toLowerCase().includes(deferredSearchQuery.toLowerCase())
+      ),
+    [featuredProducts, deferredSearchQuery]
   )
 
   const categories = [
@@ -85,18 +110,20 @@ export default function HomePage() {
               src="/hero_mobile.png"
               alt="Luxury Pearl Heart Earrings"
               fill
+              sizes="100vw"
               className="object-contain object-top md:hidden"
               priority
-              quality={100}
+              quality={80}
             />
             {/* Desktop Hero Image */}
             <Image
               src="/hero_image.webp"
               alt="Luxury Pearl Heart Earrings"
               fill
+              sizes="100vw"
               className="object-cover object-center hidden md:block"
               priority
-              quality={100}
+              quality={82}
             />
             {/* Gradient overlay - mobile: bottom fade, desktop: left fade */}
             <div className="absolute inset-0 bg-gradient-to-t from-white/95 via-white/60 to-transparent
@@ -149,7 +176,7 @@ export default function HomePage() {
                     className="group relative"
                   >
                     {/* Card with mobile-optimized design */}
-                    <div className="relative bg-pearl/80 rounded-2xl md:rounded-3xl border border-softgold/40 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-all duration-300 md:duration-500 overflow-hidden hover:border-rosegold/60 active:scale-95 md:hover:-translate-y-3">
+                    <div className="smooth-transform relative bg-pearl/80 rounded-2xl md:rounded-3xl border border-softgold/40 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-shadow transition-transform transition-colors duration-300 md:duration-500 overflow-hidden hover:border-rosegold/60 active:scale-95 md:hover:-translate-y-3">
                       {/* Gradient background */}
                       <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-40 transition-opacity duration-300 md:duration-500`} />
                       
@@ -166,7 +193,7 @@ export default function HomePage() {
                           <h3 className="font-playfair font-medium text-xs md:text-base lg:text-lg xl:text-xl tracking-wide text-warmbrown mb-1 group-hover:text-rosegold transition-colors duration-300 md:duration-500">
                             {category.name}
                           </h3>
-                          <div className="hidden md:flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 md:duration-500">
+                          <div className="hidden md:flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity transition-transform duration-300 md:duration-500">
                             <span className="text-xs text-taupe font-light tracking-wider">Explore</span>
                             <FiArrowRight className="text-sm text-taupe" />
                           </div>
@@ -218,7 +245,7 @@ export default function HomePage() {
               
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 mt-4 md:mt-8 text-rosegold hover:text-softgold font-medium text-xs md:text-sm tracking-widest transition-all duration-300 md:duration-500 group touch-target"
+                className="inline-flex items-center gap-2 mt-4 md:mt-8 text-rosegold hover:text-softgold font-medium text-xs md:text-sm tracking-widest transition-colors duration-300 md:duration-500 group touch-target"
               >
                 <span>VIEW ALL COLLECTION</span>
                 <svg className="w-3 h-3 md:w-4 md:h-4 transform group-hover:translate-x-2 transition-transform duration-300 md:duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -278,7 +305,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
               {/* Free Shipping - Mobile optimized */}
               <div className="group">
-                <div className="bg-pearl/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-all duration-300 md:duration-500 border border-softgold/40 hover:border-rosegold/60 text-center space-y-3 md:space-y-5 lg:space-y-6 relative overflow-hidden active:scale-95 md:active:scale-100">
+                <div className="smooth-transform bg-pearl/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-shadow transition-transform transition-colors duration-300 md:duration-500 border border-softgold/40 hover:border-rosegold/60 text-center space-y-3 md:space-y-5 lg:space-y-6 relative overflow-hidden active:scale-95 md:active:scale-100">
                   {/* Decorative corner accents - Smaller on mobile */}
                   <div className="absolute top-0 right-0 w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 border-t-2 border-r-2 border-rosegold/20 rounded-tr-2xl md:rounded-tr-3xl" />
                   <div className="absolute bottom-0 left-0 w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 border-b-2 border-l-2 border-rosegold/20 rounded-bl-2xl md:rounded-bl-3xl" />
@@ -303,7 +330,7 @@ export default function HomePage() {
               
               {/* Quality Assured - Mobile optimized */}
               <div className="group">
-                <div className="bg-pearl/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-all duration-300 md:duration-500 border border-softgold/40 hover:border-rosegold/60 text-center space-y-3 md:space-y-5 lg:space-y-6 relative overflow-hidden active:scale-95 md:active:scale-100">
+                <div className="smooth-transform bg-pearl/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-shadow transition-transform transition-colors duration-300 md:duration-500 border border-softgold/40 hover:border-rosegold/60 text-center space-y-3 md:space-y-5 lg:space-y-6 relative overflow-hidden active:scale-95 md:active:scale-100">
                   <div className="absolute top-0 right-0 w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 border-t-2 border-r-2 border-rosegold/20 rounded-tr-2xl md:rounded-tr-3xl" />
                   <div className="absolute bottom-0 left-0 w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 border-b-2 border-l-2 border-rosegold/20 rounded-bl-2xl md:rounded-bl-3xl" />
                   
@@ -324,7 +351,7 @@ export default function HomePage() {
               
               {/* Easy Returns - Mobile optimized */}
               <div className="group">
-                <div className="bg-pearl/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-all duration-300 md:duration-500 border border-softgold/40 hover:border-rosegold/60 text-center space-y-3 md:space-y-5 lg:space-y-6 relative overflow-hidden active:scale-95 md:active:scale-100">
+                <div className="smooth-transform bg-pearl/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-4 md:p-6 lg:p-8 shadow-md md:shadow-luxury hover:shadow-xl md:hover:shadow-luxury-lg transition-shadow transition-transform transition-colors duration-300 md:duration-500 border border-softgold/40 hover:border-rosegold/60 text-center space-y-3 md:space-y-5 lg:space-y-6 relative overflow-hidden active:scale-95 md:active:scale-100">
                   <div className="absolute top-0 right-0 w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 border-t-2 border-r-2 border-rosegold/20 rounded-tr-2xl md:rounded-tr-3xl" />
                   <div className="absolute bottom-0 left-0 w-10 h-10 md:w-16 md:h-16 lg:w-20 lg:h-20 border-b-2 border-l-2 border-rosegold/20 rounded-bl-2xl md:rounded-bl-3xl" />
                   

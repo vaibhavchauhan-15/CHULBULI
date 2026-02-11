@@ -28,10 +28,17 @@ export async function GET(
         ? product.reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / product.reviews.length
         : 0
 
-    return NextResponse.json({
-      ...product,
-      averageRating: Math.round(avgRating * 10) / 10,
-    })
+    return NextResponse.json(
+      {
+        ...product,
+        averageRating: Math.round(avgRating * 10) / 10,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=120, stale-while-revalidate=600',
+        },
+      }
+    )
   } catch (error) {
     console.error('Product fetch error:', error)
     return NextResponse.json(

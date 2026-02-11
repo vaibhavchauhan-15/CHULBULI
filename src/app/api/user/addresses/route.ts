@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db/client'
 import { addresses } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       .select()
       .from(addresses)
       .where(eq(addresses.userId, decoded.userId))
-      .orderBy(addresses.isDefault)
+      .orderBy(desc(addresses.isDefault), desc(addresses.createdAt))
 
     return NextResponse.json(userAddresses)
   } catch (error) {

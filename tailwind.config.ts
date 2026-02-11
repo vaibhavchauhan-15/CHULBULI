@@ -39,10 +39,9 @@ const config: Config = {
         'footer-accent': '#C89A7A',
       },
       fontFamily: {
-        'playfair': ['Playfair Display', 'serif'],
-        'poppins': ['Poppins', 'sans-serif'],
-        'inter': ['Inter', 'sans-serif'],
-        'sans': ['Poppins', 'Inter', 'sans-serif'],
+        'playfair': ['var(--font-playfair)', 'serif'],
+        'poppins': ['var(--font-poppins)', 'sans-serif'],
+        'sans': ['var(--font-poppins)', 'system-ui', 'sans-serif'],
       },
       letterSpacing: {
         'luxury': '0.05em',

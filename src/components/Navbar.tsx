@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { FiShoppingCart, FiUser, FiMenu, FiX, FiHeart, FiSearch } from 'react-icons/fi'
+import { FiShoppingCart, FiUser, FiMenu, FiX, FiSearch } from 'react-icons/fi'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 
@@ -11,15 +11,18 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isClient, setIsClient] = useState(false)
-  const [totalItems, setTotalItems] = useState(0)
-  const getTotalItems = useCartStore((state) => state.getTotalItems)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+
+  const totalItems = useCartStore((state) =>
+    state.items.reduce((total, item) => total + item.quantity, 0)
+  )
   const user = useAuthStore((state) => state.user)
   const logout = useAuthStore((state) => state.logout)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setIsClient(true)
-    setTotalItems(getTotalItems())
-  }, [getTotalItems])
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,26 +32,44 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent | TouchEvent) => {
+      if (!userMenuRef.current) return
+      if (!userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleOutsideClick)
+    document.addEventListener('touchstart', handleOutsideClick)
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick)
+      document.removeEventListener('touchstart', handleOutsideClick)
+    }
+  }, [])
+
   const categories = [
     { name: 'Earrings', href: '/products?category=earrings' },
     { name: 'Necklaces', href: '/products?category=necklaces' },
     { name: 'Rings', href: '/products?category=rings' },
     { name: 'Bangles', href: '/products?category=bangles' },
     { name: 'Sets', href: '/products?category=sets' },
-  ].filter(cat => cat.name === 'Earrings') // Hide Necklaces, Rings, Bangles, Sets - to unhide, remove this filter
+  ].filter((cat) => cat.name === 'Earrings') // Hide Necklaces, Rings, Bangles, Sets - to unhide, remove this filter
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-champagne/95 backdrop-blur-md shadow-lg border-b border-softgold/20' : 'bg-champagne/40 backdrop-blur-sm'
+      className={`fixed top-0 left-0 right-0 z-50 transition-colors transition-shadow duration-300 ${
+        isScrolled
+          ? 'bg-champagne/95 backdrop-blur-md shadow-lg border-b border-softgold/20'
+          : 'bg-champagne/40 backdrop-blur-sm'
       }`}
     >
       <div className="max-w-7xl mx-auto px-3 md:px-8 lg:px-16">
         <div className="flex justify-between items-center h-16 md:h-16">
-          {/* Mobile Menu Button - Left Side */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden touch-target-large p-1 hover:bg-softgold/20 rounded-xl transition-all z-10"
+            className="lg:hidden touch-target-large p-1 hover:bg-softgold/20 rounded-xl transition-colors z-10"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? (
@@ -58,38 +79,33 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Logo - Center on Mobile, Left on Desktop */}
           <Link href="/" className="flex items-center group md:static md:translate-x-0">
-            {/* Logo - Using desktop logo for all devices */}
             <Image
               src="/logo_desktop.png"
               alt="Chulbuli Jewels"
               width={400}
               height={80}
               priority
-              className="h-8 md:h-10 lg:h-12 w-auto object-contain transition-all duration-300 group-hover:opacity-90 group-hover:scale-105"
+              className="h-8 md:h-10 lg:h-12 w-auto object-contain transition-opacity transition-transform duration-300 group-hover:opacity-90 group-hover:scale-105"
             />
           </Link>
 
-          {/* Desktop Navigation - Minimal */}
           <div className="hidden lg:flex items-center space-x-12">
             {categories.map((category) => (
               <Link
                 key={category.name}
                 href={category.href}
-                className="text-sm text-warmbrown hover:text-rosegold transition-all duration-500 font-light tracking-wide hover:tracking-widest"
+                className="text-sm text-warmbrown hover:text-rosegold transition-colors duration-500 font-light tracking-wide hover:tracking-widest"
               >
                 {category.name}
               </Link>
             ))}
           </div>
 
-          {/* Right Section - Optimized for Mobile */}
           <div className="flex items-center space-x-3 md:space-x-6">
-            {/* Search Icon - Larger touch target */}
             <Link
               href="/products#search"
-              className="touch-target-large p-2 md:p-2 hover:bg-softgold/20 rounded-xl transition-all duration-300"
+              className="touch-target-large p-2 md:p-2 hover:bg-softgold/20 rounded-xl transition-colors duration-300"
               aria-label="Search"
               onClick={(e) => {
                 if (window.location.pathname === '/products') {
@@ -110,7 +126,7 @@ export default function Navbar() {
 
             <Link
               href="/cart"
-              className="relative touch-target-large p-2 md:p-2 hover:bg-softgold/20 rounded-xl transition-all duration-300"
+              className="relative touch-target-large p-2 md:p-2 hover:bg-softgold/20 rounded-xl transition-colors duration-300"
               aria-label="Shopping cart"
             >
               <FiShoppingCart className="w-5 h-5 md:w-5 md:h-5 text-warmbrown" />
@@ -122,8 +138,14 @@ export default function Navbar() {
             </Link>
 
             {user ? (
-              <div className="relative group">
-                <button className="touch-target-large p-1.5 md:p-2 hover:bg-softgold/20 rounded-xl transition-all duration-300">
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setIsUserMenuOpen((prev) => !prev)}
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="menu"
+                  aria-label="Open account menu"
+                  className="touch-target-large p-1.5 md:p-2 hover:bg-softgold/20 rounded-xl transition-colors duration-300"
+                >
                   {user.photoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -135,31 +157,45 @@ export default function Navbar() {
                     <FiUser className="w-5 h-5 md:w-5 md:h-5 text-warmbrown" />
                   )}
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-pearl/95 backdrop-blur-xl border border-softgold/50 shadow-2xl rounded-2xl py-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+
+                <div
+                  className={`absolute right-0 mt-2 w-48 bg-pearl/95 backdrop-blur-xl border border-softgold/50 shadow-2xl rounded-2xl py-3 transition-opacity duration-200 z-50 ${
+                    isUserMenuOpen
+                      ? 'opacity-100 visible pointer-events-auto'
+                      : 'opacity-0 invisible pointer-events-none'
+                  }`}
+                  role="menu"
+                >
                   <div className="flex flex-col space-y-1 px-2">
                     <Link
                       href="/account"
-                      className="block px-4 py-3 hover:bg-softgold/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl touch-target text-left"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="block px-4 py-3 hover:bg-softgold/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-colors transition-shadow transition-transform duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl text-left"
                     >
                       My Account
                     </Link>
                     <Link
                       href="/help"
-                      className="block px-4 py-3 hover:bg-softgold/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl touch-target text-left"
+                      onClick={() => setIsUserMenuOpen(false)}
+                      className="block px-4 py-3 hover:bg-softgold/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-colors transition-shadow transition-transform duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl text-left"
                     >
                       Help & Support
                     </Link>
                     {user.role === 'admin' && (
                       <Link
                         href="/admin"
-                        className="block px-4 py-3 hover:bg-softgold/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl touch-target text-left"
+                        onClick={() => setIsUserMenuOpen(false)}
+                        className="block px-4 py-3 hover:bg-softgold/30 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-colors transition-shadow transition-transform duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl text-left"
                       >
                         Admin Panel
                       </Link>
                     )}
                     <button
-                      onClick={logout}
-                      className="block w-full px-4 py-3 hover:bg-rosegold/20 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl touch-target text-left"
+                      onClick={async () => {
+                        setIsUserMenuOpen(false)
+                        await logout()
+                      }}
+                      className="block w-full px-4 py-3 hover:bg-rosegold/20 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-colors transition-shadow transition-transform duration-200 text-sm font-medium text-warmbrown hover:text-rosegold rounded-xl text-left"
                     >
                       Logout
                     </button>
@@ -178,9 +214,8 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
       <div
-        className={`lg:hidden transition-all duration-300 ease-in-out overflow-hidden ${
+        className={`lg:hidden transition-[max-height,opacity] duration-300 ease-in-out overflow-hidden ${
           isMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
@@ -191,7 +226,7 @@ export default function Navbar() {
                 key={category.name}
                 href={category.href}
                 onClick={() => setIsMenuOpen(false)}
-                className="block px-4 py-3 text-base font-medium text-warmbrown hover:bg-softgold/20 hover:text-rosegold rounded-xl transition-all duration-200 touch-target"
+                className="block px-4 py-3 text-base font-medium text-warmbrown hover:bg-softgold/20 hover:text-rosegold rounded-xl transition-colors duration-200 touch-target"
               >
                 {category.name}
               </Link>

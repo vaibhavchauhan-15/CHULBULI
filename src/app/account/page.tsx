@@ -77,6 +77,29 @@ interface PendingReview {
   orderDate: string
 }
 
+interface OrderItem {
+  id: string
+  quantity: number
+  price: number | string
+  product: {
+    id: string
+    name: string
+  }
+}
+
+interface UserOrder {
+  id: string
+  totalPrice: number | string
+  status: string
+  addressLine1: string
+  addressLine2?: string
+  city: string
+  state: string
+  pincode: string
+  createdAt: string
+  orderItems: OrderItem[]
+}
+
 // Helper function to decode HTML entities
 const decodeHtmlEntities = (str: string): string => {
   const textarea = document.createElement('textarea')
@@ -120,11 +143,19 @@ export default function AccountPage() {
   const [addresses, setAddresses] = useState<Address[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
   const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([])
-  const [orders, setOrders] = useState<any[]>([])
+  const [orders, setOrders] = useState<UserOrder[]>([])
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set())
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  const [loadedTabs, setLoadedTabs] = useState<Record<Tab, boolean>>({
+    profile: false,
+    addresses: false,
+    orders: false,
+    reviews: false,
+    security: true,
+    controls: true,
+  })
 
   // Editing states
   const [isEditingProfile, setIsEditingProfile] = useState(false)
@@ -150,50 +181,85 @@ export default function AccountPage() {
     }
   }, [searchParams])
 
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    setError('')
+  const fetchData = useCallback(
+    async (
+      tab: Tab,
+      options?: { force?: boolean; signal?: AbortSignal }
+    ) => {
+      const force = options?.force ?? false
+      const signal = options?.signal
 
-    try {
-      if (activeTab === 'profile') {
-        const res = await fetch('/api/user/profile', { credentials: 'include' })
-        if (res.ok) {
+      if (!force && loadedTabs[tab]) return
+
+      setLoading(true)
+      setError('')
+
+      try {
+        if (tab === 'profile') {
+          const res = await fetch('/api/user/profile', {
+            credentials: 'include',
+            cache: 'no-store',
+            signal,
+          })
+          if (!res.ok) throw new Error('Failed to fetch profile')
           const data = await res.json()
+          if (signal?.aborted) return
           setProfile(data)
           setEditedProfile(data)
-        }
-      } else if (activeTab === 'addresses') {
-        const res = await fetch('/api/user/addresses', { credentials: 'include' })
-        if (res.ok) {
+        } else if (tab === 'addresses') {
+          const res = await fetch('/api/user/addresses', {
+            credentials: 'include',
+            cache: 'no-store',
+            signal,
+          })
+          if (!res.ok) throw new Error('Failed to fetch addresses')
           const data = await res.json()
+          if (signal?.aborted) return
           setAddresses(data)
-        }
-      } else if (activeTab === 'orders') {
-        const res = await fetch('/api/orders', { credentials: 'include' })
-        if (res.ok) {
+        } else if (tab === 'orders') {
+          const res = await fetch('/api/orders', {
+            credentials: 'include',
+            cache: 'no-store',
+            signal,
+          })
+          if (!res.ok) throw new Error('Failed to fetch orders')
           const data = await res.json()
+          if (signal?.aborted) return
           setOrders(data)
-        }
-      } else if (activeTab === 'reviews') {
-        const res = await fetch('/api/user/reviews', { credentials: 'include' })
-        if (res.ok) {
+        } else if (tab === 'reviews') {
+          const res = await fetch('/api/user/reviews', {
+            credentials: 'include',
+            cache: 'no-store',
+            signal,
+          })
+          if (!res.ok) throw new Error('Failed to fetch reviews')
           const data = await res.json()
+          if (signal?.aborted) return
           setReviews(data.reviews)
           setPendingReviews(data.pendingReviews)
         }
+
+        setLoadedTabs((prev) => ({ ...prev, [tab]: true }))
+      } catch (err) {
+        if (!signal?.aborted) {
+          setError('Failed to load data')
+        }
+      } finally {
+        if (!signal?.aborted) {
+          setLoading(false)
+        }
       }
-    } catch (err) {
-      setError('Failed to load data')
-    } finally {
-      setLoading(false)
-    }
-  }, [activeTab])
+    },
+    [loadedTabs]
+  )
 
   useEffect(() => {
     if (!isLoading && user) {
-      fetchData()
+      const controller = new AbortController()
+      fetchData(activeTab, { signal: controller.signal })
+      return () => controller.abort()
     }
-  }, [isLoading, user, fetchData])
+  }, [isLoading, user, fetchData, activeTab])
 
   const handleProfileUpdate = async () => {
     try {
@@ -235,11 +301,31 @@ export default function AccountPage() {
       const data = await res.json()
 
       if (res.ok) {
+        const updatedAddress = data.address as Address
+
+        if (updatedAddress) {
+          setAddresses((prev) => {
+            const remaining = prev.filter((address) => address.id !== updatedAddress.id)
+            const merged = editingAddressId
+              ? [...remaining, updatedAddress]
+              : [updatedAddress, ...remaining]
+
+            if (updatedAddress.isDefault) {
+              return merged.map((address) => ({
+                ...address,
+                isDefault: address.id === updatedAddress.id,
+              }))
+            }
+
+            return merged
+          })
+        }
+
+        setLoadedTabs((prev) => ({ ...prev, addresses: true }))
         setSuccess(data.message)
         setIsAddingAddress(false)
         setEditingAddressId(null)
         setAddressForm({})
-        fetchData()
         setTimeout(() => setSuccess(''), 3000)
       } else {
         setError(data.error || 'Failed to save address')
@@ -261,8 +347,8 @@ export default function AccountPage() {
       const data = await res.json()
 
       if (res.ok) {
+        setAddresses((prev) => prev.filter((address) => address.id !== id))
         setSuccess(data.message)
-        fetchData()
         setTimeout(() => setSuccess(''), 3000)
       } else {
         setError(data.error || 'Failed to delete address')
@@ -286,7 +372,7 @@ export default function AccountPage() {
       if (res.ok) {
         setSuccess(data.message)
         setEditingReviewId(null)
-        fetchData()
+        await fetchData('reviews', { force: true })
         setTimeout(() => setSuccess(''), 3000)
       } else {
         setError(data.error || 'Failed to update review')
@@ -309,7 +395,7 @@ export default function AccountPage() {
 
       if (res.ok) {
         setSuccess(data.message)
-        fetchData()
+        await fetchData('reviews', { force: true })
         setTimeout(() => setSuccess(''), 3000)
       } else {
         setError(data.error || 'Failed to delete review')
@@ -448,7 +534,7 @@ export default function AccountPage() {
     }
   }
 
-  if (isLoading || loading) {
+  if (isLoading || (loading && !loadedTabs[activeTab])) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-pearl">
         <div className="text-center">
@@ -891,7 +977,7 @@ export default function AccountPage() {
 
                   {orders.length > 0 ? (
                     <div className="space-y-4">
-                      {orders.map((order: any) => {
+                      {orders.map((order) => {
                         const isExpanded = expandedOrders.has(order.id)
                         return (
                           <div key={order.id} className="border border-softgold/50 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-all">
@@ -951,7 +1037,7 @@ export default function AccountPage() {
                               
                               {isExpanded && (
                                 <div className="mt-4 space-y-3">
-                                  {order.orderItems.map((item: any) => (
+                                  {order.orderItems.map((item) => (
                                     <div
                                       key={item.id}
                                       className="flex justify-between items-center p-4 bg-softgold/5 rounded-lg border border-softgold/20 hover:border-rosegold/30 transition-colors"
@@ -966,7 +1052,7 @@ export default function AccountPage() {
                                         <p className="text-sm text-gray-600 mt-1">Quantity: {item.quantity}</p>
                                       </div>
                                       <span className="font-semibold text-rosegold text-lg">
-                                        ₹{(item.price * item.quantity).toFixed(2)}
+                                        ₹{(Number(item.price) * item.quantity).toFixed(2)}
                                       </span>
                                     </div>
                                   ))}
