@@ -1,4 +1,8 @@
 import { defineConfig } from 'drizzle-kit'
+import { loadEnvConfig } from '@next/env'
+
+// Load .env, .env.local, .env.production similar to Next.js runtime behavior.
+loadEnvConfig(process.cwd())
 
 // Validate DATABASE_URL
 if (!process.env.DATABASE_URL) {

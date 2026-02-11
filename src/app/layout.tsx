@@ -23,6 +23,11 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: 'Chulbuli Jewels - Elegant Jewelry for Women',
   description: 'Shop beautiful and affordable jewelry for every occasion',
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
+  },
 }
 
 export const viewport: Viewport = {

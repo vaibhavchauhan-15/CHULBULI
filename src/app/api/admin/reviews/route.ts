@@ -1,20 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db/client'
-import { reviews } from '@/lib/db/schema'
-import { desc } from 'drizzle-orm'
 import { authMiddleware } from '@/lib/middleware'
+import { listAdminReviewsService } from '@/lib/services/admin/admin-reviews.service'
 
 async function handleGET(request: NextRequest) {
   try {
-    const allReviews = await db.query.reviews.findMany({
-      with: {
-        user: true,
-        product: true,
-      },
-      orderBy: desc(reviews.createdAt),
+    const { searchParams } = new URL(request.url)
+    const page = Number(searchParams.get('page') || '1')
+    const limit = Number(searchParams.get('limit') || '10')
+    const search = searchParams.get('search') || ''
+    const approved = (searchParams.get('approved') || 'all') as 'all' | 'true' | 'false'
+
+    const result = await listAdminReviewsService({
+      page,
+      limit,
+      search,
+      approved,
     })
 
-    return NextResponse.json(allReviews)
+    return NextResponse.json({
+      reviews: result.items,
+      pagination: result.pagination,
+    })
   } catch (error) {
     console.error('Admin reviews fetch error:', error)
     return NextResponse.json(

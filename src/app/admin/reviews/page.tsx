@@ -1,90 +1,185 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useMemo } from 'react'
 import Link from 'next/link'
-import { useAuth } from '@/hooks/useAuth'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import useSWR from 'swr'
 import AdminNavbar from '@/components/AdminNavbar'
-import { 
-  FiBell, FiSettings, FiCheck, FiX, FiTrash2, FiUser, FiStar, FiPackage
+import {
+  FiCheck,
+  FiX,
+  FiTrash2,
+  FiStar,
+  FiPackage,
+  FiChevronLeft,
+  FiChevronRight,
 } from 'react-icons/fi'
 import toast from 'react-hot-toast'
 
+interface PaginationMeta {
+  page: number
+  limit: number
+  totalCount: number
+  totalPages: number
+}
+
+interface ReviewsPayload {
+  reviews: any[]
+  pagination: PaginationMeta
+}
+
+const fetcher = async (url: string): Promise<ReviewsPayload> => {
+  const response = await fetch(url, { credentials: 'include' })
+  if (!response.ok) {
+    throw new Error('Failed to fetch reviews')
+  }
+  return response.json()
+}
+
 export default function AdminReviewsPage() {
   const router = useRouter()
-  const { user, isLoading } = useAuth({ requireAdmin: true })
-  const [reviews, setReviews] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('pending')
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
-  useEffect(() => {
-    if (user && !isLoading) {
-      fetchReviews()
+  const page = Number(searchParams.get('page') || '1')
+  const limit = Number(searchParams.get('limit') || '10')
+  const approved = searchParams.get('approved') || 'false'
+
+  const queryString = useMemo(() => {
+    const params = new URLSearchParams()
+    params.set('page', String(page))
+    params.set('limit', String(limit))
+    params.set('approved', approved)
+    return params.toString()
+  }, [page, limit, approved])
+
+  const { data, mutate, isLoading } = useSWR<ReviewsPayload>(
+    `/api/admin/reviews?${queryString}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
     }
-  }, [user, isLoading])
+  )
 
-  const fetchReviews = async () => {
-    try {
-      const response = await fetch('/api/admin/reviews', {
-        credentials: 'include',
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setReviews(data)
+  const reviews = data?.reviews || []
+  const pagination = data?.pagination || { page: 1, limit: 10, totalCount: 0, totalPages: 1 }
+
+  const updateRoute = (updates: Record<string, string | undefined>, resetPage = false) => {
+    const params = new URLSearchParams(searchParams.toString())
+
+    Object.entries(updates).forEach(([key, value]) => {
+      if (!value || value === 'all') {
+        params.delete(key)
+      } else {
+        params.set(key, value)
       }
-    } catch (error) {
-      // Error fetching reviews
-    } finally {
-      setLoading(false)
+    })
+
+    if (resetPage) {
+      params.set('page', '1')
+    } else if (!params.get('page')) {
+      params.set('page', String(page))
     }
+
+    if (!params.get('limit')) {
+      params.set('limit', String(limit))
+    }
+
+    const next = params.toString()
+    router.replace(next ? `${pathname}?${next}` : pathname, { scroll: false })
   }
 
   const handleApprove = async (reviewId: string) => {
+    const previous = data
+    await mutate(
+      (current) => {
+        if (!current) return current
+        return {
+          ...current,
+          reviews: current.reviews.map((review: any) =>
+            review.id === reviewId ? { ...review, approved: true } : review
+          ),
+        }
+      },
+      false
+    )
+
     try {
       const response = await fetch(`/api/admin/reviews/${reviewId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ approved: true }),
       })
 
       if (response.ok) {
         toast.success('Review approved')
-        fetchReviews()
+        await mutate()
       } else {
         toast.error('Failed to approve review')
+        await mutate(previous, false)
       }
     } catch (error) {
       toast.error('Failed to approve review')
+      await mutate(previous, false)
     }
   }
 
   const handleReject = async (reviewId: string) => {
+    const previous = data
+    await mutate(
+      (current) => {
+        if (!current) return current
+        return {
+          ...current,
+          reviews: current.reviews.map((review: any) =>
+            review.id === reviewId ? { ...review, approved: false } : review
+          ),
+        }
+      },
+      false
+    )
+
     try {
       const response = await fetch(`/api/admin/reviews/${reviewId}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ approved: false }),
       })
 
       if (response.ok) {
         toast.success('Review rejected')
-        fetchReviews()
+        await mutate()
       } else {
         toast.error('Failed to reject review')
+        await mutate(previous, false)
       }
     } catch (error) {
       toast.error('Failed to reject review')
+      await mutate(previous, false)
     }
   }
 
   const handleDelete = async (reviewId: string) => {
     if (!confirm('Are you sure you want to delete this review?')) return
+
+    const previous = data
+    await mutate(
+      (current) => {
+        if (!current) return current
+        return {
+          ...current,
+          reviews: current.reviews.filter((review: any) => review.id !== reviewId),
+          pagination: {
+            ...current.pagination,
+            totalCount: Math.max(0, current.pagination.totalCount - 1),
+          },
+        }
+      },
+      false
+    )
 
     try {
       const response = await fetch(`/api/admin/reviews/${reviewId}`, {
@@ -94,30 +189,25 @@ export default function AdminReviewsPage() {
 
       if (response.ok) {
         toast.success('Review deleted')
-        fetchReviews()
+        await mutate()
       } else {
         toast.error('Failed to delete review')
+        await mutate(previous, false)
       }
     } catch (error) {
       toast.error('Failed to delete review')
+      await mutate(previous, false)
     }
   }
 
-  const filteredReviews = reviews.filter((review: any) => {
-    if (filter === 'pending') return !review.approved
-    if (filter === 'approved') return review.approved
-    return true
-  })
-
-  if (!user || user.role !== 'admin') return null
+  const pendingCount = reviews.filter((review: any) => !review.approved).length
+  const approvedCount = reviews.filter((review: any) => review.approved).length
 
   return (
     <div className="min-h-screen bg-champagne">
       <AdminNavbar />
 
-      {/* Main Content */}
       <main className="px-4 md:px-6 py-6 md:py-8 pb-24 lg:pb-8 overflow-y-auto min-h-screen max-w-[1800px] xl:mr-[30%]">
-        {/* Top Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
           <div>
             <h1 className="text-xl md:text-2xl font-playfair font-semibold text-warmbrown mb-1">Review Moderation</h1>
@@ -125,42 +215,40 @@ export default function AdminReviewsPage() {
           </div>
         </div>
 
-        {/* Filter Tabs */}
         <div className="flex gap-2 md:gap-3 mb-6 overflow-x-auto pb-2">
           <button
-            onClick={() => setFilter('pending')}
+            onClick={() => updateRoute({ approved: 'false' }, true)}
             className={`px-3 md:px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
-              filter === 'pending'
+              approved === 'false'
                 ? 'bg-rosegold text-pearl shadow-sm'
                 : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
             }`}
           >
-            Pending ({reviews.filter((r: any) => !r.approved).length})
+            Pending ({pendingCount})
           </button>
           <button
-            onClick={() => setFilter('approved')}
+            onClick={() => updateRoute({ approved: 'true' }, true)}
             className={`px-3 md:px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
-              filter === 'approved'
+              approved === 'true'
                 ? 'bg-rosegold text-pearl shadow-sm'
                 : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
             }`}
           >
-            Approved ({reviews.filter((r: any) => r.approved).length})
+            Approved ({approvedCount})
           </button>
           <button
-            onClick={() => setFilter('all')}
+            onClick={() => updateRoute({ approved: 'all' }, true)}
             className={`px-3 md:px-4 py-2 rounded-xl font-medium text-sm transition-all whitespace-nowrap ${
-              filter === 'all'
+              approved === 'all'
                 ? 'bg-rosegold text-pearl shadow-sm'
                 : 'bg-pearl text-taupe hover:bg-sand shadow-sm border border-softgold/20'
             }`}
           >
-            All ({reviews.length})
+            All ({pagination.totalCount})
           </button>
         </div>
 
-        {/* Reviews List */}
-        {loading ? (
+        {isLoading && !data ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="bg-pearl rounded-2xl shadow-sm p-6 animate-pulse border border-softgold/20">
@@ -169,13 +257,12 @@ export default function AdminReviewsPage() {
               </div>
             ))}
           </div>
-        ) : filteredReviews.length > 0 ? (
+        ) : reviews.length > 0 ? (
           <div className="space-y-4">
-            {filteredReviews.map((review: any) => (
+            {reviews.map((review: any) => (
               <div key={review.id} className="bg-pearl rounded-2xl shadow-sm p-4 md:p-6 hover:shadow-md transition-shadow border border-softgold/20">
                 <div className="flex flex-col md:flex-row items-start justify-between gap-4">
                   <div className="flex-1">
-                    {/* Reviewer Info */}
                     <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 bg-gradient-to-br from-softgold/30 to-rosegold/20 rounded-xl flex items-center justify-center font-semibold text-rosegold">
                         {review.user.name[0].toUpperCase()}
@@ -186,7 +273,6 @@ export default function AdminReviewsPage() {
                       </div>
                     </div>
 
-                    {/* Rating */}
                     <div className="flex items-center gap-1 mb-3">
                       {[...Array(5)].map((_, i) => (
                         <FiStar
@@ -203,21 +289,19 @@ export default function AdminReviewsPage() {
                       </span>
                     </div>
 
-                    {/* Review Content */}
                     <p className="text-warmbrown mb-3 leading-relaxed">{review.comment}</p>
 
-                    {/* Product & Date */}
                     <div className="flex items-center gap-4 text-xs text-taupe">
                       <div className="flex items-center gap-1">
                         <FiPackage size={12} />
-                        <Link 
+                        <Link
                           href={`/products/${review.product.id}`}
                           className="font-medium text-warmbrown hover:text-rosegold transition-colors cursor-pointer"
                         >
                           {review.product.name}
                         </Link>
                       </div>
-                      <span>•</span>
+                      <span>|</span>
                       <span>{new Date(review.createdAt).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
@@ -225,7 +309,6 @@ export default function AdminReviewsPage() {
                       })}</span>
                     </div>
 
-                    {/* Status Badge */}
                     {review.approved && (
                       <div className="mt-4 pt-4 border-t border-softgold/30">
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-rosegold bg-softgold/20 px-3 py-1 rounded-lg">
@@ -235,7 +318,6 @@ export default function AdminReviewsPage() {
                     )}
                   </div>
 
-                  {/* Action Buttons */}
                   <div className="flex md:flex-col gap-2 md:ml-4 w-full md:w-auto">
                     {!review.approved && (
                       <button
@@ -266,83 +348,37 @@ export default function AdminReviewsPage() {
                 </div>
               </div>
             ))}
+
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between px-2 pt-2">
+                <button
+                  onClick={() => updateRoute({ page: String(Math.max(1, pagination.page - 1)) })}
+                  disabled={pagination.page <= 1}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-softgold/30 bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FiChevronLeft /> Previous
+                </button>
+                <p className="text-sm font-semibold text-warmbrown">
+                  Page {pagination.page} of {pagination.totalPages} ({pagination.totalCount} reviews)
+                </p>
+                <button
+                  onClick={() => updateRoute({ page: String(Math.min(pagination.totalPages, pagination.page + 1)) })}
+                  disabled={pagination.page >= pagination.totalPages}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-softgold/30 bg-white/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next <FiChevronRight />
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <div className="bg-pearl rounded-2xl shadow-sm p-12 text-center border border-softgold/20">
             <FiStar size={48} className="mx-auto text-sand mb-4" />
             <p className="text-warmbrown text-lg font-playfair">No reviews to display</p>
-            <p className="text-taupe text-sm mt-2">
-              {filter === 'pending' && 'No pending reviews at the moment'}
-              {filter === 'approved' && 'No approved reviews yet'}
-              {filter === 'all' && 'No reviews have been submitted yet'}
-            </p>
+            <p className="text-taupe text-sm mt-2">No matching reviews for this filter.</p>
           </div>
         )}
       </main>
-
-      {/* Right Panel - Review Stats */}
-      <aside className="hidden xl:block fixed right-0 top-16 w-[28%] h-[calc(100vh-4rem)] px-4 py-6 bg-champagne overflow-y-auto">
-        <div className="space-y-6">
-          {/* Review Summary */}
-          <div className="bg-pearl rounded-2xl p-5 shadow-sm border border-softgold/20">
-            <h3 className="text-sm font-playfair font-semibold text-warmbrown mb-4">Review Summary</h3>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-taupe">Total Reviews</span>
-                <span className="font-semibold text-warmbrown">{reviews.length}</span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-taupe">Pending</span>
-                <span className="font-medium text-amber-600">
-                  {reviews.filter((r: any) => !r.approved).length}
-                </span>
-              </div>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-sm text-taupe">Approved</span>
-                <span className="font-medium text-rosegold">
-                  {reviews.filter((r: any) => r.approved).length}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Average Rating */}
-          <div className="bg-gradient-to-br from-softgold/20 to-rosegold/10 rounded-2xl p-5 border border-softgold/30">
-            <h3 className="text-sm font-playfair font-semibold text-warmbrown mb-3">Average Rating</h3>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-3xl font-playfair font-bold text-rosegold">
-                {reviews.length > 0
-                  ? (reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length).toFixed(1)
-                  : '0.0'}
-              </span>
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <FiStar
-                    key={i}
-                    className={`w-4 h-4 ${
-                      i < Math.round(reviews.reduce((sum: number, r: any) => sum + r.rating, 0) / reviews.length)
-                        ? 'fill-amber-400 text-amber-400'
-                        : 'text-sand'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-            <p className="text-xs text-taupe">Based on {reviews.length} reviews</p>
-          </div>
-
-          {/* Quick Tips */}
-          <div className="bg-sand/30 rounded-2xl p-5 border border-softgold/20">
-            <h3 className="text-sm font-playfair font-semibold text-warmbrown mb-3">💡 Moderation Tips</h3>
-            <ul className="space-y-2 text-xs text-taupe">
-              <li>• Review pending items daily</li>
-              <li>• Look for spam or inappropriate content</li>
-              <li>• Approve genuine customer feedback</li>
-              <li>• Delete offensive reviews promptly</li>
-            </ul>
-          </div>
-        </div>
-      </aside>
     </div>
   )
 }

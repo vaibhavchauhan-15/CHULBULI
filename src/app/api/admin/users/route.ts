@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db/client'
-import { users } from '@/lib/db/schema'
-import { eq, ilike, or, sql, desc, asc } from 'drizzle-orm'
 import { authMiddleware } from '@/lib/middleware'
+import { listAdminUsersService } from '@/lib/services/admin/admin-users.service'
 
 async function handleGET(request: NextRequest) {
   try {
@@ -24,77 +22,17 @@ async function handleGET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt'
     const sortOrder = searchParams.get('sortOrder') || 'desc'
 
-    const offset = (page - 1) * limit
-
-    // Build where conditions
-    let whereConditions: any[] = []
-
-    // Search by name or email
-    if (search) {
-      whereConditions.push(
-        or(
-          ilike(users.name, `%${search}%`),
-          ilike(users.email, `%${search}%`)
-        )
-      )
-    }
-
-    // Filter by role
-    if (role !== 'all') {
-      whereConditions.push(eq(users.role, role))
-    }
-
-    // Filter by provider
-    if (provider !== 'all') {
-      whereConditions.push(eq(users.provider, provider))
-    }
-
-    // Build order by
-    const orderByColumn = sortBy === 'name' ? users.name :
-                         sortBy === 'email' ? users.email :
-                         sortBy === 'role' ? users.role :
-                         users.createdAt
-
-    const orderByFn = sortOrder === 'asc' ? asc : desc
-
-    // Fetch users with pagination
-    const usersList = await db.query.users.findMany({
-      where: whereConditions.length > 0 ? sql`${sql.join(whereConditions, sql` AND `)}` : undefined,
-      orderBy: orderByFn(orderByColumn),
-      limit: limit,
-      offset: offset,
+    const result = await listAdminUsersService({
+      page,
+      limit,
+      search,
+      role,
+      provider,
+      sortBy,
+      sortOrder: sortOrder as 'asc' | 'desc',
     })
 
-    // Get total count for pagination
-    const totalCountResult = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(users)
-      .where(whereConditions.length > 0 ? sql`${sql.join(whereConditions, sql` AND `)}` : undefined)
-
-    const totalCount = Number(totalCountResult[0]?.count || 0)
-    const totalPages = Math.ceil(totalCount / limit)
-
-    // Remove sensitive data
-    const sanitizedUsers = usersList.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      provider: user.provider,
-      photoUrl: user.photoUrl,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    }))
-
-    return NextResponse.json({
-      users: sanitizedUsers,
-      pagination: {
-        page,
-        limit,
-        totalCount,
-        totalPages,
-      },
-    })
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching users:', error)
     return NextResponse.json(

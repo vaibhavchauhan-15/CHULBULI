@@ -1,253 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db/client'
-import { orders, orderItems, products, users } from '@/lib/db/schema'
-import { lte, asc, sql, gte, and, eq, desc } from 'drizzle-orm'
 import { authMiddleware } from '@/lib/middleware'
+import { DashboardPeriod } from '@/lib/admin/dashboard'
+import { getAdminDashboardService } from '@/lib/services/admin/admin-dashboard.service'
 
-export const dynamic = 'force-dynamic'
+const PERIODS: DashboardPeriod[] = ['1D', '7D', '1M', '3M', '1Y', 'ALL']
 
 async function handleGET(request: NextRequest) {
   try {
-    // Get time period filter from query params
     const { searchParams } = new URL(request.url)
-    const period = searchParams.get('period') || '7D'
+    const rawPeriod = searchParams.get('period') || '7D'
+    const period = PERIODS.includes(rawPeriod as DashboardPeriod)
+      ? (rawPeriod as DashboardPeriod)
+      : '7D'
 
-    // Calculate date range based on period
-    const now = new Date()
-    let startDate = new Date()
-    let previousStartDate = new Date()
-    let previousEndDate = new Date()
+    const stats = await getAdminDashboardService(period)
 
-    switch (period) {
-      case '1D':
-        startDate.setDate(now.getDate() - 1)
-        previousStartDate.setDate(now.getDate() - 2)
-        previousEndDate.setDate(now.getDate() - 1)
-        break
-      case '7D':
-        startDate.setDate(now.getDate() - 7)
-        previousStartDate.setDate(now.getDate() - 14)
-        previousEndDate.setDate(now.getDate() - 7)
-        break
-      case '1M':
-        startDate.setMonth(now.getMonth() - 1)
-        previousStartDate.setMonth(now.getMonth() - 2)
-        previousEndDate.setMonth(now.getMonth() - 1)
-        break
-      case '3M':
-        startDate.setMonth(now.getMonth() - 3)
-        previousStartDate.setMonth(now.getMonth() - 6)
-        previousEndDate.setMonth(now.getMonth() - 3)
-        break
-      case '1Y':
-        startDate.setFullYear(now.getFullYear() - 1)
-        previousStartDate.setFullYear(now.getFullYear() - 2)
-        previousEndDate.setFullYear(now.getFullYear() - 1)
-        break
-      case 'ALL':
-        startDate = new Date(0) // Beginning of time
-        previousStartDate = new Date(0)
-        previousEndDate = new Date(0)
-        break
-    }
-
-    // Get all orders
-    const allOrders = await db.query.orders.findMany()
-    
-    // Filter orders for current period
-    const currentPeriodOrders = allOrders.filter(order => order.createdAt >= startDate)
-    const previousPeriodOrders = period !== 'ALL' 
-      ? allOrders.filter(order => order.createdAt >= previousStartDate && order.createdAt < previousEndDate)
-      : []
-
-    // Calculate current period stats
-    const totalSales = currentPeriodOrders.reduce((sum, order) => sum + parseFloat(order.totalPrice as string), 0)
-    const totalOrders = currentPeriodOrders.length
-    const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0
-
-    // Calculate previous period stats for growth
-    const previousSales = previousPeriodOrders.reduce((sum, order) => sum + parseFloat(order.totalPrice as string), 0)
-    const previousOrders = previousPeriodOrders.length
-    const previousAvgOrderValue = previousOrders > 0 ? previousSales / previousOrders : 0
-
-    // Calculate growth percentages
-    const salesGrowth = previousSales > 0 ? ((totalSales - previousSales) / previousSales * 100).toFixed(1) : 0
-    const ordersGrowth = previousOrders > 0 ? ((totalOrders - previousOrders) / previousOrders * 100).toFixed(1) : 0
-    const aovGrowth = previousAvgOrderValue > 0 ? ((avgOrderValue - previousAvgOrderValue) / previousAvgOrderValue * 100).toFixed(1) : 0
-
-    // Get all products
-    const allProducts = await db.query.products.findMany()
-    const totalProducts = allProducts.length
-    const activeProducts = allProducts.filter(p => p.productStatus === 'active').length
-
-    // Get order items with products for the current period
-    const currentOrderIds = currentPeriodOrders.map(o => o.id)
-    const allOrderItems = await db.query.orderItems.findMany({
-      with: {
-        product: true,
+    return NextResponse.json(stats, {
+      headers: {
+        'Cache-Control': 'private, max-age=180, stale-while-revalidate=300',
       },
-    })
-
-    // Filter order items for current period
-    const currentPeriodOrderItems = allOrderItems.filter(item => 
-      currentOrderIds.includes(item.orderId)
-    )
-
-    // Group by product and calculate revenue
-    const productSales = currentPeriodOrderItems.reduce((acc: any, item) => {
-      if (!item.product) return acc
-      
-      const productId = item.productId
-      if (!acc[productId]) {
-        acc[productId] = {
-          product: item.product,
-          totalSold: 0,
-          revenue: 0,
-        }
-      }
-      acc[productId].totalSold += item.quantity
-      acc[productId].revenue += item.quantity * parseFloat(item.price as string)
-      return acc
-    }, {})
-
-    // Best selling products by quantity
-    const bestSellingProducts = Object.values(productSales)
-      .sort((a: any, b: any) => b.totalSold - a.totalSold)
-      .slice(0, 10)
-      .map((item: any) => ({
-        name: item.product.name,
-        images: item.product.images,
-        price: item.product.price,
-        totalSold: item.totalSold,
-      }))
-
-    // Top revenue products
-    const topRevenueProducts = Object.values(productSales)
-      .sort((a: any, b: any) => b.revenue - a.revenue)
-      .slice(0, 5)
-      .map((item: any) => ({
-        name: item.product.name,
-        revenue: item.revenue,
-        soldCount: item.totalSold,
-      }))
-
-    // Category performance
-    const categoryPerformance = allProducts.reduce((acc: any, product) => {
-      const category = product.category || 'uncategorized'
-      if (!acc[category]) {
-        acc[category] = {
-          category,
-          count: 0,
-          revenue: 0,
-        }
-      }
-      
-      // Find sales for this product in current period
-      const productSale = productSales[product.id]
-      if (productSale) {
-        acc[category].count += productSale.totalSold
-        acc[category].revenue += productSale.revenue
-      }
-      
-      return acc
-    }, {})
-
-    const categoryPerformanceArray = Object.values(categoryPerformance)
-      .sort((a: any, b: any) => b.revenue - a.revenue)
-      .slice(0, 5)
-
-    // Stock status
-    const stockStatus = {
-      inStock: allProducts.filter(p => p.stock > (p.lowStockAlert || 5)).length,
-      lowStock: allProducts.filter(p => p.stock <= (p.lowStockAlert || 5) && p.stock > 0).length,
-      outOfStock: allProducts.filter(p => p.stock === 0).length,
-    }
-
-    // Low stock products
-    const lowStockProducts = await db.query.products.findMany({
-      where: and(
-        lte(products.stock, 10),
-        gte(products.stock, 1)
-      ),
-      orderBy: asc(products.stock),
-      limit: 5,
-    })
-
-    // Inventory value
-    const inventoryValue = {
-      total: allProducts.reduce((sum, p) => sum + (parseFloat(p.price as string) * p.stock), 0),
-      active: allProducts
-        .filter(p => p.productStatus === 'active')
-        .reduce((sum, p) => sum + (parseFloat(p.price as string) * p.stock), 0),
-      lowStock: allProducts
-        .filter(p => p.stock <= (p.lowStockAlert || 5) && p.stock > 0)
-        .reduce((sum, p) => sum + (parseFloat(p.price as string) * p.stock), 0),
-    }
-
-    // Get recent orders (last 10 from current period)
-    const recentOrders = currentPeriodOrders
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, 10)
-      .map(order => ({
-        id: order.id,
-        totalPrice: order.totalPrice,
-        status: order.status,
-        createdAt: order.createdAt,
-      }))
-
-    // Product activity placeholders (can be enhanced with actual tracking)
-    const mostViewedProduct = bestSellingProducts[0] || { name: 'N/A' }
-    const bestRatedProduct = bestSellingProducts[0] || { name: 'N/A' }
-    const trendingProduct = bestSellingProducts[0] || { name: 'N/A' }
-
-    // User statistics
-    const allUsers = await db.query.users.findMany()
-    const currentPeriodUsers = allUsers.filter(user => user.createdAt >= startDate)
-    const previousPeriodUsers = period !== 'ALL' 
-      ? allUsers.filter(user => user.createdAt >= previousStartDate && user.createdAt < previousEndDate)
-      : []
-
-    const totalUsers = allUsers.length
-    const newUsers = currentPeriodUsers.length
-    const previousNewUsers = previousPeriodUsers.length
-    const usersGrowth = previousNewUsers > 0 ? ((newUsers - previousNewUsers) / previousNewUsers * 100).toFixed(1) : 0
-
-    // Users by role
-    const usersByRole = {
-      admin: allUsers.filter(u => u.role === 'admin').length,
-      customer: allUsers.filter(u => u.role === 'customer').length,
-    }
-
-    // Users by provider
-    const usersByProvider = {
-      email: allUsers.filter(u => u.provider === 'email').length,
-      google: allUsers.filter(u => u.provider === 'google').length,
-    }
-
-    return NextResponse.json({
-      totalSales,
-      totalOrders,
-      avgOrderValue,
-      totalProducts,
-      activeProducts,
-      salesGrowth: parseFloat(salesGrowth as string),
-      ordersGrowth: parseFloat(ordersGrowth as string),
-      aovGrowth: parseFloat(aovGrowth as string),
-      bestSellingProducts,
-      topRevenueProducts,
-      categoryPerformance: categoryPerformanceArray,
-      stockStatus,
-      lowStockProducts,
-      inventoryValue,
-      recentOrders,
-      mostViewedProduct,
-      bestRatedProduct,
-      trendingProduct,
-      totalUsers,
-      newUsers,
-      usersGrowth: parseFloat(usersGrowth as string),
-      usersByRole,
-      usersByProvider,
     })
   } catch (error) {
     console.error('Dashboard stats error:', error)
@@ -259,4 +30,3 @@ async function handleGET(request: NextRequest) {
 }
 
 export const GET = authMiddleware(handleGET)
-

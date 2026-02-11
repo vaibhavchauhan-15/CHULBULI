@@ -15,6 +15,13 @@ interface UploadImageOptions {
   mimeType?: string;
 }
 
+interface CloudinaryTransformOptions {
+  width?: number;
+  height?: number;
+  crop?: 'fill' | 'fit' | 'limit' | 'thumb';
+  quality?: string;
+}
+
 /**
  * Upload an image to Cloudinary
  * @param file - File path, URL, or Buffer to upload
@@ -101,6 +108,27 @@ export function getOptimizedImageUrl(
     height,
     crop: width && height ? 'fill' : undefined,
   });
+}
+
+/**
+ * Transform an existing Cloudinary secure URL for lightweight thumbnails.
+ * Falls back to original URL for non-Cloudinary URLs.
+ */
+export function getCloudinaryThumbnailUrl(
+  url: string | null | undefined,
+  options: CloudinaryTransformOptions = {}
+) {
+  if (!url || typeof url !== 'string' || !url.includes('res.cloudinary.com') || !url.includes('/upload/')) {
+    return url || '';
+  }
+
+  const width = options.width ?? 320;
+  const height = options.height ?? 320;
+  const crop = options.crop ?? 'fill';
+  const quality = options.quality ?? 'auto:good';
+  const transform = `f_auto,q_${quality},dpr_auto,c_${crop},w_${width},h_${height}`;
+
+  return url.replace('/upload/', `/upload/${transform}/`);
 }
 
 export default cloudinary;

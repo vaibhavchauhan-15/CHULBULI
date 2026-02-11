@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db/client'
-import { reviews } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
 import { authMiddleware } from '@/lib/middleware'
+import {
+  deleteAdminReviewService,
+  updateAdminReviewApprovalService,
+} from '@/lib/services/admin/admin-reviews.service'
+import { getServiceErrorStatus } from '@/lib/services/service-error'
 
 async function handlePUT(
   request: NextRequest,
@@ -10,38 +12,14 @@ async function handlePUT(
 ) {
   try {
     const { approved } = await request.json()
-
-    // Validate approved is a boolean
-    if (typeof approved !== 'boolean') {
-      return NextResponse.json(
-        { error: 'Approved field must be a boolean' },
-        { status: 400 }
-      )
-    }
-
-    // Check if review exists first
-    const existingReview = await db.query.reviews.findFirst({
-      where: eq(reviews.id, params.id),
-    })
-
-    if (!existingReview) {
-      return NextResponse.json(
-        { error: 'Review not found' },
-        { status: 404 }
-      )
-    }
-
-    const [review] = await db.update(reviews)
-      .set({ approved, updatedAt: new Date() })
-      .where(eq(reviews.id, params.id))
-      .returning()
+    const review = await updateAdminReviewApprovalService(params.id, approved)
 
     return NextResponse.json(review)
   } catch (error) {
     console.error('Review update error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: getServiceErrorStatus(error, 500) }
     )
   }
 }
@@ -51,30 +29,13 @@ async function handleDELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check if review exists first
-    const existingReview = await db.query.reviews.findFirst({
-      where: eq(reviews.id, params.id),
-    })
-
-    if (!existingReview) {
-      return NextResponse.json(
-        { error: 'Review not found' },
-        { status: 404 }
-      )
-    }
-
-    await db.delete(reviews)
-      .where(eq(reviews.id, params.id))
-
-    return NextResponse.json({ 
-      success: true,
-      message: 'Review deleted successfully' 
-    })
+    const result = await deleteAdminReviewService(params.id)
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Review deletion error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: getServiceErrorStatus(error, 500) }
     )
   }
 }

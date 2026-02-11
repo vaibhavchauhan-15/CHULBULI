@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db/client'
-import { orders } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
 import { authMiddleware } from '@/lib/middleware'
+import { updateAdminOrderStatusService } from '@/lib/services/admin/admin-orders.service'
+import { getServiceErrorStatus } from '@/lib/services/service-error'
 
 async function handlePUT(
   request: NextRequest,
@@ -10,45 +9,14 @@ async function handlePUT(
 ) {
   try {
     const { status } = await request.json()
-
-    if (!['placed', 'packed', 'shipped', 'delivered', 'cancelled'].includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status' },
-        { status: 400 }
-      )
-    }
-
-    // Check if order exists first
-    const existingOrder = await db.query.orders.findFirst({
-      where: eq(orders.id, params.id),
-    })
-
-    if (!existingOrder) {
-      return NextResponse.json(
-        { error: 'Order not found' },
-        { status: 404 }
-      )
-    }
-
-    // Business rule: failed payments cannot be moved to placed/fulfillment statuses.
-    if (existingOrder.paymentStatus === 'failed' && status !== 'cancelled') {
-      return NextResponse.json(
-        { error: 'Failed payment orders can only be set to cancelled' },
-        { status: 400 }
-      )
-    }
-
-    const [order] = await db.update(orders)
-      .set({ status, updatedAt: new Date() })
-      .where(eq(orders.id, params.id))
-      .returning()
+    const order = await updateAdminOrderStatusService(params.id, status)
 
     return NextResponse.json(order)
   } catch (error) {
     console.error('Order update error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: getServiceErrorStatus(error, 500) }
     )
   }
 }

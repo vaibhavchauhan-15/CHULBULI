@@ -133,10 +133,14 @@ export const products = pgTable(
   (table) => ({
     categoryIdx: index('Product_category_idx').on(table.category),
     featuredIdx: index('Product_featured_idx').on(table.featured),
+    categoryFeaturedIdx: index('Product_category_featured_idx').on(table.category, table.featured),
     priceIdx: index('Product_price_idx').on(table.price),
     skuIdx: index('Product_sku_idx').on(table.sku),
     statusIdx: index('Product_productStatus_idx').on(table.productStatus),
+    statusCreatedAtIdx: index('Product_productStatus_createdAt_idx').on(table.productStatus, table.createdAt),
+    stockIdx: index('Product_stock_idx').on(table.stock),
     stockStatusIdx: index('Product_stockStatus_idx').on(table.stockStatus),
+    createdAtIdx: index('Product_createdAt_idx').on(table.createdAt),
   })
 )
 
@@ -177,6 +181,7 @@ export const orders = pgTable(
     userIdIdx: index('Order_userId_idx').on(table.userId),
     statusIdx: index('Order_status_idx').on(table.status),
     createdAtIdx: index('Order_createdAt_idx').on(table.createdAt),
+    statusCreatedAtIdx: index('Order_status_createdAt_idx').on(table.status, table.createdAt),
     paymentStatusIdx: index('Order_paymentStatus_idx').on(table.paymentStatus),
     orderNumberIdx: index('Order_orderNumber_idx').on(table.orderNumber),
     paymentProviderIdx: index('Order_paymentProvider_idx').on(table.paymentProvider),
@@ -219,6 +224,8 @@ export const reviews = pgTable(
     productIdIdx: index('Review_productId_idx').on(table.productId),
     userIdIdx: index('Review_userId_idx').on(table.userId),
     approvedIdx: index('Review_approved_idx').on(table.approved),
+    approvedCreatedAtIdx: index('Review_approved_createdAt_idx').on(table.approved, table.createdAt),
+    createdAtIdx: index('Review_createdAt_idx').on(table.createdAt),
     productUserUnique: uniqueIndex('Review_productId_userId_unique').on(table.productId, table.userId),
   })
 )

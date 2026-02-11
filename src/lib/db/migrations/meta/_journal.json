@@ -22,6 +22,20 @@
       "when": 1770220677684,
       "tag": "0002_purple_wolverine",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770807512896,
+      "tag": "0003_thankful_cammi",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1770809140027,
+      "tag": "0004_slow_chronomancer",
+      "breakpoints": true
     }
   ]
 }
