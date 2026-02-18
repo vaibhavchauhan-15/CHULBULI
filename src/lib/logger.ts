@@ -3,6 +3,8 @@
  * Replaces console.log/error statements with structured logging
  */
 
+import { runtime } from './config/environment'
+
 type LogLevel = 'info' | 'warn' | 'error' | 'debug'
 
 interface LogContext {
@@ -10,7 +12,7 @@ interface LogContext {
 }
 
 class Logger {
-  private isDevelopment = process.env.NODE_ENV === 'development'
+  private isDevelopment = runtime.isDevelopment
 
   private log(level: LogLevel, message: string, context?: LogContext) {
     if (!this.isDevelopment && level === 'debug') {

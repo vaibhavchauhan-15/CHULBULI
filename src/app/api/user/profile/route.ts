@@ -4,8 +4,9 @@ import { users } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import { jwt as jwtConfig } from '@/lib/config/environment'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = jwtConfig.secret
 
 // Helper function to verify JWT token
 function verifyToken(token: string) {

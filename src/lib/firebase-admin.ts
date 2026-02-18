@@ -1,5 +1,6 @@
 // Firebase Admin SDK for server-side token verification
 import * as admin from 'firebase-admin'
+import { firebase } from './config/environment'
 
 // Singleton instance
 let firebaseAdmin: admin.app.App | null = null
@@ -23,8 +24,8 @@ export const initializeFirebaseAdmin = (): admin.app.App | null => {
   }
 
   try {
-    // Check if service account key is provided
-    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+    // Check if service account key is provided from centralized config
+    const serviceAccountKey = firebase.serviceAccountKey
 
     if (!serviceAccountKey) {
       console.error('❌ Firebase Admin SDK Configuration Error:')

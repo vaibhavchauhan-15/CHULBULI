@@ -4,6 +4,14 @@ export const dynamic = 'force-dynamic'
 
 // Debug endpoint to check Firebase configuration (DO NOT expose in production)
 export async function GET() {
+  // Disable in production for security unless explicitly enabled
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+  const debugEnabled = process.env.DEBUG_MODE === 'true';
+  
+  if (isProduction && !debugEnabled) {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
   return NextResponse.json({
     firebaseConfig: {
       apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ? '✓ Set' : '✗ Missing',

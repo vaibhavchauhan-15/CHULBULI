@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, pool } from '@/lib/db/client';
 import { orders } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { verifyPhonePePayment } from '@/lib/phonepe';
+import { verifyPhonePePayment } from '@/lib/payments/phonepe';
 
 export const dynamic = 'force-dynamic';
 

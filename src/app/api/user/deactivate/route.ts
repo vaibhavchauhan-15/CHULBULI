@@ -3,8 +3,9 @@ import { db } from '@/lib/db/client'
 import { users } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
+import { jwt as jwtConfig, runtime } from '@/lib/config/environment'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = jwtConfig.secret
 
 // Helper function to verify JWT token
 function verifyToken(token: string) {
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set('auth_token', '', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: runtime.isProduction,
       sameSite: 'lax',
       maxAge: 0,
     })

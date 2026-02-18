@@ -2,18 +2,16 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth'
 import type { Auth, UserCredential } from 'firebase/auth'
+import { firebase } from './config/environment'
 
-// Your Firebase configuration
-// These values come from environment variables for security
-// If env vars are not set, falls back to existing hardcoded values for development
+// Get Firebase configuration from centralized environment
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyCcdum-kszxqBtKXZfpvF5BDUaVoX3R9rg",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "chulbuli-jewels-store.firebaseapp.com",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "chulbuli-jewels-store",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "chulbuli-jewels-store.firebasestorage.app",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "553889037702",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:553889037702:web:fc6fc223a7d6ddf1e18007",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-H3HS9VR885"
+  apiKey: firebase.apiKey,
+  authDomain: firebase.authDomain,
+  projectId: firebase.projectId,
+  storageBucket: firebase.storageBucket,
+  messagingSenderId: firebase.messagingSenderId,
+  appId: firebase.appId,
 }
 
 // Initialize Firebase (client-side only)

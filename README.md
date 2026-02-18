@@ -32,12 +32,42 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 
 ### ✨ Latest Features (February 2026)
 
+#### � Payment Gateway Integration
+- **PhonePe Standard Checkout v2** - Complete OAuth-based payment integration
+  - OAuth 2.0 authentication with Client ID/Secret
+  - Secure payment initiation and webhook handling
+  - Support for sandbox and production environments
+  - Transaction status tracking and verification
+  - Automatic payment URL validation
+- **Razorpay Payment Gateway** - Alternative payment option
+  - Secure order creation and payment verification
+  - HMAC signature validation
+  - Real-time payment status updates
+- **Multiple Payment Methods** - Cash on Delivery, PhonePe, Razorpay
+- **Payment Status Tracking** - Real-time payment status monitoring
+- **Webhook Integration** - Automatic order status updates via webhooks
+- **Sequential Order Numbers** - User-friendly order numbering (e.g., #1001, #1002)
+
 #### 🔐 Google OAuth Authentication
 - **Firebase Integration** - Seamless Google Sign-In with Firebase Authentication
 - **One-Click Login** - Users can sign in instantly with their Google account
 - **Profile Sync** - Automatic profile picture and name synchronization
 - **Account Linking** - Existing email users can link their Google accounts
 - **Secure Token Verification** - Server-side validation using Firebase Admin SDK
+
+#### 👤 Enhanced User Management
+- **Multiple Addresses** - Save and manage multiple delivery addresses
+- **Default Address** - Set default address for quick checkout
+- **Account Deactivation** - Soft delete with account recovery option
+- **Profile Pictures** - Support for Google OAuth profile photos
+
+#### 🛍️ Advanced Product Features
+- **Comprehensive Product Details** - SKU, material, dimensions, weight, etc.
+- **Product Status Management** - Draft, Active, Out of Stock states
+- **Stock Alerts** - Low stock notifications for admins
+- **SEO Optimization** - Custom URL slugs, meta descriptions, search tags
+- **Multiple Images** - Support for product galleries and thumbnails
+- **Product Videos** - Optional 360° product view or demo videos
 
 #### 🎨 UI/UX Improvements
 - **Responsive Discount Badges** - Mobile-optimized circular badges on product cards
@@ -50,12 +80,17 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 - **Enhanced Rate Limiting** - Separate limits for OAuth endpoints
 - **Audit Logging** - Track Google sign-in events and account linking
 - **Token Security** - Firebase ID token verification with expiry checks
+- **Webhook Signature Verification** - Secure payment webhook validation
 
 #### 📊 Database Updates
+- **Payment Tracking Fields** - `paymentProvider`, `paymentStatus`, `merchantOrderId`, `transactionId`
+- **Razorpay Fields** - `razorpayOrderId`, `razorpayPaymentId`, `razorpaySignature`
 - **OAuth Fields** - New columns: `provider`, `googleId`, `photoUrl`
+- **Address Management** - Dedicated addresses table with multiple address support
+- **Order Numbers** - Sequential order number generation
 - **Nullable Passwords** - Support for OAuth-only users
-- **Indexed Lookups** - Fast queries for Google IDs and providers
-- **Account Migration** - Seamless linking of email and OAuth accounts
+- **Indexed Lookups** - Fast queries for orders, payments, and user accounts
+- **Account Status** - Track account deactivation and deletion
 
 </div>
 
@@ -83,6 +118,7 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
 - [Firebase Setup](#firebase-setup-google-oauth)
+- [Payment Gateway Setup](#payment-gateway-setup)
 - [Database Setup](#database-setup)
 - [Design System](#design-system)
 
@@ -128,25 +164,47 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 - 🔍 **Advanced Filtering** - Filter by price range, category, sort by price/latest/rating
 - 🛒 **Shopping Cart** - Add/remove items, quantity management, cart validation
 - ⭐ **Product Reviews** - Verified buyer reviews with 1-5 star ratings (admin-moderated)
-- 📦 **Order Management** - Place orders, track status, view order history
-- 💳 **Cash on Delivery** - COD payment method (online payment in Phase 2)
+- 📦 **Order Management** - Place orders with sequential order numbers, track status, view order history
+- 💳 **Multiple Payment Methods**:
+  - 💰 Cash on Delivery (COD)
+  - 📱 PhonePe Payment Gateway (Standard Checkout v2 with OAuth 2.0)
+  - 💳 Razorpay Payment Gateway
+- 🏠 **Multiple Addresses** - Save and manage multiple delivery addresses with default selection
 - 👤 **User Profile Management** - Profile pictures from Google OAuth, account linking
+- 👑 **User Dashboard** - View account info, order history, review status
+- 🔄 **Account Management** - Deactivate/reactivate account with soft delete support
 </div>
 
 <div style="background: linear-gradient(135deg, #E8D5C2 0%, #F2E6D8 100%); padding: 25px; border-radius: 16px; border-left: 5px solid #C89A7A; margin: 20px 0;">
 
-### 👑👑  **User Dashboard** - View account info, order history, review status
-
-### Admin Features
+### � Admin Features
 - 📊 **Admin Dashboard** - Sales analytics, revenue tracking, best-selling products
-- 📦 **Product Management** - Add, edit, delete products with extensive attributes
-</div>
-
-- 🎨 **Image Management** - Multiple product images, cloudinary integration
+- 📦 **Product Management** - Add, edit, delete products with comprehensive attributes (SKU, material, dimensions, etc.)
+- 🎨 **Image Management** - Multiple product images, cloudinary integration, video support
 - 📋 **Order Management** - View all orders, update order status (placed → packed → shipped → delivered)
-- 💰 **Inventory Control** - Stock management, low stock alerts
+- 💰 **Inventory Control** - Stock management, low stock alerts, stock status tracking
 - ✅ **Review Moderation** - Approve/delete customer reviews
 - 📈 **Sales Reports** - Total sales, monthly sales, order statistics
+- 💳 **Payment Tracking** - Monitor payment status across all payment providers (COD, PhonePe, Razorpay)
+- 📱 **Order Numbers** - Sequential order numbering for easy tracking
+
+### 💳 Payment Features
+- **PhonePe Integration**:
+  - OAuth 2.0 authentication with Client ID/Secret
+  - Standard Checkout v2 API
+  - Secure payment URL generation with signature verification
+  - Webhook support for automatic payment status updates
+  - Sandbox and production environment support
+  - Transaction tracking and verification
+  - Payment status monitoring
+- **Payment Tracking**:
+  - Payment provider tracking (COD, PhonePe)
+  - Payment status monitoring (pending, completed, failed)
+  - Transaction ID tracking
+  - Merchant order ID management
+  - Webhook-based automatic updates
+
+</div>
 
 ---
 
@@ -184,7 +242,13 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 ### 📸 Image Management
 - **Cloudinary** - Cloud-based image hosting & optimization
 
-### 🔧 Development Tools
+### � Payment Gateways
+- **PhonePe** - Standard Checkout v2 with OAuth 2.0
+  - Client ID/Secret authentication
+  - Webhook integration
+  - Transaction tracking
+
+### �🔧 Development Tools
 - **Drizzle Kit** - Database migrations
 - **ESLint** - Code linting
 - **Autoprefixer** - CSS vendor prefixing
@@ -1135,6 +1199,78 @@ Separate image management.
 
 ---
 
+### Payment APIs
+
+#### `POST /api/payment/phonepe/create`
+**File:** [src/app/api/payment/phonepe/create/route.ts](src/app/api/payment/phonepe/create/route.ts)
+
+**Authentication:** Required (JWT token)
+
+**Request Body:**
+```json
+{
+  "orderId": "order_xyz123",
+  "amount": 2598.00,
+  "customerName": "Aloo Kumar",
+  "customerEmail": "aloo@example.com",
+  "customerPhone": "+919876543210"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "paymentUrl": "https://mercury.phonepe.com/...",
+  "merchantOrderId": "CHJ_1234567890",
+  "environment": "sandbox"
+}
+```
+
+**Features:**
+- Creates PhonePe payment order with OAuth 2.0 authentication
+- Generates secure payment URL with signature
+- Returns payment URL for user redirection
+- Supports sandbox and production environments
+
+---
+
+#### `GET /api/payment/phonepe/status?merchantOrderId=CHJ_1234567890`
+**File:** [src/app/api/payment/phonepe/status/route.ts](src/app/api/payment/phonepe/status/route.ts)
+
+**Authentication:** Required (JWT token)
+
+**Response:**
+```json
+{
+  "success": true,
+  "status": "completed",
+  "transactionId": "T1234567890",
+  "amount": 2598.00,
+  "paymentMethod": "UPI",
+  "merchantOrderId": "CHJ_1234567890"
+}
+```
+
+**Purpose:** Check payment status for a given order
+
+---
+
+#### `POST /api/payment/phonepe/webhook`
+**File:** [src/app/api/payment/phonepe/webhook/route.ts](src/app/api/payment/phonepe/webhook/route.ts)
+
+**Authentication:** Webhook signature verification
+
+**Purpose:** Receives payment status updates from PhonePe. Automatically updates order status based on payment completion.
+
+**Features:**
+- Signature verification for security
+- Idempotent webhook handling
+- Automatic order status updates
+- Transaction logging
+
+---
+
 ### Admin APIs
 
 #### `GET /api/admin/dashboard`
@@ -1528,9 +1664,22 @@ CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 
+# PhonePe Payment Gateway (Optional - for online payments)
+PHONEPE_CLIENT_ID=your-phonepe-client-id
+PHONEPE_CLIENT_SECRET=your-phonepe-client-secret
+PHONEPE_CLIENT_VERSION=1
+PHONEPE_BASE_URL=https://api-preprod.phonepe.com/apis/pg-sandbox
+PHONEPE_AUTH_URL=https://api-preprod.phonepe.com/apis/pg-sandbox
+
+# Razorpay Payment Gateway (Optional - for online payments)
+RAZORPAY_KEY_ID=rzp_test_your_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_secret
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_your_key_id
+
 # App Environment
 NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+APP_URL=http://localhost:3000
 ```
 
 4. **Generate secure JWT secret**
@@ -1599,6 +1748,14 @@ http://localhost:3000
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | `my-cloud` |
 | `CLOUDINARY_API_KEY` | Cloudinary API key | `123456789` |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret | `abc...xyz` |
+| `PHONEPE_CLIENT_ID` | PhonePe merchant client ID | `your-client-id` |
+| `PHONEPE_CLIENT_SECRET` | PhonePe merchant client secret | `your-client-secret` |
+| `PHONEPE_CLIENT_VERSION` | PhonePe client version | `1` |
+| `PHONEPE_BASE_URL` | PhonePe API base URL | `https://api.phonepe.com/apis/pg` |
+| `PHONEPE_AUTH_URL` | PhonePe OAuth URL | `https://api.phonepe.com/apis/identity-manager` |
+| `RAZORPAY_KEY_ID` | Razorpay API key ID | `rzp_test_...` |
+| `RAZORPAY_KEY_SECRET` | Razorpay API key secret | `your-secret` |
+| `NEXT_PUBLIC_RAZORPAY_KEY_ID` | Razorpay public key (client-side) | `rzp_test_...` |
 
 ### Optional Variables
 
@@ -1606,6 +1763,17 @@ http://localhost:3000
 |----------|-------------|---------|
 | `NODE_ENV` | Environment mode | `development` |
 | `NEXT_PUBLIC_APP_URL` | App base URL | `http://localhost:3000` |
+| `APP_URL` | Alternative app base URL | `http://localhost:3000` |
+
+### Payment Gateway Environment Configuration
+
+**PhonePe Environment:**
+- **Sandbox/Testing:** Use `https://api-preprod.phonepe.com/apis/pg-sandbox` for both `PHONEPE_BASE_URL` and `PHONEPE_AUTH_URL`
+- **Production:** Use `https://api.phonepe.com/apis/pg` for `PHONEPE_BASE_URL` and `https://api.phonepe.com/apis/identity-manager` for `PHONEPE_AUTH_URL`
+
+**Razorpay Environment:**
+- **Test Mode:** Use test keys starting with `rzp_test_`
+- **Live Mode:** Use live keys starting with `rzp_live_`
 
 </div>
 
@@ -1681,6 +1849,105 @@ The application uses **Firebase Authentication** for Google OAuth 2.0 sign-in, p
 7. Server creates/updates user in database
 8. Server generates JWT and sets HTTP-only cookie
 9. User is authenticated and redirected
+
+</div>
+
+</div>
+
+---
+
+<div style="background: linear-gradient(135deg, #F7F6F3 0%, #F2E6D8 100%); padding: 30px; border-radius: 16px; border-left: 5px solid #C89A7A; margin: 20px 0;">
+
+## 💳 Payment Gateway Setup
+
+<div style="color: #5A3E2B;">
+
+### PhonePe Integration
+
+**PhonePe Standard Checkout v2** uses OAuth 2.0 authentication and provides a secure payment experience.
+
+#### Setup Steps
+
+1. **Register with PhonePe**
+   - Visit [PhonePe Business](https://business.phonepe.com/)
+   - Complete merchant registration
+   - Get UAT/Production credentials
+
+2. **Obtain OAuth Credentials**
+   - Login to PhonePe merchant dashboard
+   - Navigate to API Configuration
+   - Generate Client ID and Client Secret
+   - Note down the Client Version (usually `1`)
+
+3. **Configure Environment Variables**
+   ```env
+   PHONEPE_CLIENT_ID=your_client_id
+   PHONEPE_CLIENT_SECRET=your_client_secret
+   PHONEPE_CLIENT_VERSION=1
+   
+   # For Sandbox/Testing
+   PHONEPE_BASE_URL=https://api-preprod.phonepe.com/apis/pg-sandbox
+   PHONEPE_AUTH_URL=https://api-preprod.phonepe.com/apis/pg-sandbox
+   
+   # For Production
+   PHONEPE_BASE_URL=https://api.phonepe.com/apis/pg
+   PHONEPE_AUTH_URL=https://api.phonepe.com/apis/identity-manager
+   
+   # Your app URL (must be HTTPS in production)
+   NEXT_PUBLIC_APP_URL=https://yourdomain.com
+   ```
+
+4. **Configure Webhooks**
+   - Add your webhook URL: `https://yourdomain.com/api/payment/phonepe/webhook`
+   - PhonePe will send payment status updates to this URL
+   - Webhook signature is automatically verified
+
+#### Features
+- ✅ OAuth 2.0 token-based authentication
+- ✅ Automatic token refresh and caching
+- ✅ Webhook signature verification
+- ✅ Payment status tracking
+- ✅ Transaction verification
+- ✅ Support for sandbox and production environments
+- ✅ Comprehensive error handling
+
+#### Test the Integration
+Run the PhonePe test endpoint:
+```bash
+curl http://localhost:3000/api/payment/phonepe/test
+```
+
+---
+
+### Payment Flow
+
+1. **Initiate Payment:**
+   - User selects payment method (PhonePe/COD)
+   - System creates order with unique merchant order ID
+   - Payment gateway specific order is created
+
+2. **Process Payment:**
+   - User is redirected to payment gateway
+   - User completes payment
+   - Gateway processes the transaction
+
+3. **Webhook/Callback:**
+   - Payment gateway sends webhook notification
+   - System verifies signature and updates order status
+   - User is redirected to success/failure page
+
+4. **Order Fulfillment:**
+   - Order status is updated based on payment
+   - Admin can view payment details
+   - Customer receives order confirmation
+
+### Security Features
+
+- ✅ **Signature Verification** - All webhooks are verified
+- ✅ **Transaction Tracking** - Unique IDs for all transactions
+- ✅ **HTTPS Required** - Production requires secure connections
+- ✅ **Idempotency** - Duplicate webhook handling
+- ✅ **Rate Limiting** - API abuse prevention
 
 </div>
 
@@ -1769,13 +2036,13 @@ This project is configured for easy deployment on **Netlify** with automatic CI/
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
    - `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, etc.
    - `FIREBASE_SERVICE_ACCOUNT_KEY` - Base64 encoded service account
-   - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`
+   - `PHONEPE_CLIENT_ID`, `PHONEPE_CLIENT_SECRET` - PhonePe payment credentials
    - `NODE_ENV=production`
 
 4. **Update External Service Configurations**
    
    - **Firebase**: Add your Netlify domain (e.g., `yoursite.netlify.app`) to authorized domains
-   - **Razorpay**: Add your Netlify domain to authorized domains
+   - **PhonePe**: Add your Netlify domain to authorized domains
    - **Database**: Ensure your database allows connections from Netlify
 
 5. **Deploy**
@@ -1940,27 +2207,34 @@ Example Primary Button
 ### Phase 1 (MVP) ✅
 - [x] User authentication (email/password)
 - [x] **Google OAuth Sign-In** - Firebase Authentication integration
+- [x] **Multi-provider authentication** - Account linking for email and Google
 - [x] Product catalog with filtering
 - [x] Shopping cart
-- [x] Order placement (COD)
+- [x] Order placement with sequential order numbers
+- [x] **Online payments** - PhonePe and Razorpay integration
+- [x] **Payment webhooks** - Automatic order status updates
+- [x] **Multiple addresses** - Save and manage delivery addresses
 - [x] Admin panel (products, orders, reviews)
 - [x] Review system
-- [x] **Multi-provider authentication** - Account linking for email and Google
+- [x] **Account management** - Deactivation and soft delete
 
-### Phase 2 (In Progress)
-- [ ] Online payment (Razorpay/Stripe)
+### Phase 2 (In Progress) 🚧
+- [x] **Online payment (PhonePe/Razorpay)** ✅ Completed
 - [ ] Email notifications (order confirmation, shipping)
-- [ ] Order tracking page
+- [ ] Order tracking page with real-time updates
 - [ ] Wishlist feature
 - [ ] Product search with autocomplete
+- [ ] Customer notifications for order status changes
 
-### Phase 3 (Planned)
+### Phase 3 (Planned) 📋
 - [ ] Size guide and product recommendations
 - [ ] Customer support chat
 - [ ] Loyalty points program
 - [ ] Gift wrapping option
-- [ ] Multiple addresses
-- [ ] Order cancellation/returns
+- [ ] Order cancellation/returns management
+- [ ] Product reviews with images
+- [ ] Advanced analytics dashboard
+- [ ] Inventory forecasting
 
 </div>
 

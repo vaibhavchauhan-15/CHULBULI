@@ -7,6 +7,7 @@ import { verifyFirebaseToken } from '@/lib/firebase-admin'
 import { authRateLimiter } from '@/lib/rateLimit'
 import { logAuthEvent, AuditAction } from '@/lib/auditLog'
 import { nanoid } from 'nanoid'
+import { runtime as envRuntime } from '@/lib/config/environment'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -200,7 +201,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: envRuntime.isProduction,
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: '/',

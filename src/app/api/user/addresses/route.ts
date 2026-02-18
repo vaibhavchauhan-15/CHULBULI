@@ -4,8 +4,9 @@ import { addresses } from '@/lib/db/schema'
 import { eq, desc } from 'drizzle-orm'
 import jwt from 'jsonwebtoken'
 import { v4 as uuidv4 } from 'uuid'
+import { jwt as jwtConfig } from '@/lib/config/environment'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET = jwtConfig.secret
 
 // Helper function to verify JWT token
 function verifyToken(token: string) {

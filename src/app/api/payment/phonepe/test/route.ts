@@ -4,14 +4,24 @@
  * This endpoint tests PhonePe configuration and provides diagnostic information.
  * Access: http://localhost:3000/api/payment/phonepe/test
  * Production: https://your-domain.com/api/payment/phonepe/test
+ * 
+ * SECURITY: This endpoint is disabled in production unless DEBUG_MODE=true is set
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getPhonePeToken } from '@/lib/phonepe';
+import { getPhonePeToken } from '@/lib/payments/phonepe';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  // Disable in production for security unless explicitly enabled
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
+  const debugEnabled = process.env.DEBUG_MODE === 'true';
+  
+  if (isProduction && !debugEnabled) {
+    return new NextResponse('Not Found', { status: 404 });
+  }
+
   try {
     const baseUrl = (process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg').trim().replace(/\/+$/, '');
     const authUrl = (process.env.PHONEPE_AUTH_URL || 'https://api.phonepe.com/apis/identity-manager').trim().replace(/\/+$/, '');
@@ -141,7 +151,7 @@ export async function GET(request: NextRequest) {
             '   → Verify credentials from PhonePe Business Dashboard',
             '',
             '💡 Alternative Payment Methods:',
-            '   • Razorpay is already configured as backup',
+            '   • PhonePe is configured and ready',
             '   • Cash on Delivery is available',
           ],
           troubleshooting: {

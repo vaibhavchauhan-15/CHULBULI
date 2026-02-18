@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authMiddleware } from '@/lib/middleware'
 import { uploadImage } from '@/lib/cloudinary'
-import { SECURITY_CONFIG } from '@/lib/config'
+import { security } from '@/lib/config/environment'
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -26,7 +26,7 @@ async function handlePOST(request: NextRequest) {
     // Validate each file
     for (const file of files) {
       // Check file size
-      if (file.size > SECURITY_CONFIG.MAX_FILE_SIZE) {
+      if (file.size > security.maxFileSize) {
         return NextResponse.json(
           { error: `File "${file.name}" exceeds maximum size of 5MB` },
           { status: 400 }
@@ -34,7 +34,7 @@ async function handlePOST(request: NextRequest) {
       }
 
       // Check file type
-      const allowedTypes = [...SECURITY_CONFIG.ALLOWED_IMAGE_TYPES] as string[]
+      const allowedTypes = [...security.allowedImageTypes] as string[]
       if (!allowedTypes.includes(file.type)) {
         return NextResponse.json(
           { 

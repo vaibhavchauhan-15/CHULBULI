@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
-import { getConfig } from './config'
+import { runtime } from './config/environment'
 
 const CSRF_TOKEN_LENGTH = 32
 const CSRF_COOKIE_NAME = 'csrf_token'
@@ -24,7 +24,7 @@ export function generateCsrfToken(): string {
 export function setCsrfCookie(response: NextResponse, token: string): void {
   response.cookies.set(CSRF_COOKIE_NAME, token, {
     httpOnly: false, // Must be accessible to client JavaScript
-    secure: process.env.NODE_ENV === 'production',
+    secure: runtime.isProduction,
     sameSite: 'strict',
     maxAge: 60 * 60 * 24, // 24 hours
     path: '/',

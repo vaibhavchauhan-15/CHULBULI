@@ -23,9 +23,6 @@ export async function POST(request: NextRequest) {
       pincode,
       userId,
       paymentMethod = 'cod',
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature,
       paymentStatus = 'pending',
     } = body
 
@@ -158,9 +155,6 @@ export async function POST(request: NextRequest) {
         status: 'placed',
         paymentMethod: paymentMethod,
         paymentStatus: paymentStatus,
-        razorpayOrderId: razorpayOrderId || null,
-        razorpayPaymentId: razorpayPaymentId || null,
-        razorpaySignature: razorpaySignature || null,
         createdAt: now,
         updatedAt: now,
       }).returning()

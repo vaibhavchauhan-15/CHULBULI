@@ -5,7 +5,7 @@
 
 import validator from 'validator'
 import { z } from 'zod'
-import { SECURITY_CONFIG } from './config'
+import { security } from './config/environment'
 import { isCommonPassword, calculatePasswordStrength } from './passwordSecurity'
 
 /**
@@ -46,7 +46,7 @@ export function validateEmail(email: string): { valid: boolean; email: string; e
     return { valid: false, email: '', error: 'Email is required' }
   }
 
-  if (!SECURITY_CONFIG.EMAIL_REGEX.test(sanitized)) {
+  if (!security.emailRegex.test(sanitized)) {
     return { valid: false, email: sanitized, error: 'Invalid email format' }
   }
 
@@ -65,17 +65,17 @@ export function validatePassword(password: string): { valid: boolean; error?: st
     return { valid: false, error: 'Password is required' }
   }
 
-  if (password.length < SECURITY_CONFIG.PASSWORD_MIN_LENGTH) {
+  if (password.length < security.passwordMinLength) {
     return {
       valid: false,
-      error: `Password must be at least ${SECURITY_CONFIG.PASSWORD_MIN_LENGTH} characters long`,
+      error: `Password must be at least ${security.passwordMinLength} characters long`,
     }
   }
 
-  if (password.length > SECURITY_CONFIG.PASSWORD_MAX_LENGTH) {
+  if (password.length > security.passwordMaxLength) {
     return {
       valid: false,
-      error: `Password must not exceed ${SECURITY_CONFIG.PASSWORD_MAX_LENGTH} characters`,
+      error: `Password must not exceed ${security.passwordMaxLength} characters`,
     }
   }
 
@@ -94,19 +94,19 @@ export function validatePassword(password: string): { valid: boolean; error?: st
 
   const requirements: string[] = []
 
-  if (SECURITY_CONFIG.PASSWORD_REQUIRE_UPPERCASE && !hasUpperCase) {
+  if (security.passwordRequireUppercase && !hasUpperCase) {
     requirements.push('one uppercase letter')
   }
 
-  if (SECURITY_CONFIG.PASSWORD_REQUIRE_LOWERCASE && !hasLowerCase) {
+  if (security.passwordRequireLowercase && !hasLowerCase) {
     requirements.push('one lowercase letter')
   }
 
-  if (SECURITY_CONFIG.PASSWORD_REQUIRE_NUMBER && !hasNumber) {
+  if (security.passwordRequireNumber && !hasNumber) {
     requirements.push('one number')
   }
 
-  if (SECURITY_CONFIG.PASSWORD_REQUIRE_SPECIAL && !hasSpecial) {
+  if (security.passwordRequireSpecial && !hasSpecial) {
     requirements.push('one special character')
   }
 
@@ -132,7 +132,7 @@ export const ValidationSchemas = {
   signup: z.object({
     name: z.string().min(2).max(100),
     email: z.string().email(),
-    password: z.string().min(SECURITY_CONFIG.PASSWORD_MIN_LENGTH),
+    password: z.string().min(security.passwordMinLength),
   }),
 
   login: z.object({

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -133,7 +133,7 @@ const getImageUrl = (url: string | null | undefined): string | null => {
   }
 }
 
-export default function AccountPage() {
+function AccountPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, isLoading } = useAuth({ requireAuth: true })
@@ -1404,5 +1404,20 @@ export default function AccountPage() {
 
       <Footer />
     </div>
+  )
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-pearl">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rosegold mx-auto"></div>
+          <p className="mt-4 text-warmbrown">Loading your account...</p>
+        </div>
+      </div>
+    }>
+      <AccountPageContent />
+    </Suspense>
   )
 }

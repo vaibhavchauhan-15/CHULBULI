@@ -16,7 +16,9 @@ import { orders, orderItems } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { sanitizeOrderData, validateEmail, validatePhoneNumber, validatePincode } from '@/lib/validation';
 import { generateId } from '@/lib/db/queries';
-import { createPhonePeOrder, generateMerchantOrderId, getPhonePeCheckoutScriptUrl } from '@/lib/phonepe';
+import { createPhonePeOrder, generateMerchantOrderId, getPhonePeCheckoutScriptUrl } from '@/lib/payments/phonepe';
+// Import environment config to trigger validation (will log environment info in dev)
+import '@/lib/config/environment';
 
 export const dynamic = 'force-dynamic';
 
@@ -419,7 +421,7 @@ export async function POST(request: NextRequest) {
         errorCode = 'PHONEPE_BAD_REQUEST';
         statusCode = 400;
       } else if (isMerchantConfigError || isAuthError) {
-        userMessage = 'PhonePe payment is currently unavailable. Please use Razorpay or Cash on Delivery.';
+        userMessage = 'PhonePe payment is currently unavailable. Please use Cash on Delivery.';
         errorCode = 'MERCHANT_NOT_CONFIGURED';
         statusCode = 503;
       } else if (isServerError) {
@@ -437,7 +439,7 @@ export async function POST(request: NextRequest) {
           error: userMessage,
           code: errorCode,
           details: process.env.NODE_ENV === 'development' ? errorMessage : undefined,
-          suggestion: 'Please try Razorpay payment or Cash on Delivery option.',
+          suggestion: 'Please try Cash on Delivery option.',
         },
         { status: statusCode }
       );
@@ -481,7 +483,7 @@ export async function POST(request: NextRequest) {
         { 
           error: 'Database connection error. Please try again.',
           code: 'DATABASE_ERROR',
-          suggestion: 'Please try Razorpay payment or Cash on Delivery option.',
+          suggestion: 'Please try Cash on Delivery option.',
         },
         { status: 503 }
       );
@@ -497,7 +499,7 @@ export async function POST(request: NextRequest) {
           type: error.name,
           stack: error.stack?.split('\n').slice(0, 3).join('\n'),
         } : undefined,
-        suggestion: 'Please try Razorpay payment or Cash on Delivery option.',
+        suggestion: 'Please try Cash on Delivery option.',
       },
       { status: 500 }
     );

@@ -18,7 +18,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, pool } from '@/lib/db/client';
 import { orders } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
-import { verifyWebhookSignature } from '@/lib/phonepe';
+import { verifyWebhookSignature } from '@/lib/payments/phonepe';
 
 export const dynamic = 'force-dynamic';
 

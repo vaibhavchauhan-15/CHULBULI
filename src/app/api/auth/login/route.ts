@@ -6,6 +6,7 @@ import { verifyPassword, generateToken } from '@/lib/auth'
 import { authRateLimiter } from '@/lib/rateLimit'
 import { validateEmail } from '@/lib/validation'
 import { logAuthEvent, AuditAction } from '@/lib/auditLog'
+import { runtime } from '@/lib/config/environment'
 
 export const dynamic = 'force-dynamic'
 
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
     // Set httpOnly cookie for security (XSS protection)
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: runtime.isProduction,
       sameSite: 'lax', // Changed from 'strict' to 'lax' for better compatibility
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',

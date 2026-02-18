@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyToken } from '@/lib/auth'
 import { logAuthEvent, AuditAction } from '@/lib/auditLog'
+import { runtime } from '@/lib/config/environment'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
   // Clear the auth cookie
   response.cookies.set('auth_token', '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: runtime.isProduction,
     sameSite: 'lax',
     maxAge: 0, // Expire immediately
     path: '/',

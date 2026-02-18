@@ -164,15 +164,10 @@ export const orders = pgTable(
     paymentMethod: varchar('paymentMethod', { length: 50 }).notNull().default('cod'), // cod, online
     
     // Payment tracking fields
-    paymentProvider: varchar('paymentProvider', { length: 50 }).notNull().default('cod'), // cod, razorpay, phonepe
+    paymentProvider: varchar('paymentProvider', { length: 50 }).notNull().default('cod'), // cod, phonepe
     paymentStatus: varchar('paymentStatus', { length: 50 }).notNull().default('pending'), // pending, completed, failed
-    merchantOrderId: text('merchantOrderId'), // Unique order ID for payment gateways (PhonePe/Razorpay)
+    merchantOrderId: text('merchantOrderId'), // Unique order ID for PhonePe
     transactionId: text('transactionId'), // Payment gateway transaction ID
-    
-    // Razorpay specific fields
-    razorpayOrderId: text('razorpayOrderId'), // Razorpay order ID
-    razorpayPaymentId: text('razorpayPaymentId'), // Razorpay payment ID
-    razorpaySignature: text('razorpaySignature'), // Payment verification signature
     
     createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
     updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),

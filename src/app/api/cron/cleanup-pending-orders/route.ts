@@ -19,6 +19,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, pool } from '@/lib/db/client';
 import { orders } from '@/lib/db/schema';
 import { eq, and, lt } from 'drizzle-orm';
+import { cron } from '@/lib/config/environment';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Allow up to 60 seconds for execution
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
   try {
     // Verify authorization (use a secret token to prevent unauthorized access)
     const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET || 'your-secret-key';
+    const cronSecret = cron.secret || 'fallback-secret-key';
     
     if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(

@@ -1,27 +1,19 @@
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
-import { getConfig, SECURITY_CONFIG } from './config'
+import { jwt as jwtConfig, security } from './config/environment'
 
-// JWT Configuration
-const JWT_EXPIRY = process.env.JWT_EXPIRES_IN || '7d'
+// Get JWT configuration from centralized environment
+const JWT_EXPIRY = jwtConfig.expiresIn
 
-// Validate JWT_SECRET on import (server-side only)
+// Validate JWT operations are server-side only
 const getJWTSecret = (): string => {
   if (typeof window !== 'undefined') {
     throw new Error('JWT operations should only be performed server-side')
   }
 
-  const config = getConfig()
-  if (!config.JWT_SECRET) {
-    throw new Error('JWT_SECRET environment variable is required')
-  }
-
-  if (config.JWT_SECRET.length < 32) {
-    throw new Error('JWT_SECRET must be at least 32 characters (256 bits) for security')
-  }
-
-  return config.JWT_SECRET
+  // JWT secret is already validated in environment.ts
+  return jwtConfig.secret
 }
 
 export interface JWTPayload {
@@ -68,7 +60,7 @@ export const generateToken = (payload: JWTPayload): string => {
     },
     JWT_SECRET,
     {
-      expiresIn: SECURITY_CONFIG.JWT_EXPIRY,
+      expiresIn: security.jwtExpiryDefault,
       algorithm: 'HS256',
       issuer: 'chulbuli-jewels',
       audience: 'chulbuli-api',
