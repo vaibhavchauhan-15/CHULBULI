@@ -250,7 +250,7 @@ export default function AboutUs() {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mt-6 md:mt-8">
             <div className="bg-white/50 rounded-lg p-4 md:p-5 lg:p-6 active:scale-95 transition-transform touch-target">
-              <div className="text-3xl md:text-4xl font-bold text-rosegold mb-1.5 md:mb-2">10K+</div>
+              <div className="text-3xl md:text-4xl font-bold text-rosegold mb-1.5 md:mb-2">1K+</div>
               <p className="text-warmbrown font-semibold text-xs md:text-sm lg:text-base">Happy Customers</p>
             </div>
             <div className="bg-white/50 rounded-lg p-4 md:p-5 lg:p-6 active:scale-95 transition-transform touch-target">
