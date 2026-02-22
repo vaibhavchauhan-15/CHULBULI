@@ -139,7 +139,7 @@ export default function Footer() {
                 </a>
 
                 <a
-                  href="https://www.facebook.com/profile.php?id=61587171489601"
+                  href="https://www.facebook.com/share/1Ack7FxDxT"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-rosegold/10 border border-rosegold/30 flex items-center justify-center hover:bg-rosegold hover:border-rosegold hover:scale-110 hover:shadow-lg hover:shadow-rosegold/30 transition-all duration-300 group active:scale-95 touch-target"

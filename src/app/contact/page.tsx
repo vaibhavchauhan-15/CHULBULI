@@ -276,7 +276,7 @@ export default function ContactUs() {
                 </a>
 
                 <a
-                  href="https://www.facebook.com/profile.php?id=61587171489601"
+                  href="https://www.facebook.com/share/1Ack7FxDxT"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-rosegold/10 transition-all group"

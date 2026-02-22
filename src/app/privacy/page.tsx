@@ -244,7 +244,7 @@ export default function PrivacyPolicy() {
                 <p className="mt-3"><strong>Email:</strong> <a href="mailto:support@chulbulijewels.in" className="text-rosegold hover:underline">support@chulbulijewels.in</a></p>
                 <p><strong>Phone:</strong> <a href="tel:+919867732204" className="text-rosegold hover:underline">+91 9867732204</a></p>
                 <p><strong>WhatsApp:</strong> <a href="https://whatsapp.com/channel/0029Vb7CuMe9MF8tE3LGor3R" className="text-rosegold hover:underline" target="_blank" rel="noopener noreferrer">Join our channel</a></p>
-                <p><strong>Facebook:</strong> <a href="https://www.facebook.com/profile.php?id=61587171489601" className="text-rosegold hover:underline" target="_blank" rel="noopener noreferrer">Visit our page</a></p>
+                <p><strong>Facebook:</strong> <a href="https://www.facebook.com/share/1Ack7FxDxT" className="text-rosegold hover:underline" target="_blank" rel="noopener noreferrer">Visit our page</a></p>
                 <p className="mt-3 text-sm">Available: Monday - Friday (9:00 AM - 6:00 PM IST)</p>
               </div>
             </div>
