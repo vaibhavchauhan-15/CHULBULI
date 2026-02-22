@@ -195,9 +195,7 @@ async function updateWebhookLog(
       })
       .where(eq(webhookLogs.id, id));
   } catch (error) {
-    console.error('Failed to update webhook log:', error  { error: 'Webhook processing failed', details: error.message },
-      { status: 500 }
-    );
+    console.error('Failed to update webhook log:', error);
   }
 }
 
