@@ -260,7 +260,7 @@ export default function AccountPage() {
         }
       }
     },
-    [] // Remove loadedTabs from dependencies
+    [loadedTabs]
   )
 
   useEffect(() => {

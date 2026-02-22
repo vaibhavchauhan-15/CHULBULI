@@ -191,7 +191,7 @@ export default function CheckoutPage() {
     } else if (subtotal < 500 && selectedShipping === 'free') {
       setSelectedShipping('standard')
     }
-  }, [subtotal])
+  }, [subtotal, selectedShipping])
 
   // Load Razorpay script with retry logic
   useEffect(() => {
