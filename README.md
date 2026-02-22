@@ -1741,16 +1741,50 @@ npm run db:seed
 
 <div style="color: #5A3E2B;">
 
-### Netlify Deployment
+### 🎯 Deployment Strategy
 
-This project is configured for easy deployment on **Netlify** with automatic CI/CD from your Git repository.
+This project uses a **dual-deployment strategy** for optimal workflow and environment separation:
+
+| Branch | Platform | Environment | Purpose | URL |
+|--------|----------|-------------|---------|-----|
+| **`main`** | Netlify | Production | Live site for customers | `chulbulijewels.in` |
+| **`develop`** | Vercel | Preview | Testing with sandbox APIs | `chulbuli-*.vercel.app` |
+
+#### Git Workflow
+
+```bash
+# Feature development
+feature-branch → develop → main
+
+# Create feature branch
+git checkout develop
+git pull origin develop
+git checkout -b feature/your-feature
+
+# Merge to develop for preview testing
+git checkout develop
+git merge feature/your-feature
+git push origin develop  # Auto-deploys to Vercel Preview
+
+# Merge to main for production
+git checkout main
+git merge develop
+git push origin main  # Auto-deploys to Netlify Production
+```
+
+---
+
+### 🔵 Netlify Deployment (Production)
+
+**Netlify** hosts the production site for end users with production payment APIs.
 
 #### Quick Deploy
 
-1. **Push to GitHub/GitLab/Bitbucket**
+1. **Push to Main Branch**
    ```bash
+   git checkout main
    git add .
-   git commit -m "Ready for Netlify deployment"
+   git commit -m "Ready for production"
    git push origin main
    ```
 
@@ -1758,53 +1792,174 @@ This project is configured for easy deployment on **Netlify** with automatic CI/
    - Log in to [Netlify](https://netlify.com)
    - Click "Add new site" → "Import an existing project"
    - Select your repository
+   - **Branch to deploy:** `main`
    - Netlify will auto-detect the `netlify.toml` configuration
 
 3. **Set Environment Variables**
    
-   In Netlify Dashboard → Site settings → Environment variables, add all variables from `.env.example`:
+   In Netlify Dashboard → Site settings → Environment variables:
    
-   - `DATABASE_URL` - PostgreSQL connection (use Supabase/Neon for production)
-   - `JWT_SECRET` - Generate a new secure secret for production
-   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-   - `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, etc.
-   - `FIREBASE_SERVICE_ACCOUNT_KEY` - Base64 encoded service account
-   - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `NEXT_PUBLIC_RAZORPAY_KEY_ID`
-   - `NODE_ENV=production`
+   ```bash
+   # Production Values
+   NODE_ENV=production
+   DATABASE_URL=postgresql://...  # Production database
+   JWT_SECRET=your_production_secret
+   
+   # PhonePe PRODUCTION
+   PHONEPE_CLIENT_ID=your_production_client_id
+   PHONEPE_CLIENT_SECRET=your_production_secret
+   PHONEPE_BASE_URL=https://api.phonepe.com/apis/hermes
+   PHONEPE_AUTH_URL=https://api.phonepe.com/apis/hermes/v1/oauth/token
+   
+   # Firebase, Cloudinary, Supabase (all production credentials)
+   # See .env.example for complete list
+   ```
 
-4. **Update External Service Configurations**
-   
-   - **Firebase**: Add your Netlify domain (e.g., `yoursite.netlify.app`) to authorized domains
-   - **Razorpay**: Add your Netlify domain to authorized domains
-   - **Database**: Ensure your database allows connections from Netlify
+4. **Update External Services**
+   - **Firebase**: Add your Netlify domain to authorized domains
+   - **PhonePe**: Submit production domain for approval
+   - **Database**: Allow connections from Netlify
 
-5. **Deploy**
-   
-   Click "Deploy site" - Your site will be live in 2-5 minutes at `https://[site-name].netlify.app`
+5. **Deploy** - Your site will be live at `https://chulbulijewels.in`
 
 #### Configuration Files
-
-The project includes these Netlify-ready files:
-
 - **`netlify.toml`** - Build configuration, redirects, headers
-- **`next.config.js`** - Updated with Netlify CSP domains
-- **`package.json`** - Includes `@netlify/plugin-nextjs`
+- **`next.config.js`** - Security headers and CSP
 
-#### Continuous Deployment
+---
 
-Once connected, Netlify automatically:
-- Deploys on every push to main/master branch
-- Creates deploy previews for pull requests
-- Provides unique URLs for each deployment
+### 🟢 Vercel Deployment (Preview/Development)
 
-#### Custom Domain (Optional)
+**Vercel** provides fast preview deployments for testing with sandbox APIs.
 
-1. In Netlify Dashboard → Domain management
-2. Add custom domain
-3. Update DNS records as instructed
-4. SSL certificates are provisioned automatically
+#### Quick Deploy
 
-📖 **Detailed Guide:** See [NETLIFY_DEPLOYMENT.md](NETLIFY_DEPLOYMENT.md) for complete deployment instructions, troubleshooting, and best practices.
+1. **Install Vercel CLI**
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Authenticate and Link Project**
+   ```bash
+   # Login to Vercel
+   vercel login
+   
+   # Link project (one-time setup)
+   vercel link
+   ```
+
+3. **Push to Develop Branch**
+   ```bash
+   git checkout develop
+   git add .
+   git commit -m "Ready for preview"
+   git push origin develop  # Auto-deploys to Vercel
+   ```
+
+4. **Manual Deploy (Optional)**
+   ```bash
+   # Deploy current branch to preview
+   vercel --env=preview
+   
+   # Check deployment status
+   vercel ls
+   ```
+
+5. **Configure Environment Variables**
+   
+   Using Vercel CLI:
+   ```bash
+   # Add variables for preview environment
+   vercel env add PHONEPE_CLIENT_ID preview
+   vercel env add PHONEPE_CLIENT_SECRET preview
+   # ... add all variables from .env.example
+   ```
+   
+   Or via Vercel Dashboard → Settings → Environment Variables:
+   
+   ```bash
+   # Preview Environment (Sandbox APIs)
+   NODE_ENV=development
+   
+   # PhonePe SANDBOX
+   PHONEPE_CLIENT_ID=your_sandbox_client_id
+   PHONEPE_CLIENT_SECRET=your_sandbox_secret
+   PHONEPE_BASE_URL=https://api-preprod.phonepe.com/apis/pg-sandbox
+   PHONEPE_AUTH_URL=https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token
+   
+   # Same Firebase, Cloudinary, Supabase as development
+   # See .env.example and doc/PHONEPE-PRODUCTION-DEPLOYMENT.md
+   ```
+
+#### Configuration Files
+- **`vercel.json`** - Vercel-specific build config and branch settings
+- **Git Integration**: Only `develop` branch deploys to Vercel
+- **`main` branch disabled** in `vercel.json` to avoid conflicts
+
+#### Vercel Preview URLs
+
+Vercel automatically creates preview URLs for:
+- **Develop branch**: `chulbuli-git-develop-*.vercel.app`
+- **Pull requests**: `chulbuli-pr-123-*.vercel.app`
+- **Feature branches**: Can be enabled if needed
+
+---
+
+### 📊 Environment Comparison
+
+| Feature | Production (Netlify) | Preview (Vercel) |
+|---------|---------------------|------------------|
+| **Branch** | `main` | `develop` |
+| **Database** | Production DB | Development/Staging DB |
+| **PhonePe** | Production API | Sandbox API |
+| **Firebase** | Production project | Same (dev project) |
+| **Domain** | `chulbulijewels.in` | `*.vercel.app` |
+| **Purpose** | Live customer orders | Testing & QA |
+| **Auto-deploy** | ✅ On push to main | ✅ On push to develop |
+
+---
+
+### 🔄 Continuous Deployment
+
+Both platforms provide automatic deployments:
+
+**Netlify** (Production):
+- Deploys on every push to `main` branchs
+- Manual rollback available
+- Deploy logs and build analytics
+
+**Vercel** (Preview):
+- Deploys on every push to `develop` branch
+- Preview deployments for pull requests
+- Instant rollback to previous deployments
+- Comment previews on GitHub PRs
+
+---
+
+### 🌐 Custom Domain Setup
+
+#### Netlify (Production)
+1. Netlify Dashboard → Domain management
+2. Add custom domain: `chulbulijewels.in`
+3. Update DNS records:
+   ```
+   A Record: @ → 75.2.60.5
+   CNAME: www → [site-name].netlify.app
+   ```
+4. SSL auto-provisioned (Let's Encrypt)
+
+#### Vercel (Preview)
+- Use default `*.vercel.app` domains for preview
+- Custom domains not needed for development/testing
+
+---
+
+### 📚 Additional Resources
+
+- 📖 **PhonePe Production Setup**: See [doc/PHONEPE-PRODUCTION-DEPLOYMENT.md](doc/PHONEPE-PRODUCTION-DEPLOYMENT.md)
+- 📖 **Environment Variables**: See [.env.example](.env.example)
+- 📖 **Vercel Docs**: [vercel.com/docs](https://vercel.com/docs)
+- 📖 **Netlify Docs**: [docs.netlify.com](https://docs.netlify.com)
 
 </div>
 
