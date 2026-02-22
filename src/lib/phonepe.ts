@@ -160,8 +160,12 @@ export async function getPhonePeToken(forceRefresh: boolean = false) {
       client_version: PHONEPE_CLIENT_VERSION,
     });
 
-    // PHONEPE_AUTH_URL already includes the full path to token endpoint
-    const tokenEndpoint = PHONEPE_AUTH_URL;
+    // Construct token endpoint - append path if not already present
+    // Sandbox: PHONEPE_AUTH_URL may include full path /v1/oauth/token
+    // Production: PHONEPE_AUTH_URL is base URL, need to append path
+    const tokenEndpoint = PHONEPE_AUTH_URL.endsWith('/v1/oauth/token') 
+      ? PHONEPE_AUTH_URL 
+      : `${PHONEPE_AUTH_URL}/v1/oauth/token`;
 
     // Standard Checkout: Use dedicated auth endpoint for token
     const response = await fetch(tokenEndpoint, {
