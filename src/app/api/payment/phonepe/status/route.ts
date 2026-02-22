@@ -15,10 +15,25 @@ import { db, pool } from '@/lib/db/client';
 import { orders } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { verifyPhonePePayment } from '@/lib/phonepe';
+import { rateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
+// Rate limiter: 30 status checks per minute per IP (allows polling)
+const statusRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 30,
+  message: 'Too many status check requests. Please try again later.',
+  keyPrefix: 'phonepe-status',
+});
+
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = statusRateLimiter(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const merchantOrderId = searchParams.get('merchantOrderId');

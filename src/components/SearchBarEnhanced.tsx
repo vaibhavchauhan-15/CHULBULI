@@ -36,7 +36,7 @@ export default function SearchBarEnhanced() {
         setShowDropdown(true)
         setIsSearching(false)
       } catch (error) {
-        console.error('Search error:', error)
+        // Search failed silently
         setIsSearching(false)
       }
     }, 300)

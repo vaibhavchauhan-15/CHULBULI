@@ -186,12 +186,12 @@ export default function CheckoutPage() {
 
   // Update shipping selection when cart total changes
   useEffect(() => {
-    if (subtotal >= 500) {
+    if (subtotal >= 500 && selectedShipping !== 'free') {
       setSelectedShipping('free')
-    } else if (selectedShipping === 'free') {
+    } else if (subtotal < 500 && selectedShipping === 'free') {
       setSelectedShipping('standard')
     }
-  }, [subtotal, selectedShipping])
+  }, [subtotal])
 
   // Load Razorpay script with retry logic
   useEffect(() => {

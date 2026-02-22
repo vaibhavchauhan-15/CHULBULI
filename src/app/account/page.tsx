@@ -100,11 +100,17 @@ interface UserOrder {
   orderItems: OrderItem[]
 }
 
-// Helper function to decode HTML entities
+// Helper function to decode HTML entities (optimized - no DOM manipulation)
 const decodeHtmlEntities = (str: string): string => {
-  const textarea = document.createElement('textarea')
-  textarea.innerHTML = str
-  return textarea.value
+  return str
+    .replace(/&#x([0-9A-F]+);/gi, (match, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(parseInt(dec, 10)))
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#x2F;/g, '/')
+    .replace(/&#47;/g, '/')
 }
 
 // Helper function to ensure proper image URL format
@@ -128,7 +134,7 @@ const getImageUrl = (url: string | null | undefined): string | null => {
     new URL(formattedUrl)
     return formattedUrl
   } catch (error) {
-    console.error('Invalid image URL:', url, error)
+    // Invalid URL, return null silently
     return null
   }
 }
@@ -189,7 +195,11 @@ export default function AccountPage() {
       const force = options?.force ?? false
       const signal = options?.signal
 
-      if (!force && loadedTabs[tab]) return
+      // Check if already loaded (use functional state update to avoid dependency)
+      if (!force) {
+        const isAlreadyLoaded = ['security', 'controls'].includes(tab) || loadedTabs[tab]
+        if (isAlreadyLoaded) return
+      }
 
       setLoading(true)
       setError('')
@@ -250,7 +260,7 @@ export default function AccountPage() {
         }
       }
     },
-    [loadedTabs]
+    [] // Remove loadedTabs from dependencies
   )
 
   useEffect(() => {

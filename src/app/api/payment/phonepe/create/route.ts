@@ -17,20 +17,29 @@ import { eq } from 'drizzle-orm';
 import { sanitizeOrderData, validateEmail, validatePhoneNumber, validatePincode } from '@/lib/validation';
 import { generateId } from '@/lib/db/queries';
 import { createPhonePeOrder, generateMerchantOrderId, getPhonePeCheckoutScriptUrl } from '@/lib/phonepe';
+import { rateLimit } from '@/lib/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
+// Rate limiter: 10 payment creation requests per 5 minutes per IP
+const paymentRateLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10,
+  message: 'Too many payment requests. Please try again later.',
+  keyPrefix: 'phonepe-create',
+});
+
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = paymentRateLimiter(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   let orderId: string | null = null; // Track order ID for cleanup
   
   try {
     const requestOrigin = new URL(request.url).origin;
-    // Add request logging for debugging
-    console.log('🔵 PhonePe payment creation request received:', {
-      timestamp: new Date().toISOString(),
-      url: request.url,
-      method: request.method,
-    });
 
     const body = await request.json();
     const {

@@ -12,6 +12,14 @@ import { getPhonePeToken } from '@/lib/phonepe';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  // SECURITY: Disable test endpoint in production
+  if (process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'Not Found' },
+      { status: 404 }
+    );
+  }
+
   try {
     const baseUrl = (process.env.PHONEPE_BASE_URL || 'https://api.phonepe.com/apis/pg').trim().replace(/\/+$/, '');
     const authUrl = (process.env.PHONEPE_AUTH_URL || 'https://api.phonepe.com/apis/identity-manager').trim().replace(/\/+$/, '');
@@ -33,7 +41,7 @@ export async function GET(request: NextRequest) {
         authUrl: authUrl,
         appUrl: appUrl,
         expectedEndpoints: {
-          token: `${authUrl}/v1/oauth/token`,
+          token: authUrl, // Already includes /v1/oauth/token
           createPayment: `${baseUrl}/checkout/v2/pay`,
           checkStatus: `${baseUrl}/checkout/v2/order/{merchantOrderId}/status`,
         }

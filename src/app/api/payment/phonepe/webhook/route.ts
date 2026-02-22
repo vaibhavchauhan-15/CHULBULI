@@ -16,13 +16,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { db, pool } from '@/lib/db/client';
-import { orders } from '@/lib/db/schema';
+import { orders, webhookLogs } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { verifyWebhookSignature } from '@/lib/phonepe';
+import { generateId } from '@/lib/db/queries';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: NextRequest) {
+  let webhookLogId: string | null = null;
+
   try {
     // Get Authorization header from PhonePe webhook (Standard Checkout v2)
     // Format: SHA256(username:password)
@@ -41,8 +44,25 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Extract event details early for logging
+    const eventType = webhookData.event;
+    const payload = webhookData.payload;
+    const merchantOrderId = payload?.merchantOrderId;
+
+    // Log webhook for retry mechanism
+    webhookLogId = generateId('wh');
+    await db.insert(webhookLogs).values({
+      id: webhookLogId,
+      event: eventType,
+      payload: JSON.stringify(webhookData),
+      merchantOrderId: merchantOrderId || null,
+      status: 'pending',
+      attempts: 1,
+    });
+
     // CRITICAL: Verify webhook signature to prevent fraud
     if (!authHeader) {
+      await updateWebhookLog(webhookLogId, 'failed', 'Missing Authorization header');
       console.error('PhonePe Webhook missing Authorization header');
       return NextResponse.json(
         { error: 'Missing Authorization header' },
@@ -51,6 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!verifyWebhookSignature(authHeader)) {
+      await updateWebhookLog(webhookLogId, 'failed', 'Invalid signature');
       console.error('PhonePe Webhook Signature Verification Failed');
       return NextResponse.json(
         { error: 'Invalid signature' },
@@ -58,16 +79,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extract event type and payload from Standard Checkout v2 webhook
-    // Documentation structure: { event: "checkout.order.completed", payload: {...} }
-    const eventType = webhookData.event; // e.g., 'checkout.order.completed'
-    const payload = webhookData.payload;
-
-    // CRITICAL: Per documentation, merchantOrderId is the primary identifier in payload
-    // https://developer.phonepe.com/v1/docs/webhook-handling
-    const merchantOrderId = payload?.merchantOrderId;
-
     if (!merchantOrderId) {
+      await updateWebhookLog(webhookLogId!, 'failed', 'Missing merchantOrderId in payload');
       console.error('PhonePe Webhook: Missing merchantOrderId in payload:', {
         event: eventType,
         receivedPayload: payload,
@@ -95,6 +108,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!orderResult) {
+      await updateWebhookLog(webhookLogId!, 'failed', 'Order not found');
       console.error('Order not found for webhook:', merchantOrderId);
       return NextResponse.json(
         { error: 'Order not found' },
@@ -104,6 +118,7 @@ export async function POST(request: NextRequest) {
 
     // IDEMPOTENCY CHECK: If order is already marked as completed, don't process again
     if (orderResult.paymentStatus === 'completed') {
+      await updateWebhookLog(webhookLogId!, 'processed', null, new Date());
       console.log('Order already processed, skipping webhook:', orderResult.id);
       return NextResponse.json({
         success: true,
@@ -138,6 +153,9 @@ export async function POST(request: NextRequest) {
         state: paymentState,
       });
     }
+    
+    // Mark webhook as processed
+    await updateWebhookLog(webhookLogId!, 'processed', null, new Date());
 
     return NextResponse.json({
       success: true,
@@ -145,8 +163,39 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('PhonePe Webhook Error:', error);
+    
+    // Update webhook log with error
+    if (webhookLogId) {
+      await updateWebhookLog(webhookLogId, 'failed', error.message);
+    }
+
     return NextResponse.json(
       { error: 'Webhook processing failed', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Update webhook log status
+ */
+async function updateWebhookLog(
+  id: string,
+  status: 'pending' | 'processed' | 'failed',
+  lastError: string | null,
+  processedAt?: Date
+) {
+  try {
+    await db.update(webhookLogs)
+      .set({
+        status,
+        lastError,
+        processedAt,
+        updatedAt: new Date(),
+      })
+      .where(eq(webhookLogs.id, id));
+  } catch (error) {
+    console.error('Failed to update webhook log:', error  { error: 'Webhook processing failed', details: error.message },
       { status: 500 }
     );
   }
@@ -183,23 +232,35 @@ async function handlePaymentSuccess(order: any, event: any) {
 
       markedCompleted = true;
 
-      // Deduct stock for all items in the order
-      // Get order items
+      // Deduct stock for all items in the order using optimized batch update
+      // This prevents blocking webhook response and improves performance
       const orderItemsResult = await pool.query(
         'SELECT "productId", quantity FROM "OrderItem" WHERE "orderId" = $1',
         [order.id]
       );
 
-      // Deduct stock for each item
-      for (const item of orderItemsResult.rows) {
-        const updateResult = await pool.query(
-          'UPDATE "Product" SET stock = stock - $1, "updatedAt" = NOW() WHERE id = $2 AND stock >= $1 RETURNING id',
-          [item.quantity, item.productId]
-        );
-
-        if (updateResult.rows.length === 0) {
-          console.warn(`Failed to deduct stock for product ${item.productId} in order ${order.id}`);
-          // Continue processing - don't fail the entire webhook
+      if (orderItemsResult.rows.length > 0) {
+        // Batch stock deduction using a single query with unnest
+        const productIds = orderItemsResult.rows.map((item: any) => item.productId);
+        const quantities = orderItemsResult.rows.map((item: any) => item.quantity);
+        
+        const batchUpdateResult = await pool.query(`
+          UPDATE "Product" p
+          SET 
+            stock = p.stock - u.quantity::int,
+            "updatedAt" = NOW()
+          FROM (
+            SELECT 
+              unnest($1::text[]) as product_id,
+              unnest($2::int[]) as quantity
+          ) u
+          WHERE p.id = u.product_id 
+            AND p.stock >= u.quantity::int
+          RETURNING p.id
+        `, [productIds, quantities]);
+        
+        if (batchUpdateResult.rows.length !== orderItemsResult.rows.length) {
+          console.warn(`Stock deduction incomplete for order ${order.id}. Expected ${orderItemsResult.rows.length}, updated ${batchUpdateResult.rows.length}`);
         }
       }
     });

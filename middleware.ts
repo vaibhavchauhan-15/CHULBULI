@@ -7,24 +7,16 @@ import { randomUUID } from 'crypto'
  * Adds security headers and validates sessions
  */
 export function middleware(request: NextRequest) {
-  const response = NextResponse.next()
-
-  // Add additional security headers
-  response.headers.set('X-Request-ID', randomUUID())
-  
-  // Prevent clickjacking
-  response.headers.set('X-Frame-Options', 'DENY')
+  // Skip validation for health check endpoints
+  if (request.nextUrl.pathname === '/api/health') {
+    return NextResponse.next()
+  }
   
   // Validate origin for state-changing requests (CSRF protection)
   if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
     const origin = request.headers.get('origin')
     const referer = request.headers.get('referer')
     const host = request.headers.get('host')
-    
-    // Skip validation for health check endpoints
-    if (request.nextUrl.pathname === '/api/health') {
-      return response
-    }
     
     // In production, validate origin or referer matches host
     if (process.env.NODE_ENV === 'production') {
@@ -47,6 +39,15 @@ export function middleware(request: NextRequest) {
       }
     }
   }
+
+  // Create response after all validations
+  const response = NextResponse.next()
+
+  // Add additional security headers
+  response.headers.set('X-Request-ID', randomUUID())
+  
+  // Prevent clickjacking
+  response.headers.set('X-Frame-Options', 'DENY')
 
   // Add security headers for API routes
   if (request.nextUrl.pathname.startsWith('/api')) {

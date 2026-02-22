@@ -270,6 +270,29 @@ export const productImages = pgTable(
   })
 )
 
+// Webhook Log table for payment webhook retry mechanism
+export const webhookLogs = pgTable(
+  'WebhookLog',
+  {
+    id: text('id').primaryKey(),
+    event: text('event').notNull(), // checkout.order.completed, checkout.order.failed, etc.
+    payload: text('payload').notNull(), // JSON stringified webhook payload
+    merchantOrderId: text('merchantOrderId'), // For quick lookup
+    status: varchar('status', { length: 20 }).notNull().default('pending'), // pending, processed, failed
+    attempts: integer('attempts').notNull().default(0),
+    lastError: text('lastError'), // Error message from last failed attempt
+    processedAt: timestamp('processedAt', { mode: 'date' }), // When successfully processed
+    createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+    updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow(),
+  },
+  (table) => ({
+    merchantOrderIdIdx: index('WebhookLog_merchantOrderId_idx').on(table.merchantOrderId),
+    statusIdx: index('WebhookLog_status_idx').on(table.status),
+    eventIdx: index('WebhookLog_event_idx').on(table.event),
+    createdAtIdx: index('WebhookLog_createdAt_idx').on(table.createdAt),
+  })
+)
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   orders: many(orders),

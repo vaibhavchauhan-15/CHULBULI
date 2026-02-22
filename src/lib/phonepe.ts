@@ -30,6 +30,19 @@ const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'http
 // Token caching to avoid unnecessary token requests
 let cachedToken: { access_token: string; expires_at: number } | null = null;
 
+// Log PhonePe environment configuration on initialization
+if (process.env.NODE_ENV === 'development') {
+  const environment = PHONEPE_BASE_URL.includes('preprod') || PHONEPE_BASE_URL.includes('sandbox') ? 'SANDBOX' : 'PRODUCTION';
+  console.log('🔧 PhonePe Configuration Loaded:', {
+    environment,
+    baseUrl: PHONEPE_BASE_URL,
+    authUrl: PHONEPE_AUTH_URL,
+    hasClientId: !!PHONEPE_CLIENT_ID,
+    hasClientSecret: !!PHONEPE_CLIENT_SECRET,
+    appUrl: APP_URL,
+  });
+}
+
 function trimTrailingSlash(url: string): string {
   return url.replace(/\/+$/, '');
 }
@@ -135,20 +148,10 @@ export async function getPhonePeToken(forceRefresh: boolean = false) {
   // Check if we have a valid cached token (with 5 minute buffer before expiry)
   const now = Math.floor(Date.now() / 1000);
   if (!forceRefresh && cachedToken && cachedToken.expires_at > (now + 300)) {
-    console.log('✅ Using cached PhonePe token (expires in', cachedToken.expires_at - now, 'seconds)');
     return cachedToken;
   }
 
   try {
-    console.log('PhonePe: Requesting new OAuth token...');
-    console.log('PhonePe Config:', {
-      client_id: PHONEPE_CLIENT_ID?.substring(0, 15) + '...', // Mask sensitive info
-      client_version: PHONEPE_CLIENT_VERSION,
-      auth_url: PHONEPE_AUTH_URL,
-      base_url: PHONEPE_BASE_URL,
-      has_client_secret: !!PHONEPE_CLIENT_SECRET,
-    });
-
     // Prepare URL-encoded request body (OAuth 2.0 standard format)
     const params = new URLSearchParams({
       client_id: PHONEPE_CLIENT_ID,
@@ -157,8 +160,8 @@ export async function getPhonePeToken(forceRefresh: boolean = false) {
       client_version: PHONEPE_CLIENT_VERSION,
     });
 
-    const tokenEndpoint = `${PHONEPE_AUTH_URL}/v1/oauth/token`;
-    console.log('Token endpoint:', tokenEndpoint);
+    // PHONEPE_AUTH_URL already includes the full path to token endpoint
+    const tokenEndpoint = PHONEPE_AUTH_URL;
 
     // Standard Checkout: Use dedicated auth endpoint for token
     const response = await fetch(tokenEndpoint, {
@@ -170,11 +173,6 @@ export async function getPhonePeToken(forceRefresh: boolean = false) {
     });
 
     const responseText = await response.text();
-    console.log('PhonePe Token Response Status:', response.status);
-    
-    if (response.status !== 200) {
-      console.error('PhonePe Token Error Response:', responseText);
-    }
 
     if (!response.ok) {
       let errorData;
@@ -183,10 +181,11 @@ export async function getPhonePeToken(forceRefresh: boolean = false) {
       } catch {
         errorData = { message: responseText };
       }
-      console.error('PhonePe Token Error Details:', {
+      
+      console.error('❌ PhonePe Token Request Failed:', {
         status: response.status,
         statusText: response.statusText,
-        error: errorData,
+        errorData,
         endpoint: tokenEndpoint,
       });
       
@@ -202,21 +201,19 @@ export async function getPhonePeToken(forceRefresh: boolean = false) {
 
     const tokenData = JSON.parse(responseText);
     
+    console.log('✅ PhonePe OAuth token obtained successfully', {
+      expiresAt: tokenData.expires_at ? new Date(tokenData.expires_at * 1000).toISOString() : 'unknown',
+      hasAccessToken: !!tokenData.access_token,
+    });
+    
     // Cache the token with expiry time
     cachedToken = {
       access_token: tokenData.access_token,
       expires_at: tokenData.expires_at || (now + 86400), // Default 24h if not provided
     };
     
-    console.log('✅ PhonePe OAuth token obtained successfully');
-    console.log('Token expires at:', new Date(cachedToken.expires_at * 1000).toISOString());
     return cachedToken;
   } catch (error: any) {
-    console.error('❌ PhonePe Token Error:', {
-      message: error.message,
-      name: error.name,
-      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
-    });
     throw new Error(`Failed to authenticate with PhonePe: ${error.message}`);
   }
 }
@@ -293,10 +290,8 @@ export async function createPhonePeOrder(orderDetails: {
     try {
       tokenData = await getPhonePeToken();
     } catch (tokenError: any) {
-      console.error('Failed to get PhonePe token:', tokenError);
       // Try once more with force refresh
       try {
-        console.log('Retrying token request with force refresh...');
         tokenData = await getPhonePeToken(true);
       } catch (retryError: any) {
         throw new Error(`PhonePe authentication failed after retry: ${retryError.message}`);
@@ -325,17 +320,6 @@ export async function createPhonePeOrder(orderDetails: {
 
     const paymentEndpoint = `${PHONEPE_BASE_URL}/checkout/v2/pay`;
 
-    console.log('PhonePe Standard Checkout v2: Creating payment order...');
-    console.log('Request Details:', {
-      endpoint: paymentEndpoint,
-      merchantOrderId: orderDetails.merchantOrderId,
-      amount: amountInPaise,
-      amountInRupees: orderDetails.amount,
-      redirectUrl: payload.paymentFlow.merchantUrls.redirectUrl,
-      hasToken: !!tokenData?.access_token,
-      tokenLength: tokenData?.access_token?.length || 0,
-    });
-
     // Create payment using Standard Checkout v2 API
     // Uses plain JSON with O-Bearer token (NO Base64, NO checksum)
     const response = await fetch(paymentEndpoint, {
@@ -348,36 +332,18 @@ export async function createPhonePeOrder(orderDetails: {
     });
 
     const responseText = await response.text();
-    console.log('PhonePe Payment Response Status:', response.status);
-    
-    if (response.status !== 200 && response.status !== 201) {
-      console.error('PhonePe Payment Error Response:', responseText);
-      console.error('Sent Payload:', JSON.stringify(payload, null, 2));
-    }
 
     let paymentData;
     try {
       paymentData = JSON.parse(responseText);
     } catch (parseError) {
-      console.error('Failed to parse PhonePe response:', parseError);
       throw new Error(`Invalid response from PhonePe: ${responseText}`);
     }
 
     // OAuth v2 response validation - check for error responses
     if (!response.ok) {
-      console.error('PhonePe Order Creation Failed');
-      console.error('Response Status:', response.status, response.statusText);
-      console.error('Response Body:', paymentData);
-      console.error('Sent Payload:', JSON.stringify(payload, null, 2));
-      console.error('Request Headers:', {
-        'Content-Type': 'application/json',
-        'Authorization': `O-Bearer ${tokenData.access_token.substring(0, 20)}...${tokenData.access_token.substring(tokenData.access_token.length - 10)}`,
-        'Endpoint': paymentEndpoint,
-      });
-      
       // Handle token expiry - retry with fresh token
-      if (response.status === 401 && paymentData.code === 'UNAUTHORIZED') {
-        console.log('Token expired or invalid, retrying with fresh token...');
+      if (response.status === 401 || paymentData?.code === 'UNAUTHORIZED') {
         try {
           const freshTokenData = await getPhonePeToken(true);
           const retryResponse = await fetch(paymentEndpoint, {
@@ -392,7 +358,6 @@ export async function createPhonePeOrder(orderDetails: {
           const retryResponseText = await retryResponse.text();
           if (retryResponse.ok) {
             const retryPaymentData = JSON.parse(retryResponseText);
-            console.log('✅ Retry successful with fresh token');
             return {
               success: true,
               paymentUrl: retryPaymentData.redirectUrl,
@@ -401,7 +366,7 @@ export async function createPhonePeOrder(orderDetails: {
             };
           }
         } catch (retryError) {
-          console.error('Retry with fresh token failed:', retryError);
+          // Retry failed, continue to error handling below
         }
       }
       
@@ -459,22 +424,14 @@ export async function createPhonePeOrder(orderDetails: {
     if (paymentData.redirectUrl && paymentData.orderId) {
       paymentUrl = paymentData.redirectUrl;
       transactionId = paymentData.orderId;
-      console.log('✅ PhonePe Standard Checkout payment created successfully');
-      console.log('Payment State:', paymentData.state);
-      console.log('Expires At:', new Date(paymentData.expireAt));
     }
     else {
-      console.error('Cannot extract payment URL from response:', JSON.stringify(paymentData, null, 2));
       throw new Error('PhonePe response missing redirectUrl. Received: ' + JSON.stringify(paymentData));
     }
 
     if (!paymentUrl) {
-      console.error('No payment URL found after extraction:', paymentData);
       throw new Error('PhonePe did not return a payment URL');
     }
-
-    console.log('Payment URL:', paymentUrl);
-    console.log('Transaction ID:', transactionId);
 
     return {
       success: true,
@@ -483,13 +440,6 @@ export async function createPhonePeOrder(orderDetails: {
       merchantOrderId: orderDetails.merchantOrderId,
     };
   } catch (error: any) {
-    console.error('❌ PhonePe Order Creation Error:', {
-      message: error.message,
-      name: error.name,
-      merchantOrderId: orderDetails.merchantOrderId,
-      amount: orderDetails.amount,
-      stack: error.stack?.split('\n').slice(0, 3).join('\n'),
-    });
     throw new Error(`Failed to create payment with PhonePe: ${error.message}`);
   }
 }
@@ -516,12 +466,6 @@ export async function verifyPhonePePayment(
     // Documentation: https://developer.phonepe.com/v1/docs/order-status-api
     const statusEndpoint = `/checkout/v2/order/${merchantOrderId}/status`;
 
-    console.log('PhonePe Standard Checkout v2: Checking payment status...', {
-      merchantOrderId: merchantOrderId,
-      endpoint: `${PHONEPE_BASE_URL}${statusEndpoint}`,
-      hasToken: !!tokenData.access_token,
-    });
-
     // Check payment status with optional query parameters
     // details=false: Returns only latest payment attempt (recommended for most cases)
     // errorContext=true: Includes detailed error information if payment failed
@@ -541,21 +485,18 @@ export async function verifyPhonePePayment(
     );
 
     const responseText = await response.text();
-    console.log('PhonePe Status Response:', responseText);
 
     let statusData;
     try {
       statusData = JSON.parse(responseText);
     } catch (parseError) {
-      console.error('Failed to parse PhonePe status response:', parseError);
       throw new Error(`Invalid response from PhonePe: ${responseText}`);
     }
 
     if (!response.ok) {
-      console.error('PhonePe Status Check Error:', statusData);
       throw new Error(`Failed to verify payment: ${statusData.message || statusData.code || response.statusText}`);
     }
-
+    
     // Standard Checkout v2 response structure (per documentation):
     // https://developer.phonepe.com/v1/docs/order-status-api#response-parameters
     // {
@@ -584,7 +525,6 @@ export async function verifyPhonePePayment(
     throw new Error(`Failed to verify payment status: ${error.message}`);
   }
 }
-
 /**
  * Verify PhonePe Webhook Signature for Standard Checkout
  * IMPORTANT: Always verify webhook signatures to prevent fraud
@@ -596,7 +536,6 @@ export async function verifyPhonePePayment(
 export function verifyWebhookSignature(authHeader: string): boolean {
   try {
     if (!authHeader) {
-      console.error('Missing Authorization header for webhook verification');
       return false;
     }
 
@@ -605,7 +544,6 @@ export function verifyWebhookSignature(authHeader: string): boolean {
     const webhookPassword = (process.env.PHONEPE_WEBHOOK_PASSWORD || '').trim();
 
     if (!webhookUsername || !webhookPassword) {
-      console.error('Webhook credentials not configured in environment');
       return false;
     }
 
@@ -617,19 +555,9 @@ export function verifyWebhookSignature(authHeader: string): boolean {
     // Accept optional "sha256=" prefix defensively and compare case-insensitively.
     const normalizedHeader = authHeader.trim().replace(/^sha256=/i, '').toLowerCase();
     const isValid = normalizedHeader === expectedHash.toLowerCase();
-
-    if (!isValid) {
-      console.error('Webhook signature verification failed:', {
-        receivedHash: authHeader.substring(0, 20) + '...',
-        expectedHash: expectedHash.substring(0, 20) + '...',
-      });
-    } else {
-      console.log('✅ Webhook signature verified successfully');
-    }
     
     return isValid;
   } catch (error) {
-    console.error('Webhook Signature Verification Error:', error);
     return false;
   }
 }
