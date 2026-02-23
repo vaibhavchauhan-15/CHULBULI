@@ -8,7 +8,6 @@ import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import toast from 'react-hot-toast'
 import { FiUser, FiMail, FiPhone, FiMapPin, FiCreditCard, FiShoppingBag, FiCheck, FiTruck, FiEdit2 } from 'react-icons/fi'
-import type { RazorpayOptions, RazorpayResponse } from '@/types/razorpay'
 
 interface Address {
   id: string
@@ -39,9 +38,6 @@ export default function CheckoutPage() {
   const user = useAuthStore((state) => state.user)
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'online'>('online')
-  const [paymentGateway, setPaymentGateway] = useState<'razorpay' | 'phonepe'>('phonepe') // Default to PhonePe
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false)
-  const [scriptLoadAttempts, setScriptLoadAttempts] = useState(0)
   const [mounted, setMounted] = useState(false)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([])
@@ -80,7 +76,6 @@ export default function CheckoutPage() {
   const gstRate = 0.03 // 3% GST
   const gstAmount = subtotal * gstRate
   const totalAmount = subtotal + getShippingCost() + gstAmount
-  const requiresRazorpay = paymentMethod === 'online' && paymentGateway === 'razorpay'
 
   const [formData, setFormData] = useState({
     customerName: user?.name || '',
@@ -193,78 +188,12 @@ export default function CheckoutPage() {
     }
   }, [subtotal, selectedShipping])
 
-  // Load Razorpay script with retry logic
+  // Minimum order value validation for PhonePe
   useEffect(() => {
-    if (!mounted || paymentMethod !== 'online' || paymentGateway !== 'razorpay') {
-      return
+    if (paymentMethod === 'online' && totalAmount < 1) {
+      toast.error('Minimum order value for online payment is ₹1. Please add more items or use Cash on Delivery.', { duration: 5000 })
     }
-
-    const loadRazorpayScript = () => {
-      // Check if Razorpay is already loaded
-      if ((window as any).Razorpay) {
-        setRazorpayLoaded(true)
-        console.log('Razorpay already loaded')
-        return
-      }
-
-      // Check if script is already in DOM
-      const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]')
-      if (existingScript) {
-        // Wait a bit and check again
-        const checkInterval = setInterval(() => {
-          if ((window as any).Razorpay) {
-            setRazorpayLoaded(true)
-            clearInterval(checkInterval)
-          }
-        }, 100)
-        
-        setTimeout(() => clearInterval(checkInterval), 5000) // Stop checking after 5 seconds
-        return
-      }
-
-      const script = document.createElement('script')
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
-      script.async = true
-      
-      script.onload = () => {
-        console.log('Razorpay script loaded successfully')
-        setRazorpayLoaded(true)
-        setScriptLoadAttempts(0)
-      }
-      
-      script.onerror = (error) => {
-        console.error('Failed to load Razorpay script:', error)
-        setRazorpayLoaded(false)
-        
-        // Retry up to 3 times
-        if (scriptLoadAttempts < 3) {
-          console.log(`Retrying... Attempt ${scriptLoadAttempts + 1}`)
-          setTimeout(() => {
-            setScriptLoadAttempts(prev => prev + 1)
-            if (script.parentNode) {
-              script.parentNode.removeChild(script)
-            }
-            loadRazorpayScript()
-          }, 1000)
-        } else {
-          console.error('Failed to load Razorpay after 3 attempts')
-          toast.error('Unable to load payment gateway. Please try COD or refresh the page.', { duration: 5000 })
-        }
-      }
-      
-      document.body.appendChild(script)
-    }
-
-    loadRazorpayScript()
-  }, [mounted, paymentMethod, paymentGateway, scriptLoadAttempts])
-
-  // Auto-switch from PhonePe to Razorpay if total falls below ₹1
-  useEffect(() => {
-    if (paymentMethod === 'online' && paymentGateway === 'phonepe' && totalAmount < 1) {
-      setPaymentGateway('razorpay')
-      toast.error('PhonePe requires minimum ₹1. Switched to Razorpay payment.', { duration: 4000 })
-    }
-  }, [totalAmount, paymentMethod, paymentGateway])
+  }, [totalAmount, paymentMethod])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -443,255 +372,100 @@ export default function CheckoutPage() {
           toast.error(error.error || 'Failed to place order')
         }
       } 
-      // Handle Online Payment (Razorpay or PhonePe)
+      // Handle Online Payment (PhonePe)
       else if (paymentMethod === 'online') {
-        // Handle PhonePe Payment
-        if (paymentGateway === 'phonepe') {
-          try {
-            // PhonePe minimum amount validation (₹1 = 100 paisa)
-            if (totalAmount < 1) {
+        try {
+          // PhonePe minimum amount validation (₹1 = 100 paisa)
+          if (totalAmount < 1) {
+            toast.error(
+              `PhonePe requires a minimum payment of ₹1. Your order total is ₹${totalAmount.toFixed(2)}. Please add more items or use Cash on Delivery.`,
+              { duration: 6000 }
+            )
+            setLoading(false)
+            return
+          }
+
+          const orderData = {
+            ...formData,
+            userId: user?.id || null,
+            items: selectedItems.map((item) => ({
+              productId: item.id,
+              quantity: item.quantity,
+            })),
+            shippingMethod: selectedShipping,
+            shippingCost: getShippingCost(),
+            gstAmount: gstAmount,
+            totalAmount: totalAmount,
+          }
+
+          // Call PhonePe create payment API
+          const phonePeResponse = await fetch('/api/payment/phonepe/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData),
+          })
+
+          if (!phonePeResponse.ok) {
+            const error = await phonePeResponse.json()
+            
+            console.error('PhonePe API Error:', {
+              status: phonePeResponse.status,
+              error: error,
+            });
+            
+            // Check for minimum amount error
+            if (error.code === 'MINIMUM_AMOUNT_ERROR') {
               toast.error(
-                `PhonePe requires a minimum payment of ₹1. Your order total is ₹${totalAmount.toFixed(2)}. Please add more items or use Cash on Delivery.`,
+                `PhonePe requires minimum ₹${error.minimumAmount}. Your order is ₹${error.currentAmount?.toFixed(2) || totalAmount.toFixed(2)}. Please add more items or use an alternative payment method.`,
                 { duration: 6000 }
               )
               setLoading(false)
               return
             }
-
-            const orderData = {
-              ...formData,
-              userId: user?.id || null,
-              items: selectedItems.map((item) => ({
-                productId: item.id,
-                quantity: item.quantity,
-              })),
-              shippingMethod: selectedShipping,
-              shippingCost: getShippingCost(),
-              gstAmount: gstAmount,
-              totalAmount: totalAmount,
-            }
-
-            // Call PhonePe create payment API
-            const phonePeResponse = await fetch('/api/payment/phonepe/create', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(orderData),
-            })
-
-            if (!phonePeResponse.ok) {
-              const error = await phonePeResponse.json()
-              
-              console.error('PhonePe API Error:', {
-                status: phonePeResponse.status,
-                error: error,
-              });
-              
-              // Check for minimum amount error
-              if (error.code === 'MINIMUM_AMOUNT_ERROR') {
-                toast.error(
-                  `PhonePe requires minimum ₹${error.minimumAmount}. Your order is ₹${error.currentAmount?.toFixed(2) || totalAmount.toFixed(2)}. Please add more items or use an alternative payment method.`,
-                  { duration: 6000 }
-                )
-                setLoading(false)
-                return
-              }
-              
-              // Check if it's a merchant configuration error or service unavailable
-              if (error.code === 'MERCHANT_NOT_CONFIGURED' || 
-                  error.code === 'SERVICE_UNAVAILABLE' ||
-                  error.error?.includes('not properly configured') ||
-                  error.error?.includes('unavailable')) {
-                // Automatically switch to Razorpay
-                console.log('PhonePe not available, switching to Razorpay...')
-                toast.error(
-                  error.error || 'PhonePe is currently unavailable. Switching to Razorpay...',
-                  { duration: 5000 }
-                )
-                setPaymentGateway('razorpay')
-                setLoading(false)
-                
-                // Show info message
-                setTimeout(() => {
-                  toast(
-                    'You can now place your order using Razorpay or Cash on Delivery.',
-                    { icon: 'ℹ️', duration: 5000 }
-                  )
-                }, 500)
-                return
-              }
-              
-              // Show error with suggestion
-              const errorMessage = error.error || 'Failed to create payment'
-              const suggestion = error.suggestion || 'Please try Razorpay or Cash on Delivery'
-              toast.error(`${errorMessage}. ${suggestion}`, { duration: 6000 })
+            
+            // Check if it's a merchant configuration error or service unavailable
+            if (error.code === 'MERCHANT_NOT_CONFIGURED' || 
+                error.code === 'SERVICE_UNAVAILABLE' ||
+                error.error?.includes('not properly configured') ||
+                error.error?.includes('unavailable')) {
+              console.log('PhonePe not available')
+              toast.error(
+                (error.error || 'PhonePe is currently unavailable.') + ' Please use Cash on Delivery.',
+                { duration: 6000 }
+              )
               setLoading(false)
               return
             }
-
-            const phonePeData = await phonePeResponse.json()
-
-            // Save address to user account before payment
-            await saveAddressToAccount()
-
-            // Use redirect mode to avoid third-party iframe script warnings and noisy console errors
-            toast.dismiss()
-            toast.success('Redirecting to PhonePe payment...')
-            window.location.href = phonePeData.paymentUrl
-            return
-          } catch (phonePeError: any) {
-            console.error('PhonePe error:', phonePeError)
-            toast.error(
-              'PhonePe payment gateway is currently unavailable. Please try Razorpay or Cash on Delivery.',
-              { duration: 5000 }
-            )
-            // Auto-switch to Razorpay
-            setPaymentGateway('razorpay')
+            
+            // Show error with suggestion
+            const errorMessage = error.error || 'Failed to create payment'
+            const suggestion = error.suggestion || 'Please try Cash on Delivery'
+            toast.error(`${errorMessage}. ${suggestion}`, { duration: 6000 })
             setLoading(false)
             return
           }
-        }
 
-        // Handle Razorpay Payment
-        // Wait for Razorpay to load if not already loaded
-        if (requiresRazorpay && !razorpayLoaded && !(window as any).Razorpay) {
-          toast.error('Loading payment gateway. Please wait a moment and try again.')
+          const phonePeData = await phonePeResponse.json()
+
+          // Save address to user account before payment
+          await saveAddressToAccount()
+
+          // Use redirect mode to avoid third-party iframe script warnings and noisy console errors
+          toast.dismiss()
+          toast.success('Redirecting to PhonePe payment...')
+          window.location.href = phonePeData.paymentUrl
+          return
+        } catch (phonePeError: any) {
+          console.error('PhonePe error:', phonePeError)
+          toast.error(
+            'PhonePe payment gateway is currently unavailable. Please use Cash on Delivery.',
+            { duration: 6000 }
+          )
           setLoading(false)
           return
         }
-
-        // Create Razorpay order
-        const razorpayOrderResponse = await fetch('/api/razorpay/create-order', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            amount: totalAmount,
-            currency: 'INR',
-            receipt: `order_${Date.now()}`,
-          }),
-        })
-
-        if (!razorpayOrderResponse.ok) {
-          throw new Error('Failed to create payment order')
-        }
-
-        const razorpayOrder = await razorpayOrderResponse.json()
-
-        // Initialize Razorpay checkout
-        const options: RazorpayOptions = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID!,
-          amount: razorpayOrder.amount,
-          currency: razorpayOrder.currency,
-          name: 'Chulbuli Jewels',
-          description: 'Order Payment',
-          image: '/logo.png',
-          order_id: razorpayOrder.orderId,
-          handler: async (response: RazorpayResponse) => {
-            try {
-              // Verify payment
-              const verifyResponse = await fetch('/api/razorpay/verify-payment', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                }),
-              })
-
-              const verifyData = await verifyResponse.json()
-
-              if (verifyData.success) {
-                // Create order after successful payment
-                const orderData = {
-                  ...formData,
-                  userId: user?.id || null,
-                  items: selectedItems.map((item) => ({
-                    productId: item.id,
-                    quantity: item.quantity,
-                  })),
-                  shippingMethod: selectedShipping,
-                  shippingCost: getShippingCost(),
-                  gstAmount: gstAmount,
-                  totalAmount: totalAmount,
-                  paymentMethod: 'online',
-                  paymentStatus: 'completed',
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature,
-                }
-
-                const orderResponse = await fetch('/api/orders', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify(orderData),
-                })
-
-                if (orderResponse.ok) {
-                  const order = await orderResponse.json()
-                  
-                  // Save address to user account after successful order
-                  await saveAddressToAccount()
-                  
-                  selectedItems.forEach(item => removeItem(item.id))
-                  deselectAllItems()
-                  toast.success('Payment successful! Order placed.')
-                  router.push(`/order-success?orderId=${order.id}&paymentId=${response.razorpay_payment_id}`)
-                } else {
-                  toast.error('Payment successful but order creation failed. Please contact support.')
-                }
-              } else {
-                toast.error('Payment verification failed')
-              }
-            } catch (error) {
-              console.error('Payment handler error:', error)
-              toast.error('Payment processing error')
-            } finally {
-              setLoading(false)
-            }
-          },
-          prefill: {
-            name: formData.customerName,
-            email: formData.customerEmail,
-            contact: formData.customerPhone,
-          },
-          theme: {
-            color: '#C89A7A',
-          },
-          modal: {
-            ondismiss: () => {
-              setLoading(false)
-              toast.error('Payment cancelled')
-            },
-          },
-        }
-
-        const razorpayInstance = new (window as any).Razorpay(options)
-        
-        // Log test card information for development
-        if (process.env.NODE_ENV === 'development') {
-          console.log('=== RAZORPAY TEST MODE ===')
-          console.log('Use these INDIAN test cards:')
-          console.log('Card: 5267 3181 8797 5449 (Mastercard)')
-          console.log('Card: 4012 8888 8888 1881 (Visa - Domestic)')
-          console.log('CVV: Any 3 digits')
-          console.log('Expiry: Any future date')
-          console.log('OR use UPI: success@razorpay')
-          console.log('========================')
-          
-          toast.success('Test Mode: Use Indian cards only. Check console for test card details.', {
-            duration: 6000,
-          })
-        }
-        
-        razorpayInstance.open()
       }
     } catch (error) {
       console.error('Checkout error:', error)
@@ -1139,7 +913,7 @@ export default function CheckoutPage() {
                               Coming Soon
                             </span>
                           </div>
-                          <p className="text-sm text-[#5A3E2B]/60 mt-1">UPI, Card, Netbanking & More via Razorpay</p>
+                          <p className="text-sm text-[#5A3E2B]/60 mt-1">UPI, Card, Netbanking & More via Phonepe</p>
                         </div>
                         <FiCreditCard className="w-6 h-6 text-[#C89A7A]" />
                       </div>
@@ -1184,107 +958,21 @@ export default function CheckoutPage() {
                 {/* Payment security notice */}
                 {paymentMethod === 'online' && (
                   <>
-                    {/* Payment Gateway Selection */}
-                    <div className="mt-4 bg-white/60 rounded-lg p-4 border border-[#C89A7A]/20">
-                      <p className="text-sm font-medium text-[#5A3E2B]/80 mb-3">Select Payment Gateway:</p>
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* PhonePe */}
-                        <label className={`relative block ${totalAmount >= 1 ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}>
-                          <input
-                            type="radio"
-                            name="paymentGateway"
-                            value="phonepe"
-                            checked={paymentGateway === 'phonepe'}
-                            onChange={(e) => setPaymentGateway('phonepe')}
-                            disabled={totalAmount < 1}
-                            className="sr-only"
-                          />
-                          <div className={`bg-white border-2 rounded-lg p-3 transition-all ${
-                            paymentGateway === 'phonepe' && totalAmount >= 1
-                              ? 'border-[#5F259F] bg-[#5F259F]/5 shadow-md'
-                              : totalAmount >= 1
-                              ? 'border-gray-200 hover:border-[#5F259F]/40'
-                              : 'border-gray-200'
-                          }`}>
-                            <div className="flex items-center gap-2">
-                              <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
-                                paymentGateway === 'phonepe'
-                                  ? 'border-[#5F259F] bg-[#5F259F]'
-                                  : 'border-gray-300 bg-white'
-                              }`}>
-                                {paymentGateway === 'phonepe' && (
-                                  <FiCheck className="w-3 h-3 text-white" />
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-1">
-                                  <p className="font-semibold text-[#5A3E2B] text-sm">PhonePe</p>
-                                  {totalAmount >= 1 ? (
-                                    <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 border border-emerald-300 rounded">
-                                      ✓Testing
-                                    </span>
-                                  ) : (
-                                    <span className="px-1.5 py-0.5 text-xs font-medium text-amber-700 bg-amber-100 border border-amber-300 rounded">
-                                      Min ₹1
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-xs text-[#5A3E2B]/60">UPI & Cards</p>
-                                {totalAmount < 1 && (
-                                  <p className="text-xs text-amber-600 mt-1">
-                                    Add ₹{(1 - totalAmount).toFixed(2)} more
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </label>
-
-                        {/* Razorpay */}
-                        <label className="relative block cursor-pointer">
-                          <input
-                            type="radio"
-                            name="paymentGateway"
-                            value="razorpay"
-                            checked={paymentGateway === 'razorpay'}
-                            onChange={(e) => setPaymentGateway('razorpay')}
-                            className="sr-only"
-                          />
-                          <div className={`bg-white border-2 rounded-lg p-3 transition-all ${
-                            paymentGateway === 'razorpay'
-                              ? 'border-[#3395FF] bg-[#3395FF]/5 shadow-md'
-                              : 'border-gray-200 hover:border-[#3395FF]/40'
-                          }`}>
-                            <div className="flex items-center gap-2">
-                              <div className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
-                                paymentGateway === 'razorpay'
-                                  ? 'border-[#3395FF] bg-[#3395FF]'
-                                  : 'border-gray-300 bg-white'
-                              }`}>
-                                {paymentGateway === 'razorpay' && (
-                                  <FiCheck className="w-3 h-3 text-white" />
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <div className="flex items-center gap-1">
-                                  <p className="font-semibold text-[#5A3E2B] text-sm">Razorpay</p>
-                                  <span className="px-1.5 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-100 border border-emerald-300 rounded">
-                                    ✓ Testing
-                                  </span>
-                                </div>
-                                <p className="text-xs text-[#5A3E2B]/60">Cards & Netbanking</p>
-                              </div>
-                            </div>
-                          </div>
-                        </label>
+                    {/* Minimum order notice */}
+                    {totalAmount < 1 && (
+                      <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                        <p className="text-xs text-amber-800 flex items-center gap-2">
+                          <span className="text-base">⚠️</span>
+                          <span>Minimum order value for online payment is ₹1. Please add ₹{(1 - totalAmount).toFixed(2)} more or use Cash on Delivery.</span>
+                        </p>
                       </div>
-                    </div>
+                    )}
 
                     {/* Security notice */}
                     <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <p className="text-xs text-blue-800 flex items-center gap-2">
                         <FiCheck className="w-4 h-4 flex-shrink-0" />
-                        <span>Secure payment powered by {paymentGateway === 'phonepe' ? 'PhonePe' : 'Razorpay'}</span>
+                        <span>Secure payment powered by PhonePe (UPI, Cards & More)</span>
                       </p>
                     </div>
                   </>
@@ -1449,18 +1137,13 @@ export default function CheckoutPage() {
               {/* Place Order Button - Desktop only */}
               <button
                 type="submit"
-                disabled={loading || (requiresRazorpay && !razorpayLoaded)}
+                disabled={loading || (paymentMethod === 'online' && totalAmount < 1)}
                 className="hidden md:flex btn-primary w-full text-lg py-4 disabled:opacity-50 disabled:cursor-not-allowed transition-all items-center justify-center gap-3 group"
               >
                 {loading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     Placing Order...
-                  </>
-                ) : requiresRazorpay && !razorpayLoaded ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Loading Payment Gateway...
                   </>
                 ) : (
                   <>
@@ -1573,18 +1256,13 @@ export default function CheckoutPage() {
             <button
               type="submit"
               onClick={handleSubmit}
-              disabled={loading || (requiresRazorpay && !razorpayLoaded)}
+              disabled={loading || (paymentMethod === 'online' && totalAmount < 1)}
               className="btn-primary btn-mobile-full flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                   Placing Order...
-                </>
-              ) : requiresRazorpay && !razorpayLoaded ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  Loading...
                 </>
               ) : (
                 <>

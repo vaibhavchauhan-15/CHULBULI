@@ -93,17 +93,21 @@ const poolConfig: PoolConfig = {
 const pool = globalThis.__chulbuliPool ?? new Pool(poolConfig)
 if (!globalThis.__chulbuliPool) {
   globalThis.__chulbuliPool = pool
+  
+  // Register event listeners only once to prevent memory leaks
+  pool.on('error', (err) => {
+    console.error('Unexpected database pool error:', err)
+  })
+
+  // Only log first connection in development for cleaner logs
+  let firstConnection = true
+  pool.on('connect', () => {
+    if (process.env.NODE_ENV === 'development' && firstConnection) {
+      console.log('Database pool connection established')
+      firstConnection = false
+    }
+  })
 }
-
-pool.on('error', (err) => {
-  console.error('Unexpected database pool error:', err)
-})
-
-pool.on('connect', () => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Database pool connection established')
-  }
-})
 
 export const db = globalThis.__chulbuliDb ?? drizzle(pool, { schema })
 if (!globalThis.__chulbuliDb) {

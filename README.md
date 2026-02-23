@@ -129,7 +129,7 @@ A modern, elegant, and secure e-commerce platform for women's jewelry built with
 - 🛒 **Shopping Cart** - Add/remove items, quantity management, cart validation
 - ⭐ **Product Reviews** - Verified buyer reviews with 1-5 star ratings (admin-moderated)
 - 📦 **Order Management** - Place orders, track status, view order history
-- 💳 **Cash on Delivery** - COD payment method (online payment in Phase 2)
+- 💳 **Payment Methods** - Cash on Delivery (COD) & PhonePe online payment (₹1 minimum)
 - 👤 **User Profile Management** - Profile pictures from Google OAuth, account linking
 </div>
 
@@ -2103,7 +2103,7 @@ Example Primary Button
 - [x] **Multi-provider authentication** - Account linking for email and Google
 
 ### Phase 2 (In Progress)
-- [ ] Online payment (Razorpay/Stripe)
+- [x] Online payment (PhonePe) - ₹1 minimum order value
 - [ ] Email notifications (order confirmation, shipping)
 - [ ] Order tracking page
 - [ ] Wishlist feature

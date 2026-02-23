@@ -5,6 +5,7 @@ import { eq, sql, desc } from 'drizzle-orm'
 import { verifyToken } from '@/lib/auth'
 import { sanitizeOrderData, validateEmail, validatePhoneNumber, validatePincode } from '@/lib/validation'
 import { generateId } from '@/lib/db/queries'
+import { sendOrderConfirmationEmail } from '@/lib/email'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,9 +24,6 @@ export async function POST(request: NextRequest) {
       pincode,
       userId,
       paymentMethod = 'cod',
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature,
       paymentStatus = 'pending',
     } = body
 
@@ -87,6 +85,7 @@ export async function POST(request: NextRequest) {
     const order = await db.transaction(async (tx) => {
       let totalPrice = 0
       const orderItemsData = []
+      const emailItemsData = [] // For email - includes product names
 
       // Validate stock and calculate prices atomically
       for (const item of items) {
@@ -115,6 +114,13 @@ export async function POST(request: NextRequest) {
         orderItemsData.push({
           id: generateId('item'),
           productId: productData.id,
+          quantity: item.quantity,
+          price: itemPrice.toFixed(2),
+        })
+
+        // Store data for email
+        emailItemsData.push({
+          name: productData.name,
           quantity: item.quantity,
           price: itemPrice.toFixed(2),
         })
@@ -158,9 +164,6 @@ export async function POST(request: NextRequest) {
         status: 'placed',
         paymentMethod: paymentMethod,
         paymentStatus: paymentStatus,
-        razorpayOrderId: razorpayOrderId || null,
-        razorpayPaymentId: razorpayPaymentId || null,
-        razorpaySignature: razorpaySignature || null,
         createdAt: now,
         updatedAt: now,
       }).returning()
@@ -170,11 +173,37 @@ export async function POST(request: NextRequest) {
         orderItemsData.map(item => ({ ...item, orderId }))
       ).returning()
 
-      return { ...newOrder, orderItems: createdItems }
+      return { 
+        order: { ...newOrder, orderItems: createdItems },
+        emailItems: emailItemsData 
+      }
     })
 
-    console.log('Order created successfully:', order.id)
-    return NextResponse.json(order)
+    console.log('Order created successfully:', order.order.id)
+
+    // Send confirmation email asynchronously (non-blocking)
+    // Email failure should NOT break order creation
+    sendOrderConfirmationEmail({
+      id: order.order.id,
+      orderNumber: order.order.orderNumber,
+      customerName: order.order.customerName,
+      customerEmail: order.order.customerEmail,
+      customerPhone: order.order.customerPhone,
+      addressLine1: order.order.addressLine1,
+      addressLine2: order.order.addressLine2,
+      city: order.order.city,
+      state: order.order.state,
+      pincode: order.order.pincode,
+      totalPrice: order.order.totalPrice,
+      paymentMethod: order.order.paymentMethod,
+      paymentProvider: order.order.paymentProvider,
+      transactionId: order.order.transactionId,
+      items: order.emailItems,
+    }).catch((error) => {
+      console.error('Email sending failed (non-blocking):', error)
+    })
+
+    return NextResponse.json(order.order)
   } catch (error: any) {
     console.error('Order creation error:', error)
 

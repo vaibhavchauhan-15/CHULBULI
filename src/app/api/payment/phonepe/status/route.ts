@@ -16,6 +16,7 @@ import { orders } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { verifyPhonePePayment } from '@/lib/phonepe';
 import { rateLimit } from '@/lib/rateLimit';
+import { sendOrderConfirmationEmail } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
@@ -153,6 +154,57 @@ export async function GET(request: NextRequest) {
             orderId: order.id,
             markedCompleted,
           });
+
+          // Send confirmation email if order was marked completed
+          if (markedCompleted) {
+            // Fetch complete order details with items for email
+            const completeOrder = await db.query.orders.findFirst({
+              where: eq(orders.id, order.id),
+              with: {
+                orderItems: {
+                  with: {
+                    product: {
+                      columns: {
+                        name: true,
+                      },
+                    },
+                  },
+                },
+              },
+            });
+
+            if (completeOrder) {
+              // Prepare email data
+              const emailData = {
+                id: completeOrder.id,
+                orderNumber: completeOrder.orderNumber,
+                customerName: completeOrder.customerName,
+                customerEmail: completeOrder.customerEmail,
+                customerPhone: completeOrder.customerPhone,
+                addressLine1: completeOrder.addressLine1,
+                addressLine2: completeOrder.addressLine2,
+                city: completeOrder.city,
+                state: completeOrder.state,
+                pincode: completeOrder.pincode,
+                totalPrice: completeOrder.totalPrice,
+                paymentMethod: completeOrder.paymentMethod,
+                paymentProvider: completeOrder.paymentProvider,
+                transactionId: completeOrder.transactionId,
+                items: completeOrder.orderItems.map((item: any) => ({
+                  name: item.product.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                })),
+              };
+
+              // Send confirmation email to customer (non-blocking)
+              sendOrderConfirmationEmail(emailData).catch((error) => {
+                console.error('Email sending failed for order:', completeOrder.id, error);
+              });
+
+              console.log('✅ Confirmation email sent for order:', completeOrder.id);
+            }
+          }
 
           return NextResponse.json({
             success: true,
